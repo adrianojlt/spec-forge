@@ -1,4 +1,4 @@
-# my-ai-files
+# spec-forge
 
 Skill pack for Claude Code implementing a staged, file-driven planning workflow.
 
@@ -29,20 +29,32 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 | `handoff` | session state | sessions/*.md | Continuity |
 | `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 
+## Arguments
+
+All skills use short argument names:
+
+| Arg | Stands for | Used by |
+|-----|-----------|---------|
+| `i` | input / source file | draft-discussion, discussion-analysis, analysis-plan, plan-tasks |
+| `o` | output file or directory | all writing skills (file; `plan-tasks` writes to a directory) |
+| `p` | prefix (task IDs) / project name | plan-tasks (prefix), bootstrap-spec-project (project) |
+| `f` | feature name | bootstrap-spec-project |
+| `n` | next-session purpose | handoff |
+
 ## Example invocations
 
 ```
-/draft-discussion source_file=inbox/idea.md target_file=features/auth/discussion.md
+/draft-discussion i=inbox/idea.md o=features/auth/discussion.md
 
-/discussion-analysis source_file=features/auth/discussion.md target_file=features/auth/analysis.md
+/discussion-analysis i=features/auth/discussion.md o=features/auth/analysis.md
 
-/analysis-plan source_file=features/auth/analysis.md target_file=features/auth/plan.md
+/analysis-plan i=features/auth/analysis.md o=features/auth/plan.md
 
-/plan-tasks source_file=features/auth/plan.md tasks_dir=features/auth/tasks/todo/ prefix=auth
+/plan-tasks i=features/auth/plan.md o=features/auth/tasks/todo/ p=auth
 
-/handoff target_file=sessions/2026-05-23-auth.md next_purpose="Begin auth-task-01 implementation"
+/handoff o=sessions/2026-05-23-auth.md n="Begin auth-task-01 implementation"
 
-/bootstrap-spec-project project_name=my-app feature_name=user-auth
+/bootstrap-spec-project p=my-app f=user-auth
 ```
 
 ## Install modes
@@ -71,7 +83,7 @@ No stage produces code unless explicitly required. Each stage is reviewable befo
 
 ## Project structure (ai-specs)
 
-After running `/bootstrap-spec-project project_name=my-app feature_name=user-auth`:
+After running `/bootstrap-spec-project p=my-app f=user-auth`:
 
 ```
 ~/ai-specs/my-app/

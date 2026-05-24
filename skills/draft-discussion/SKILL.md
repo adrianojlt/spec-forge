@@ -1,7 +1,7 @@
 ---
 name: draft-discussion
 description: Turn a rough draft into a structured discussion document through staged clarifying questions. No output until readiness gate passes.
-argument-hint: "source_file=<path> target_file=<path>"
+argument-hint: "i=<path> o=<path>"
 disable-model-invocation: true
 ---
 
@@ -11,8 +11,8 @@ disable-model-invocation: true
 Read a draft, ask structured clarifying questions across multiple rounds, then write `discussion.md` once the readiness gate passes.
 
 ## Inputs
-- `$source_file` - draft file to read
-- `$target_file` - where to write the discussion document
+- `$i` - draft file to read
+- `$o` - where to write the discussion document
 
 ## Hard rules
 - No code at this stage.
@@ -24,7 +24,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 ## Procedure
 
 **Step 1 - Read**
-Read `$source_file` in full.
+Read `$i` in full.
 
 **Step 2 - Clarification round 1**
 Ask 8-12 grouped questions covering all of:
@@ -41,7 +41,7 @@ Ask 8-12 grouped questions covering all of:
 If major gaps remain after answers, ask targeted follow-up questions. Repeat until readiness gate passes.
 
 **Step 4 - Write output**
-Write `$target_file` using the structure in `template.md`.
+Write `$o` using the structure in `template.md`.
 Confirm file was written. Do not proceed to analysis.
 
 ## Readiness gate

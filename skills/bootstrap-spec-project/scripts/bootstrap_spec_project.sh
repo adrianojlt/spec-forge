@@ -73,12 +73,12 @@ $PROJECT_NAME/
 ## Workflow
 
 1. Write idea in \`features/<name>/inbox/idea.md\`
-2. \`/draft-discussion source_file=features/<name>/inbox/idea.md target_file=features/<name>/discussion.md\`
-3. \`/discussion-analysis source_file=features/<name>/discussion.md target_file=features/<name>/analysis.md\`
-4. \`/analysis-plan source_file=features/<name>/analysis.md target_file=features/<name>/plan.md\`
-5. \`/plan-tasks source_file=features/<name>/plan.md tasks_dir=features/<name>/tasks/todo/ prefix=<name>\`
+2. \`/draft-discussion i=features/<name>/inbox/idea.md o=features/<name>/discussion.md\`
+3. \`/discussion-analysis i=features/<name>/discussion.md o=features/<name>/analysis.md\`
+4. \`/analysis-plan i=features/<name>/analysis.md o=features/<name>/plan.md\`
+5. \`/plan-tasks i=features/<name>/plan.md o=features/<name>/tasks/todo/ p=<name>\`
 6. Work tasks. Move files from \`tasks/todo/\` to \`tasks/done/\` when complete.
-7. \`/handoff target_file=sessions/<date>.md next_purpose="..."\`
+7. \`/handoff o=sessions/<date>.md n="..."\`
 EOF
     echo "  [ok] $README"
 fi
@@ -90,4 +90,4 @@ echo "  Feature: $FEATURE_DIR"
 echo ""
 echo "Start with:"
 echo "  Write idea to: $FEATURE_DIR/inbox/idea.md"
-echo "  Then run: /draft-discussion source_file=$FEATURE_DIR/inbox/idea.md target_file=$FEATURE_DIR/discussion.md"
+echo "  Then run: /draft-discussion i=$FEATURE_DIR/inbox/idea.md o=$FEATURE_DIR/discussion.md"

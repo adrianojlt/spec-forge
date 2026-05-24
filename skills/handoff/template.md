@@ -1,7 +1,7 @@
 # Handoff: [Session Name]
 
 Date: [date]
-Next purpose: [one sentence from $next_purpose]
+Next purpose: [one sentence from $n]
 
 ---
 

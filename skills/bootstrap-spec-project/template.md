@@ -49,9 +49,9 @@ Standard ai-specs layout created by bootstrap-spec-project.
 ## Workflow entry point
 
 1. Write idea in `features/<name>/inbox/idea.md`
-2. `/draft-discussion source_file=features/<name>/inbox/idea.md target_file=features/<name>/discussion.md`
-3. `/discussion-analysis source_file=features/<name>/discussion.md target_file=features/<name>/analysis.md`
-4. `/analysis-plan source_file=features/<name>/analysis.md target_file=features/<name>/plan.md`
-5. `/plan-tasks source_file=features/<name>/plan.md tasks_dir=features/<name>/tasks/todo/ prefix=<name>`
+2. `/draft-discussion i=features/<name>/inbox/idea.md o=features/<name>/discussion.md`
+3. `/discussion-analysis i=features/<name>/discussion.md o=features/<name>/analysis.md`
+4. `/analysis-plan i=features/<name>/analysis.md o=features/<name>/plan.md`
+5. `/plan-tasks i=features/<name>/plan.md o=features/<name>/tasks/todo/ p=<name>`
 6. Work tasks. Move individual files from `tasks/todo/` to `tasks/done/` when complete.
-7. `/handoff target_file=sessions/<date>-<topic>.md next_purpose="..."`
+7. `/handoff o=sessions/<date>-<topic>.md n="..."`

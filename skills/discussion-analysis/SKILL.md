@@ -1,7 +1,7 @@
 ---
 name: discussion-analysis
 description: Read a discussion document and produce a structured analysis separating facts from assumptions. No implementation plan yet.
-argument-hint: "source_file=<path> target_file=<path>"
+argument-hint: "i=<path> o=<path>"
 disable-model-invocation: true
 ---
 
@@ -11,8 +11,8 @@ disable-model-invocation: true
 Transform `discussion.md` into `analysis.md` by analyzing the problem space, separating confirmed facts from assumptions, and surfacing risks and dependencies. No implementation plan at this stage.
 
 ## Inputs
-- `$source_file` - path to discussion.md
-- `$target_file` - path where analysis.md should be written
+- `$i` - path to discussion.md
+- `$o` - path where analysis.md should be written
 
 ## Hard rules
 - No code.
@@ -25,7 +25,7 @@ Transform `discussion.md` into `analysis.md` by analyzing the problem space, sep
 ## Procedure
 
 **Step 1 - Read**
-Read `$source_file` in full.
+Read `$i` in full.
 
 **Step 2 - Separate**
 Identify and categorize:
@@ -40,7 +40,7 @@ For each goal:
 - Identify edge cases (boundary conditions, exceptional inputs, failure modes)
 
 **Step 4 - Write output**
-Write `$target_file` using the structure in `template.md`.
+Write `$o` using the structure in `template.md`.
 Confirm file written. Do not proceed to planning.
 
 ## Readiness gate

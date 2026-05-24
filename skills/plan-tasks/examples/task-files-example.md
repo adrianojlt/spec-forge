@@ -2,7 +2,7 @@
 
 Command run:
 ```
-/plan-tasks source_file=features/user-auth/plan.md tasks_dir=features/user-auth/tasks/todo/ prefix=user-auth
+/plan-tasks i=features/user-auth/plan.md o=features/user-auth/tasks/todo/ p=user-auth
 ```
 
 Result: 6 files written to `features/user-auth/tasks/todo/`:

@@ -1,7 +1,7 @@
 ---
 name: bootstrap-spec-project
 description: Bootstrap a new ai-specs project directory structure under ~/ai-specs/. Runs a bundled shell script.
-argument-hint: "project_name=<name> feature_name=<name>"
+argument-hint: "p=<name> f=<name>"
 disable-model-invocation: true
 ---
 
@@ -11,8 +11,8 @@ disable-model-invocation: true
 Create a new project structure under `~/ai-specs/<project_name>/` with the standard ai-specs layout. Intended to be run from within `~/ai-specs/` or any directory.
 
 ## Inputs
-- `$project_name` - name of the project directory to create
-- `$feature_name` - name of the first feature to scaffold
+- `$p` - name of the project directory to create
+- `$f` - name of the first feature to scaffold
 
 ## Procedure
 
@@ -26,7 +26,7 @@ The bundled script lives inside this skill's directory. Resolve the path based o
 Execute the script with the two required arguments:
 
 ```bash
-bash /path/to/skill/scripts/bootstrap_spec_project.sh "$project_name" "$feature_name"
+bash /path/to/skill/scripts/bootstrap_spec_project.sh "$p" "$f"
 ```
 
 The script is idempotent. Running it again on an existing project is safe.

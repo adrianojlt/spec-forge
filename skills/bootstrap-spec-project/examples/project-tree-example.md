@@ -2,7 +2,7 @@
 
 Command run:
 ```
-/bootstrap-spec-project project_name=my-app feature_name=user-auth
+/bootstrap-spec-project p=my-app f=user-auth
 ```
 
 Result:
@@ -58,7 +58,7 @@ Done.
 
 Start with:
   Write idea to: /Users/adriano/ai-specs/my-app/features/user-auth/inbox/idea.md
-  Then run: /draft-discussion source_file=/Users/adriano/ai-specs/my-app/features/user-auth/inbox/idea.md target_file=/Users/adriano/ai-specs/my-app/features/user-auth/discussion.md
+  Then run: /draft-discussion i=/Users/adriano/ai-specs/my-app/features/user-auth/inbox/idea.md o=/Users/adriano/ai-specs/my-app/features/user-auth/discussion.md
 ```
 
 ## Folder guide

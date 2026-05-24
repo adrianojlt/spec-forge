@@ -12,7 +12,7 @@ Run before writing output. Fail any item = revise.
 
 ## Scope checks
 
-- [ ] Handoff is tailored to $next_purpose (not generic)
+- [ ] Handoff is tailored to $n (not generic)
 - [ ] Open questions are relevant to the next session (not all historical questions)
 - [ ] Decisions listed are decisions (not observations or descriptions)
 
