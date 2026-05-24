@@ -1,19 +1,19 @@
 ---
 name: plan-tasks
 description: Decompose plan.md into atomic, testable tasks. One file per task written to tasks_dir. Enforce INVEST and Given/When/Then format.
-argument-hint: "source_file=<path> tasks_dir=<path> prefix=<prefix>"
+argument-hint: "i=<path> o=<path> p=<prefix>"
 disable-model-invocation: true
 ---
 
 # plan-tasks
 
 ## Purpose
-Transform `plan.md` into individual task files, one per task, written to `$tasks_dir`. Each task must be independently implementable, testable, and have clear acceptance criteria.
+Transform `plan.md` into individual task files, one per task, written to `$o`. Each task must be independently implementable, testable, and have clear acceptance criteria.
 
 ## Inputs
-- `$source_file` - path to plan.md
-- `$tasks_dir` - directory where task files will be written (e.g. `features/user-auth/tasks/todo/`)
-- `$prefix` - file name prefix derived from the feature name (e.g. `user-auth`)
+- `$i` - path to plan.md
+- `$o` - directory where task files will be written (e.g. `features/user-auth/tasks/todo/`)
+- `$p` - file name prefix derived from the feature name (e.g. `user-auth`)
 
 ## Hard rules
 - No giant umbrella tasks.
@@ -26,17 +26,17 @@ Transform `plan.md` into individual task files, one per task, written to `$tasks
 ## Procedure
 
 **Step 1 - Read**
-Read `$source_file` in full.
+Read `$i` in full.
 
 **Step 2 - Slice to tasks**
 For each scope slice in the plan, decompose into the minimum number of atomic tasks. A task should be completable in one focused session.
 
 **Step 3 - Order**
-Order tasks by dependency. Task IDs are sequential and derived from `$prefix` (e.g. user-auth-task-01, user-auth-task-02).
+Order tasks by dependency. Task IDs are sequential and derived from `$p` (e.g. user-auth-task-01, user-auth-task-02).
 
 **Step 4 - Write each task**
 For each task, compose:
-- ID (e.g. `user-auth-task-01`, derived from `$prefix` and sequence number)
+- ID (e.g. `user-auth-task-01`, derived from `$p` and sequence number)
 - Title (imperative verb phrase, under 60 chars)
 - Purpose (one sentence: why this task, what it unlocks)
 - Depends on (task IDs or "none")
@@ -46,7 +46,7 @@ For each task, compose:
 - Done definition
 
 **Step 5 - Write output**
-Write one file per task into `$tasks_dir`. File name pattern: `$prefix-task-<NN>.md` where NN is zero-padded (01, 02, ...). Write files in dependency order. Confirm count of files written.
+Write one file per task into `$o`. File name pattern: `$p-task-<NN>.md` where NN is zero-padded (01, 02, ...). Write files in dependency order. Confirm count of files written.
 
 ## Readiness gate
 - No task is broader than one focused work session

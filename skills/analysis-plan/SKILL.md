@@ -1,7 +1,7 @@
 ---
 name: analysis-plan
 description: Read analysis.md and produce a sequenced implementation plan. No code, no task explosion.
-argument-hint: "source_file=<path> target_file=<path>"
+argument-hint: "i=<path> o=<path>"
 disable-model-invocation: true
 ---
 
@@ -11,8 +11,8 @@ disable-model-invocation: true
 Transform `analysis.md` into `plan.md` by sequencing work logically, making dependencies explicit, and keeping tradeoffs visible. No code. No task list yet.
 
 ## Inputs
-- `$source_file` - path to analysis.md
-- `$target_file` - path where plan.md should be written
+- `$i` - path to analysis.md
+- `$o` - path where plan.md should be written
 
 ## Hard rules
 - No code.
@@ -24,7 +24,7 @@ Transform `analysis.md` into `plan.md` by sequencing work logically, making depe
 ## Procedure
 
 **Step 1 - Read**
-Read `$source_file` in full. Note unresolved open questions before proceeding.
+Read `$i` in full. Note unresolved open questions before proceeding.
 
 **Step 2 - Identify scope slices**
 Break the work into logical slices (phases, layers, or components). Each slice must be:
@@ -45,7 +45,7 @@ For each slice, identify impact on:
 State at a high level how each slice will be tested. Unit, integration, end-to-end, or manual.
 
 **Step 6 - Write output**
-Write `$target_file` using the structure in `template.md`.
+Write `$o` using the structure in `template.md`.
 Confirm file written. Do not generate tasks. STOP. Inform the user the plan is written and they should invoke `plan-tasks` to decompose it into tasks. Take no further action.
 
 ## Readiness gate
