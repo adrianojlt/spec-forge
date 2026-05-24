@@ -1,16 +1,13 @@
-# BACKLOG: [Feature Name]
+# [prefix-task-NN] [Task Title]
 
 Source: [path to plan.md]
 Date: [date]
-Total tasks: [N]
 
 ---
 
-## [PREFIX-001] [Task Title]
-
 **Purpose:** [One sentence: why this task exists and what it enables.]
 
-**Depends on:** [task IDs | none]
+**Depends on:** [task file names | none]
 
 **Scope notes:**
 - In: [what this task covers]
@@ -35,9 +32,3 @@ Then [outcome]
 - Testable: [yes/no]
 
 **Done:** [Specific completion condition. Not "it works" but e.g. "migration runs clean on staging, test passes, PR merged."]
-
----
-
-## [PREFIX-002] [Task Title]
-
-[Repeat structure for each task...]

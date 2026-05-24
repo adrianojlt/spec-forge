@@ -9,6 +9,15 @@ Result:
 ```
 ~/ai-specs/my-app/
   README.md
+  overview/
+    .gitkeep
+  backlog/
+    .gitkeep
+  tasks/
+    todo/
+      .gitkeep
+    done/
+      .gitkeep
   features/
     user-auth/
       inbox/
@@ -35,6 +44,10 @@ Bootstrapping: /Users/adriano/ai-specs/my-app
   [ok] /Users/adriano/ai-specs/my-app/features/user-auth/tasks/todo
   [ok] /Users/adriano/ai-specs/my-app/features/user-auth/tasks/done
   [ok] /Users/adriano/ai-specs/my-app/features/user-auth/sessions
+  [ok] /Users/adriano/ai-specs/my-app/overview
+  [ok] /Users/adriano/ai-specs/my-app/backlog
+  [ok] /Users/adriano/ai-specs/my-app/tasks/todo
+  [ok] /Users/adriano/ai-specs/my-app/tasks/done
   [ok] /Users/adriano/ai-specs/my-app/prompts
   [ok] /Users/adriano/ai-specs/my-app/sessions
   [ok] /Users/adriano/ai-specs/my-app/README.md
@@ -48,9 +61,29 @@ Start with:
   Then run: /draft-discussion source_file=/Users/adriano/ai-specs/my-app/features/user-auth/inbox/idea.md target_file=/Users/adriano/ai-specs/my-app/features/user-auth/discussion.md
 ```
 
-## Next steps after bootstrap
+## Folder guide
 
-1. Write a rough idea in `~/ai-specs/my-app/features/user-auth/inbox/idea.md`
-2. Run `/draft-discussion` (paths shown in script output above)
-3. Review `discussion.md` before proceeding to analysis
-4. Follow the pipeline: discussion -> analysis -> plan -> BACKLOG
+| Path | Use for |
+|------|---------|
+| `overview/` | Architecture docs, decision records, project context |
+| `backlog/` | Unscoped ideas not yet ready for planning |
+| `tasks/todo/` | Simple tasks - no feature pipeline needed |
+| `tasks/done/` | Completed simple tasks |
+| `features/<name>/inbox/` | Draft ideas entering the planning pipeline |
+| `features/<name>/tasks/todo/` | Task files from `/plan-tasks` |
+| `features/<name>/tasks/done/` | Completed feature tasks |
+
+## After plan-tasks runs
+
+```
+~/ai-specs/my-app/features/user-auth/tasks/todo/
+  user-auth-task-01.md
+  user-auth-task-02.md
+  user-auth-task-03.md
+  ...
+```
+
+Move to done when complete:
+```bash
+mv features/user-auth/tasks/todo/user-auth-task-01.md features/user-auth/tasks/done/
+```

@@ -21,9 +21,11 @@ Run before writing output. Fail any item = split or revise the task.
 
 ## Structure checks
 
-- [ ] Tasks are ordered by dependency (not by effort or arbitrary order)
-- [ ] Each task has a unique ID
-- [ ] Depends-on references valid task IDs
+- [ ] Each task is written to its own file
+- [ ] File names follow `<prefix>-task-<NN>.md` pattern (zero-padded)
+- [ ] Files are written in dependency order (task-01 before task-02, etc.)
+- [ ] Each task has a unique ID matching its file name
+- [ ] Depends-on references valid task file names
 - [ ] Done definition is specific and not "it works"
 
 ## Hard stops

@@ -46,7 +46,7 @@ State at a high level how each slice will be tested. Unit, integration, end-to-e
 
 **Step 6 - Write output**
 Write `$target_file` using the structure in `template.md`.
-Confirm file written. Do not generate tasks.
+Confirm file written. Do not generate tasks. STOP. Inform the user the plan is written and they should invoke `plan-tasks` to decompose it into tasks. Take no further action.
 
 ## Readiness gate
 - Sequence is explicit and numbered

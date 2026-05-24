@@ -83,4 +83,4 @@ The system currently has no authentication layer. Any request reaches any endpoi
 
 ## Readiness Assessment
 
-Analysis is complete enough to begin planning. Two open questions from discussion remain, plus two new questions surfaced during analysis. Planning can begin, but "open vs. invite-only registration" must be answered before AUTH-002 can be fully scoped, and JWT secret storage must be resolved before Slice 3 ships.
+Analysis is complete enough to begin planning. Two open questions from discussion remain, plus two new questions surfaced during analysis. Planning can begin, but "open vs. invite-only registration" must be answered before user-auth-task-02 can be fully scoped, and JWT secret storage must be resolved before Slice 3 ships.

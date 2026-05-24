@@ -1,5 +1,9 @@
 # INSTALL
 
+## Compatibility
+
+Skills installed here work in both **Claude Code** and **OpenCode**. OpenCode scans `~/.claude/skills/` and `.claude/skills/` natively. No separate OpenCode install needed.
+
 ## Requirements
 
 - Claude Code CLI installed

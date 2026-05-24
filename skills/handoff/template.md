@@ -21,7 +21,7 @@ Next purpose: [one sentence from $next_purpose]
 
 ## Next Recommended Action
 
-[One clear action: e.g. "Run /plan-tasks on features/auth/plan.md and review output before starting AUTH-001."]
+[One clear action: e.g. "Run /plan-tasks on features/auth/plan.md and review output before starting user-auth-task-01."]
 
 ## Suggested Skills
 
