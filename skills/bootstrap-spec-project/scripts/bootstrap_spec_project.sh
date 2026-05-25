@@ -73,9 +73,9 @@ $PROJECT_NAME/
 ## Workflow
 
 1. Write idea in \`features/<name>/inbox/idea.md\`
-2. \`/draft-discussion i=features/<name>/inbox/idea.md o=features/<name>/discussion.md\`
+2. \`/draft-discussion i=features/<name>/inbox/idea.md o=features/<name>/discussion.md\`  (also writes discussion-qa.md)
 3. \`/discussion-analysis i=features/<name>/discussion.md o=features/<name>/analysis.md\`
-4. \`/analysis-plan i=features/<name>/analysis.md o=features/<name>/plan.md\`
+4. \`/analysis-plan i=features/<name>/analysis.md o=features/<name>/plan.md\`  (review + approve before step 5)
 5. \`/plan-tasks i=features/<name>/plan.md o=features/<name>/tasks/todo/ p=<name>\`
 6. Work tasks. Move files from \`tasks/todo/\` to \`tasks/done/\` when complete.
 7. \`/handoff o=sessions/<date>.md n="..."\`

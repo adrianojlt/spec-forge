@@ -20,6 +20,7 @@ Transform `analysis.md` into `plan.md` by sequencing work logically, making depe
 - No implementation detail below design level.
 - Dependencies must be stated, not implied.
 - Tradeoffs must be visible, not hidden.
+- Do not advance to task decomposition. Require explicit user approval of the plan first.
 
 ## Procedure
 
@@ -45,8 +46,24 @@ For each slice, identify impact on:
 State at a high level how each slice will be tested. Unit, integration, end-to-end, or manual.
 
 **Step 6 - Write output**
-Write `$o` using the structure in `template.md`.
-Confirm file written. Do not generate tasks. STOP. Inform the user the plan is written and they should invoke `plan-tasks` to decompose it into tasks. Take no further action.
+Write `$o` using the structure in `template.md`. Confirm file written. Do not generate tasks.
+
+**Step 7 - Review gate (STOP for approval)**
+Do not advance to task decomposition. Present a short review summary in chat:
+- The numbered slice sequence
+- Key tradeoffs
+- Top risks
+- Any unresolved open questions
+
+Then ask the user to choose one of:
+1. Approve the plan as-is
+2. Request edits (apply them to `$o`, then re-present this summary)
+3. Edit `$o` themselves and tell you when done
+
+Only after the user explicitly approves, tell them to invoke `plan-tasks` to decompose the plan. Take no further action until then.
+
+## Review gate (human approval)
+This is the one human checkpoint in the pipeline that gates real design decisions (slicing, sequencing, tradeoffs). A wrong `plan.md` is cheap to fix here; a wrong set of task files is expensive to fix later. Never auto-advance to `plan-tasks`. Wait for explicit approval.
 
 ## Readiness gate
 - Sequence is explicit and numbered

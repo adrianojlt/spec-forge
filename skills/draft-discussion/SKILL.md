@@ -13,6 +13,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 ## Inputs
 - `$i` - draft file to read
 - `$o` - where to write the discussion document
+- Q&A transcript path - derived from `$o`, no separate argument: same directory, filename `<o-basename-without-ext>-qa.md` (e.g. `discussion.md` -> `discussion-qa.md`).
 
 ## Hard rules
 - No code at this stage.
@@ -20,6 +21,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 - Do not skip open questions.
 - Do not write output until the readiness gate passes.
 - First round must contain 8-12 grouped questions.
+- Never discard the raw Q&A. Persist it to the transcript file after every round, before asking the next round.
 
 ## Procedure
 
@@ -37,12 +39,14 @@ Ask 8-12 grouped questions covering all of:
 7. Existing state (what exists, what is partially done, what is broken)
 8. Definition of done (when is this feature considered complete)
 
+After the user answers, immediately record this round to the Q&A transcript: create it using `qa-template.md` and write Round 1 with the grouped questions and the user's verbatim answers. Do this before asking any follow-up round.
+
 **Step 3 - Follow-up rounds**
-If major gaps remain after answers, ask targeted follow-up questions. Repeat until readiness gate passes.
+If major gaps remain after answers, ask targeted follow-up questions. Repeat until readiness gate passes. After each round's answers, append that round (questions + verbatim answers) to the Q&A transcript before continuing.
 
 **Step 4 - Write output**
-Write `$o` using the structure in `template.md`.
-Confirm file was written. Do not proceed to analysis.
+Write `$o` using the structure in `template.md`. Set the Q&A transcript Status to `Complete`.
+Confirm both files were written (`$o` and the Q&A transcript). Do not proceed to analysis.
 
 ## Readiness gate
 All must be satisfied before writing output:
@@ -54,7 +58,9 @@ All must be satisfied before writing output:
 - No critical open questions remain unacknowledged
 
 ## Output contract
-See `template.md` for required sections.
+Two artifacts:
+- `$o` - the discussion document. See `template.md` for required sections.
+- The Q&A transcript (`<o-basename>-qa.md`). See `qa-template.md`.
 
 ## Validation
 Before writing, verify against `checklist.md`. Ask more questions if any item fails.

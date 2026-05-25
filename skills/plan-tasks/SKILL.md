@@ -22,11 +22,12 @@ Transform `plan.md` into individual task files, one per task, written to `$o`. E
 - All acceptance criteria in Given/When/Then format.
 - All tasks must pass INVEST check.
 - Dependency ordering must match plan.md sequence.
+- Assume `plan.md` is user-approved (via the analysis-plan review gate). If it still reads as a raw draft (Status: Draft, or unresolved open questions), confirm with the user before decomposing.
 
 ## Procedure
 
 **Step 1 - Read**
-Read `$i` in full.
+Read `$i` in full. Confirm the plan was approved at the analysis-plan review gate before proceeding.
 
 **Step 2 - Slice to tasks**
 For each scope slice in the plan, decompose into the minimum number of atomic tasks. A task should be completable in one focused session.
