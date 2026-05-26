@@ -43,6 +43,41 @@ for dir in "${dirs[@]}"; do
     echo "  [ok] $dir"
 done
 
+PRINCIPLES="$PROJECT_DIR/overview/principles.md"
+if [[ ! -f "$PRINCIPLES" ]]; then
+    cat > "$PRINCIPLES" <<EOF
+# Principles: $PROJECT_NAME
+
+Status: Draft
+
+---
+
+> Binding, project-wide rules. Read by discussion-analysis, analysis-plan, and
+> task-execute. Keep short. One line per rule. Run /project-principles to fill in.
+
+## Principles
+
+-
+
+## Constraints
+
+-
+
+## Conventions
+
+-
+
+## Decision Defaults
+
+-
+
+## Non-Negotiables
+
+-
+EOF
+    echo "  [ok] $PRINCIPLES"
+fi
+
 README="$PROJECT_DIR/README.md"
 if [[ ! -f "$README" ]]; then
     cat > "$README" <<EOF
@@ -77,8 +112,11 @@ $PROJECT_NAME/
 3. \`/discussion-analysis i=features/<name>/discussion.md o=features/<name>/analysis.md\`
 4. \`/analysis-plan i=features/<name>/analysis.md o=features/<name>/plan.md\`  (review + approve before step 5)
 5. \`/plan-tasks i=features/<name>/plan.md o=features/<name>/tasks/todo/ p=<name>\`
-6. Work tasks. Move files from \`tasks/todo/\` to \`tasks/done/\` when complete.
-7. \`/handoff o=sessions/<date>.md n="..."\`
+6. \`/task-execute i=features/<name>/tasks/todo/<name>-task-01.md\`  (implements, verifies, moves todo->done)
+7. \`/task-verify i=features/<name>/tasks/done/<name>-task-01.md\`  (optional read-only re-check)
+8. \`/handoff o=sessions/<date>.md n="..."\`
+
+Optional: \`/project-principles o=overview/principles.md\` to set project-wide rules the pipeline reads.
 EOF
     echo "  [ok] $README"
 fi

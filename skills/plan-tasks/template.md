@@ -2,6 +2,7 @@
 
 Source: [path to plan.md]
 Date: [date]
+Status: [Draft | Approved | Done]
 
 ---
 

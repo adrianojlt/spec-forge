@@ -1,7 +1,7 @@
 ---
 name: analysis-plan
 description: Read analysis.md and produce a sequenced implementation plan. No code, no task explosion.
-argument-hint: "i=<path> o=<path>"
+argument-hint: "i=<path> o=<path> [c=<path>]"
 disable-model-invocation: true
 ---
 
@@ -13,6 +13,7 @@ Transform `analysis.md` into `plan.md` by sequencing work logically, making depe
 ## Inputs
 - `$i` - path to analysis.md
 - `$o` - path where plan.md should be written
+- `$c` - optional path to the existing codebase root. If set, ground Data/API/UI impact in real code paths instead of hypotheticals.
 
 ## Hard rules
 - No code.
@@ -25,7 +26,7 @@ Transform `analysis.md` into `plan.md` by sequencing work logically, making depe
 ## Procedure
 
 **Step 1 - Read**
-Read `$i` in full. Note unresolved open questions before proceeding.
+Read `$i` in full. Note unresolved open questions before proceeding. If `overview/principles.md` exists, read it and treat its rules as binding constraints. If `$c` is set, consult the existing code when assessing impact so Data/API/UI sections name real paths.
 
 **Step 2 - Identify scope slices**
 Break the work into logical slices (phases, layers, or components). Each slice must be:
@@ -60,7 +61,7 @@ Then ask the user to choose one of:
 2. Request edits (apply them to `$o`, then re-present this summary)
 3. Edit `$o` themselves and tell you when done
 
-Only after the user explicitly approves, tell them to invoke `plan-tasks` to decompose the plan. Take no further action until then.
+Only after the user explicitly approves, set the plan's `Status:` to `Approved`, then tell them to invoke `plan-tasks` to decompose the plan. Take no further action until then.
 
 ## Review gate (human approval)
 This is the one human checkpoint in the pipeline that gates real design decisions (slicing, sequencing, tradeoffs). A wrong `plan.md` is cheap to fix here; a wrong set of task files is expensive to fix later. Never auto-advance to `plan-tasks`. Wait for explicit approval.

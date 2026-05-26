@@ -1,7 +1,7 @@
 ---
 name: discussion-analysis
 description: Read a discussion document and produce a structured analysis separating facts from assumptions. No implementation plan yet.
-argument-hint: "i=<path> o=<path>"
+argument-hint: "i=<path> o=<path> [c=<path>]"
 disable-model-invocation: true
 ---
 
@@ -13,6 +13,7 @@ Transform `discussion.md` into `analysis.md` by analyzing the problem space, sep
 ## Inputs
 - `$i` - path to discussion.md
 - `$o` - path where analysis.md should be written
+- `$c` - optional path to the existing codebase root. If set, ground the analysis in real code (brownfield). If unset, behavior is unchanged (greenfield).
 
 ## Hard rules
 - No code.
@@ -25,7 +26,10 @@ Transform `discussion.md` into `analysis.md` by analyzing the problem space, sep
 ## Procedure
 
 **Step 1 - Read**
-Read `$i` in full.
+Read `$i` in full. If `overview/principles.md` exists, read it and treat its rules as binding constraints.
+
+**Step 1b - Ground in code (only if `$c` set)**
+Dispatch an Explore subagent over `$c` to map the existing code relevant to this work: files and modules touched, current behavior, and constraints already in place. Use the findings to inform Confirmed Facts and Dependencies (existing behavior is fact, not assumption). Record them in the `Codebase Findings` section of the output. Skip this step entirely if `$c` is unset.
 
 **Step 2 - Separate**
 Identify and categorize:

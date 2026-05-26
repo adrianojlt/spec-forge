@@ -2,7 +2,7 @@
 
 Source: [path to discussion.md]
 Date: [date]
-Status: [Draft | Ready | Blocked]
+Status: [Draft | Approved | Done]
 
 ---
 
@@ -10,9 +10,17 @@ Status: [Draft | Ready | Blocked]
 
 [Restate the problem from discussion.md in one precise paragraph. No new interpretation.]
 
+## Codebase Findings
+
+> Only when analysis was run with `c=<codebase>`. Omit this section for greenfield work.
+
+- [Existing file/module relevant to this work and what it currently does]
+- [Current behavior or contract that constrains the change]
+- [Constraint discovered in the code, e.g. "auth handled by middleware in X"]
+
 ## Confirmed Facts
 
-- [Fact 1 - explicitly confirmed in discussion]
+- [Fact 1 - explicitly confirmed in discussion, or observed in the codebase]
 - [Fact 2]
 - [Fact 3]
 

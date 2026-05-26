@@ -2,7 +2,7 @@
 
 Source: [path to analysis.md]
 Date: [date]
-Status: [Draft | Ready | Blocked]
+Status: [Draft | Approved | Done]
 
 ---
 
