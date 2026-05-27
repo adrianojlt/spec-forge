@@ -1,6 +1,7 @@
 # Discussion: [Title]
 
 Source: [path to source draft]
+QA: [path to discussion-qa.md]
 Date: [date]
 Status: [Draft | Approved | Done]
 
