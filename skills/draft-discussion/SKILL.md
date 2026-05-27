@@ -1,7 +1,7 @@
 ---
 name: draft-discussion
 description: Turn a rough draft into a structured discussion document through staged clarifying questions. No output until readiness gate passes.
-argument-hint: "i=<path> o=<path>"
+argument-hint: "i=<path> o=<path> [n=<min>-<max>]"
 disable-model-invocation: true
 ---
 
@@ -20,7 +20,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 - No architecture decisions unless confirmed by user.
 - Do not skip open questions.
 - Do not write output until the readiness gate passes.
-- First round must contain 8-12 grouped questions.
+- First round must contain $n grouped questions. $n defaults to 8-12; override with n=<min>-<max> argument (e.g. n=3-5).
 - Never discard the raw Q&A. Persist it to the transcript file after every round, before asking the next round.
 
 ## Procedure
@@ -29,7 +29,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 Read `$i` in full.
 
 **Step 2 - Clarification round 1**
-Ask 8-12 grouped questions covering all of:
+Ask $n grouped questions covering all of:
 1. Problem / context (what is broken or missing, why now)
 2. Goals and success criteria (what does success look like, how measured)
 3. Non-goals (what is explicitly out of scope)
