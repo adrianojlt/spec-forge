@@ -14,6 +14,7 @@ draft.md
                              tasks/todo/<prefix>-task-02.md
                              ...
   -> /task-execute        -> implements one task, verifies, moves todo/ -> done/
+  -> /code-review         -> review report (quality, security, performance, spec, tests)
   -> /task-verify         -> read-only re-check of a task's acceptance criteria
 ```
 
@@ -24,6 +25,7 @@ idea
   -> /to-prd              -> prd.md (user stories + acceptance criteria)
   -> /to-issues           -> tasks/todo/<prefix>-task-01.md (vertical slices)
   -> /tdd                 -> code + tests (red-green-refactor loop, moves todo/ -> done/)
+  -> /code-review         -> review report (quality, security, performance, spec, tests)
 ```
 
 Optional, before either pipeline: `/project-principles` -> overview/principles.md (project-wide rules the pipeline reads)
@@ -49,6 +51,7 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `to-issues` | prd.md | tasks/todo/*.md (vertical slices) | Decomposition |
 | `task-execute` | one task file | code + task moved to tasks/done/ | Execution |
 | `tdd` | one task file | code + tests, task moved to tasks/done/ | Execution (TDD) |
+| `code-review` | one task file | review report (read-only) | Review |
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
 | `handoff` | session state | sessions/*.md | Continuity |
 | `project-principles` | project rules | overview/principles.md | Governance |
@@ -69,9 +72,9 @@ All skills use short argument names:
 
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
-| `i` | input / source file | grill-me, draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, task-verify |
+| `i` | input / source file | grill-me, draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify |
 | `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory) |
-| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, to-prd, to-issues, tdd |
+| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, to-prd, to-issues, tdd, code-review |
 | `p` | prefix (task IDs) / project name | plan-tasks (prefix), to-issues (prefix), bootstrap-spec-project (project) |
 | `f` | feature name | bootstrap-spec-project |
 | `n` | next-session purpose | handoff |
@@ -90,6 +93,8 @@ Classic pipeline:
 
 /task-execute i=features/auth/tasks/todo/auth-task-01.md
 
+/code-review i=features/auth/tasks/done/auth-task-01.md
+
 /task-verify i=features/auth/tasks/done/auth-task-01.md
 ```
 
@@ -102,6 +107,8 @@ Agile pipeline:
 /to-issues i=features/auth/prd.md o=features/auth/tasks/todo/ p=auth
 
 /tdd i=features/auth/tasks/todo/auth-task-01.md
+
+/code-review i=features/auth/tasks/done/auth-task-01.md
 ```
 
 Other:
@@ -147,8 +154,9 @@ Works in both **Claude Code** and **OpenCode** with no extra steps. OpenCode sca
 4. `/analysis-plan` - Claude sequences work, identifies dependencies, writes `plan.md`, then STOPS for your review and approval before `plan-tasks` runs.
 5. `/plan-tasks` - Claude decomposes the approved plan into atomic tasks, writes one file per task into `tasks/todo/`.
 6. `/task-execute` - Claude implements a single task, verifies its acceptance criteria, and moves the file from `tasks/todo/` to `tasks/done/`. Run once per task.
-7. `/task-verify` (optional) - read-only re-check of a task's Given/When/Then against the repo. Useful to audit done work.
-8. `/handoff` at session end to write a resumable session document.
+7. `/code-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
+8. `/task-verify` (optional) - read-only re-check of a task's Given/When/Then against the repo. Useful to audit done work.
+9. `/handoff` at session end to write a resumable session document.
 
 Optionally seed `overview/principles.md` first with `/project-principles`. When present, `discussion-analysis`, `analysis-plan`, and `task-execute` read it as binding constraints.
 
@@ -158,6 +166,7 @@ Optionally seed `overview/principles.md` first with `/project-principles`. When 
 2. `/to-prd` - Claude converts grilled notes into a PRD with user stories and Given/When/Then acceptance criteria.
 3. `/to-issues` - Claude breaks the PRD into vertical slices (tracer-bullet tasks), each delivering end-to-end user-visible value. Writes task files compatible with the rest of the pipeline.
 4. `/tdd` - Claude implements one task using red-green-refactor: confirm interface, write one failing test, write minimum code, refactor, repeat. Moves task to `tasks/done/` when all criteria are covered by passing tests.
+5. `/code-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
 
 ### Architecture review
 
