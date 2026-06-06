@@ -34,6 +34,8 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 
 Codebase health check (any time): `/improve-codebase-architecture` -> architecture-report.md
 
+Coding standards (language-specific): `/coding-principles` (generic) or `/java-coding-standards`, `/go-coding-standards`, `/rust-coding-standards`, `/swift-coding-standards`, `/typescript-coding-standards`, `/python-coding-standards`, `/kotlin-coding-standards`
+
 ## Skills
 
 | Skill | Input | Output | Stage |
@@ -52,6 +54,14 @@ Codebase health check (any time): `/improve-codebase-architecture` -> architectu
 | `project-principles` | project rules | overview/principles.md | Governance |
 | `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
+| `coding-principles` | any language | guidelines reference | Code Quality |
+| `java-coding-standards` | Java code | guidelines reference | Code Quality |
+| `go-coding-standards` | Go code | guidelines reference | Code Quality |
+| `rust-coding-standards` | Rust code | guidelines reference | Code Quality |
+| `swift-coding-standards` | Swift code | guidelines reference | Code Quality |
+| `typescript-coding-standards` | TypeScript code | guidelines reference | Code Quality |
+| `python-coding-standards` | Python code | guidelines reference | Code Quality |
+| `kotlin-coding-standards` | Kotlin code | guidelines reference | Code Quality |
 
 ## Arguments
 
