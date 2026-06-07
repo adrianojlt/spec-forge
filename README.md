@@ -1,6 +1,6 @@
 # spec-forge
 
-Skill pack for Claude Code implementing a staged, file-driven planning workflow.
+Skill pack for Claude Code and Opencode implementing a staged, file-driven planning workflow.
 
 ## Workflows
 
@@ -155,7 +155,19 @@ See `INSTALL.md` for exact commands.
 
 ## Compatibility
 
-Works in both **Claude Code** and **OpenCode** with no extra steps. OpenCode scans `~/.claude/skills/<name>/SKILL.md` and `.claude/skills/<name>/SKILL.md` natively alongside its own paths. Installing once covers both tools.
+**Primary support: Claude Code and OpenCode**
+
+These skills are designed for **Claude Code** and **OpenCode**. Both tools natively scan `~/.claude/skills/<name>/SKILL.md` and `.claude/skills/<name>/SKILL.md`, so installing once covers both. The skills use tool-specific features like automatic invocation (`/skill-name`) and argument parsing (`i=`, `o=`, `c=`).
+
+**Other AI agents**
+
+The core skill content (procedures, rules, templates) is written in standard Markdown and can be used with other AI coding agents (Cursor, Codex, Windsurf, Aider, etc.) by manually referencing the skill files. These tools don't have built-in skill systems, so you'll need to:
+
+1. Include the skill files in your repo or reference them by path
+2. Manually invoke them in prompts (e.g., "Read `skills/grill-me.md` and follow its procedure")
+3. Provide context and arguments manually instead of using the `i=`, `o=` syntax
+
+The skills will work, but without the automatic invocation and argument handling that Claude Code/OpenCode provide.
 
 ## Workflow guide
 
