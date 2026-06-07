@@ -169,6 +169,25 @@ The core skill content (procedures, rules, templates) is written in standard Mar
 
 The skills will work, but without the automatic invocation and argument handling that Claude Code/OpenCode provide.
 
+## Windows
+
+**Use WSL or Git Bash**
+
+The installation scripts (`install-personal.sh`, `install-project.sh`) and bootstrap script are bash-based and require a Unix-like environment. On Windows, use one of:
+
+- **WSL (Windows Subsystem for Linux)** - Recommended. Full Linux environment.
+- **Git Bash** - Lightweight alternative. Comes with Git for Windows.
+
+Both provide full bash compatibility. The skill files themselves (Markdown) are cross-platform and work on any OS.
+
+**Setup:**
+1. Install WSL or Git Bash
+2. Open WSL/Git Bash terminal
+3. Run installation scripts as documented above
+4. Use Claude Code/OpenCode within the same environment
+
+Claude Code and OpenCode work best in Unix-like environments, so this approach provides the most reliable experience.
+
 ## Workflow guide
 
 ### Full orchestration
