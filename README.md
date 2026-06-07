@@ -14,8 +14,8 @@ draft.md
                              tasks/todo/<prefix>-task-02.md
                              ...
   -> /task-execute        -> implements one task, verifies, moves todo/ -> done/
-  -> /code-review         -> review report (quality, security, performance, spec, tests)
-  -> /task-verify         -> read-only re-check of a task's acceptance criteria
+  -> /code-review         -> (optional) review report (quality, security, performance, spec, tests)
+  -> /task-verify         -> (optional) read-only re-check of a task's acceptance criteria
 ```
 
 **Agile pipeline** (idea-to-vertical-slices):
@@ -25,7 +25,7 @@ idea
   -> /to-prd              -> prd.md (user stories + acceptance criteria)
   -> /to-issues           -> tasks/todo/<prefix>-task-01.md (vertical slices)
   -> /tdd                 -> code + tests (red-green-refactor loop, moves todo/ -> done/)
-  -> /code-review         -> review report (quality, security, performance, spec, tests)
+  -> /code-review         -> (optional) review report (quality, security, performance, spec, tests)
 ```
 
 Optional, before either pipeline: `/project-principles` -> overview/principles.md (project-wide rules the pipeline reads)
@@ -33,6 +33,16 @@ Optional, before either pipeline: `/project-principles` -> overview/principles.m
 At session end: `/handoff` -> sessions/<name>.md
 
 To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
+
+**Full orchestration** (automated pipeline):
+```
+/orchestrate i=<input> o=<output-dir>
+  -> asks which pipeline (Classic or Agile)
+  -> chains all skills in sequence
+  -> stops at approval gate (Classic: analysis-plan)
+  -> auto-retries code-review failures (max 2)
+  -> produces final summary
+```
 
 Codebase health check (any time): `/improve-codebase-architecture` -> architecture-report.md
 
@@ -57,6 +67,7 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `project-principles` | project rules | overview/principles.md | Governance |
 | `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
+| `orchestrate` | input file + output dir | full pipeline execution | Orchestration |
 | `coding-principles` | any language | guidelines reference | Code Quality |
 | `java-coding-standards` | Java code | guidelines reference | Code Quality |
 | `go-coding-standards` | Go code | guidelines reference | Code Quality |
@@ -113,6 +124,8 @@ Agile pipeline:
 
 Other:
 ```
+/orchestrate i=inbox/idea.md o=features/auth/
+
 /handoff o=sessions/2026-05-23-auth.md n="Begin auth-task-02 implementation"
 
 /project-principles o=overview/principles.md
@@ -145,6 +158,20 @@ See `INSTALL.md` for exact commands.
 Works in both **Claude Code** and **OpenCode** with no extra steps. OpenCode scans `~/.claude/skills/<name>/SKILL.md` and `.claude/skills/<name>/SKILL.md` natively alongside its own paths. Installing once covers both tools.
 
 ## Workflow guide
+
+### Full orchestration
+
+`/orchestrate` runs the entire pipeline from idea to verified tasks. It:
+1. Asks which pipeline (Classic or Agile) and gathers inputs
+2. Asks whether to enable code-review and task-verify (both optional, default: off)
+3. Chains skills in sequence, passing outputs between them
+4. Stops at the approval gate (Classic: `analysis-plan` review)
+5. Executes tasks one by one, optionally running `code-review` after each
+6. Auto-retries failed reviews up to 2 times, feeding findings back to `task-execute`
+7. Optionally runs `task-verify` after each task
+8. Produces a final summary with all artifacts and their paths
+
+Use `/orchestrate` when you want to run the full pipeline without manually invoking each skill. You still control the process at approval gates and can stop at any time.
 
 ### Classic pipeline
 
@@ -185,7 +212,7 @@ After running `/bootstrap-spec-project p=my-app f=user-auth`:
     principles.md           <- project-wide rules read by the pipeline (/project-principles)
   backlog/                  <- loose ideas not yet in the planning pipeline
   tasks/
-    todo/                   <- simple tasks not tied to a feature
+    todo/                   <- tasks that need to be implemented
     done/
   features/
     user-auth/
@@ -193,7 +220,7 @@ After running `/bootstrap-spec-project p=my-app f=user-auth`:
       tasks/
         todo/               <- task files (user-auth-task-01.md, ...)
         done/
-      sessions/
-  prompts/
-  sessions/
+      sessions/             <- feature level sessions
+  prompts/                  <- custom prompts you might need to use later
+  sessions/                 <- app level sessions
 ```
