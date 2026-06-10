@@ -36,13 +36,15 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 
 **Full orchestration** (automated pipeline):
 ```
-/orchestrate i=<input> o=<output-dir>
+/orchestrate i=<input> o=<output-dir> p=<prefix>
   -> asks which pipeline (Classic or Agile)
   -> chains all skills in sequence
   -> stops at approval gate (Classic: analysis-plan)
   -> auto-retries code-review failures (max 2)
   -> produces final summary
 ```
+
+Codebase exploration (any time): `/conversation o=<output>` -> exploration.md + exploration.html (read-only Q&A session, saves conversation as Markdown and HTML)
 
 Codebase health check (any time): `/improve-codebase-architecture` -> architecture-report.md
 
@@ -67,7 +69,8 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `project-principles` | project rules | overview/principles.md | Governance |
 | `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
-| `orchestrate` | input file + output dir | full pipeline execution | Orchestration |
+| `orchestrate` | input file + output dir + prefix | full pipeline execution | Orchestration |
+| `conversation` | optional existing conversation file | conversation.md + conversation.html | Exploration |
 | `coding-principles` | any language | guidelines reference | Code Quality |
 | `java-coding-standards` | Java code | guidelines reference | Code Quality |
 | `go-coding-standards` | Go code | guidelines reference | Code Quality |
@@ -83,10 +86,10 @@ All skills use short argument names:
 
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
-| `i` | input / source file | grill-me, draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify |
-| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory) |
+| `i` | input / source file | grill-me, draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify, conversation (existing conversation to continue) |
+| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory; `conversation` writes `<o>.md` and `<o>.html`) |
 | `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, to-prd, to-issues, tdd, code-review |
-| `p` | prefix (task IDs) / project name | plan-tasks (prefix), to-issues (prefix), bootstrap-spec-project (project) |
+| `p` | prefix (artifact filenames + task IDs) / project name | plan-tasks (prefix), to-issues (prefix), orchestrate (prefix), bootstrap-spec-project (project) |
 | `f` | feature name | bootstrap-spec-project |
 | `n` | next-session purpose | handoff |
 
@@ -122,9 +125,16 @@ Agile pipeline:
 /code-review i=features/auth/tasks/done/auth-task-01.md
 ```
 
+Conversation (explore and save):
+```
+/conversation o=features/auth/exploration
+
+/conversation i=features/auth/exploration.md o=features/auth/exploration
+```
+
 Other:
 ```
-/orchestrate i=inbox/idea.md o=features/auth/
+/orchestrate i=inbox/idea.md o=features/auth/ p=auth
 
 /handoff o=sessions/2026-05-23-auth.md n="Begin auth-task-02 implementation"
 
