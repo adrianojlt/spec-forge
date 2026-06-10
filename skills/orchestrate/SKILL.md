@@ -1,7 +1,7 @@
 ---
 name: orchestrate
 description: "Run the full SDD pipeline end-to-end. Semi-autonomous orchestrator that chains skills, handles approval gates, and retries on review failures."
-argument-hint: "[i=<input-file>] [o=<output-dir>]"
+argument-hint: "[i=<input-file>] [o=<output-dir>] [p=<prefix>]"
 disable-model-invocation: true
 ---
 
@@ -15,6 +15,7 @@ This skill does not produce code itself. It instructs you to invoke other skills
 ## Inputs
 - `$i` - input file (optional; if not provided, ask the user)
 - `$o` - output directory for feature artifacts (optional; if not provided, ask the user)
+- `$p` - prefix for all generated artifact filenames (optional; if not provided, ask the user)
 
 ## Hard rules
 - Do not skip the approval gate at `analysis-plan` (Classic pipeline). This is the only mandatory human stop.
@@ -31,7 +32,7 @@ Ask the user:
 1. **Which pipeline?** Classic (draft -> discussion -> analysis -> plan -> tasks) or Agile (idea -> grill -> PRD -> issues)?
 2. **Input file?** If `$i` is provided, use it. Otherwise ask for the path to the draft or idea file.
 3. **Output directory?** If `$o` is provided, use it. Otherwise ask where to write artifacts (e.g. `features/auth/`).
-4. **Task prefix?** Ask for a short prefix for task IDs (e.g. `auth` produces `auth-task-01`).
+4. **Prefix?** If `$p` is provided, use it. Otherwise ask for a short prefix used for all generated filenames and task IDs (e.g. `auth` produces `auth-discussion.md`, `auth-analysis.md`, `auth-task-01`, etc.).
 5. **Run code-review after each task?** (yes/no, default: no)
 6. **Run task-verify after each task?** (yes/no, default: no)
 
@@ -39,29 +40,29 @@ If the user has already provided these via arguments or context, skip the questi
 
 ### Step 2 - Run entry skill
 **Classic pipeline:**
-Invoke `/draft-discussion i=<input> o=<output>/discussion.md`
+Invoke `/draft-discussion i=<input> o=<output>/<p>-discussion.md`
 
-Wait for the user to answer all clarification rounds. The skill will produce `discussion.md` and `discussion-qa.md`.
+Wait for the user to answer all clarification rounds. The skill will produce `<p>-discussion.md` and `<p>-discussion-qa.md`.
 
 **Agile pipeline:**
-Invoke `/grill-me i=<input> o=<output>/grilled-notes.md`
+Invoke `/grill-me i=<input> o=<output>/<p>-grilled-notes.md`
 
-Wait for the user to answer all question rounds. The skill will produce `grilled-notes.md`.
+Wait for the user to answer all question rounds. The skill will produce `<p>-grilled-notes.md`.
 
 ### Step 3 - Run analysis/requirements skill
 **Classic pipeline:**
-Invoke `/discussion-analysis i=<output>/discussion.md o=<output>/analysis.md`
+Invoke `/discussion-analysis i=<output>/<p>-discussion.md o=<output>/<p>-analysis.md`
 
 If the user provided a codebase root (`$c`), pass it through.
 
 **Agile pipeline:**
-Invoke `/to-prd i=<output>/grilled-notes.md o=<output>/prd.md`
+Invoke `/to-prd i=<output>/<p>-grilled-notes.md o=<output>/<p>-prd.md`
 
 If the user provided a codebase root (`$c`), pass it through.
 
 ### Step 4 - Run planning skill (Classic only)
 **Classic pipeline:**
-Invoke `/analysis-plan i=<output>/analysis.md o=<output>/plan.md`
+Invoke `/analysis-plan i=<output>/<p>-analysis.md o=<output>/<p>-plan.md`
 
 **STOP HERE. This is the approval gate.**
 
@@ -77,12 +78,12 @@ Skip this step. The PRD is the planning artifact.
 
 ### Step 5 - Run decomposition skill
 **Classic pipeline:**
-Invoke `/plan-tasks i=<output>/plan.md o=<output>/tasks/todo/ p=<prefix>`
+Invoke `/plan-tasks i=<output>/<p>-plan.md o=<output>/tasks/todo/ p=<p>`
 
 The skill produces one task file per task in `tasks/todo/`.
 
 **Agile pipeline:**
-Invoke `/to-issues i=<output>/prd.md o=<output>/tasks/todo/ p=<prefix>`
+Invoke `/to-issues i=<output>/<p>-prd.md o=<output>/tasks/todo/ p=<p>`
 
 The skill produces one task file per vertical slice in `tasks/todo/`.
 
@@ -134,7 +135,7 @@ After all tasks are processed, ask the user:
 - "All tasks complete. Would you like to generate a handoff document for the next session?"
 
 If yes:
-Invoke `/handoff o=<output>/sessions/<date>-<prefix>.md n="<next-session-purpose>"`
+Invoke `/handoff o=<output>/sessions/<date>-<p>.md n="<next-session-purpose>"`
 
 Ask the user for the next session purpose if not obvious.
 
