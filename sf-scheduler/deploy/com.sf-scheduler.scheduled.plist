@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sf-scheduler.scheduled</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <!-- Absolute path to the installed console script (edit me). -->
+        <string>/Users/you/src/mine/spec-forge/sf-scheduler/.venv/bin/sf-scheduler</string>
+        <string>scheduled</string>
+        <string>--root</string>
+        <!-- Your apps root (edit me). -->
+        <string>/Users/you/ai-specs</string>
+    </array>
+
+    <!-- Fire every 15 minutes. Each task's `hours` field still gates execution.
+         Replace with StartCalendarInterval for fixed clock times. -->
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/sf-scheduler.out</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/sf-scheduler.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

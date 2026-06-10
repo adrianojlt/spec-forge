@@ -46,6 +46,8 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 
 Codebase exploration (any time): `/conversation o=<output>` -> exploration.md + exploration.html (read-only Q&A session, saves conversation as Markdown and HTML)
 
+Unattended tasks (while away): see [`sf-scheduler/`](sf-scheduler/README.md) - drop a task file in a watched folder, a headless agent picks it up and leaves results on disk.
+
 Codebase health check (any time): `/improve-codebase-architecture` -> architecture-report.md
 
 Coding standards (language-specific): `/coding-principles` (generic) or `/java-coding-standards`, `/go-coding-standards`, `/rust-coding-standards`, `/swift-coding-standards`, `/typescript-coding-standards`, `/python-coding-standards`, `/kotlin-coding-standards`
