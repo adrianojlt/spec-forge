@@ -49,6 +49,7 @@ def run_dir_for(task_file: Path, run_number: int) -> Path:
 
 def default_command(spec: TaskSpec, task_file: Path, run_dir: Path) -> list[str]:
     """Build the headless agent command for a task's provider."""
+    # TODO: add spec.model and pass --model <model> here when per-task model selection is implemented
     prompt = (
         f"Use the {SKILL_REF} skill to perform this scheduled task.\n"
         f"Task file: {task_file}\n"

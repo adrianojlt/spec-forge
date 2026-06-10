@@ -26,6 +26,11 @@ writes results in-folder, exactly like the scheduled path.
    ```
 
    (or invoke it through whatever shell access the remote session gives you).
+
+   **Tip:** to avoid typing the full command from a phone, add a `## Remote Sessions`
+   entry to `~/.claude/CLAUDE.md` on your Mac that documents the apps root path and
+   the launcher command. Then just say "run remote tasks for `<app>`" and Claude
+   resolves the command from its instructions. See the README for the template.
 3. The launcher processes the folder and writes results under
    `<task>.results/run-NNN/` in `remote-tasks/`.
 

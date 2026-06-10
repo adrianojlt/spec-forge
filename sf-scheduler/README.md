@@ -43,6 +43,25 @@ Each app under `~/ai-specs` has two intake folders the launcher scans:
 - Task-file format and folder/state/marker layout: [`docs/task-file-schema.md`](docs/task-file-schema.md).
 - Example tasks: [`examples/`](examples/).
 
+## Remote session setup
+
+To trigger tasks from a phone via Claude Code remote control without typing long
+commands, add this to `~/.claude/CLAUDE.md`:
+
+```markdown
+## Remote Sessions
+When asked about remote tasks or to run them, check `~/src/mine/ai-mine-specs/apps/`.
+Each app subfolder may have a `remote-tasks/` directory with `.md` task files.
+To run tasks for an app: `sf-scheduler remote --root ~/src/mine/ai-mine-specs/apps --app <app-name>`
+```
+
+Then from the remote session just say: "run remote tasks for `<app>`" and Claude
+runs the command. No manual typing of the full path required.
+
+## Planned enhancements
+
+- **Per-task model selection** - add a `model` frontmatter field (e.g. `model: claude-opus-4-8`) and pass `--model` to the headless agent command. Currently the default Claude Code model is used for all runs.
+
 ## Safety
 
 - Per-task `max-tokens` is a hard cap; the launcher kills a run that exceeds it.
