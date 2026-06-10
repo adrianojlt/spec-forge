@@ -10,7 +10,7 @@ disable-model-invocation: true
 ## Purpose
 Run the complete Spec-Driven Development pipeline from idea to verified tasks. Semi-autonomous: runs skills in sequence, stops at human approval gates, auto-retries on code review failures (max 2 retries).
 
-This skill does not produce code itself. It instructs you to invoke other skills in the correct order, passing outputs between them, and managing the flow.
+This skill does not produce code itself. It instructs you to read and follow other skills' SKILL.md files in the correct order, passing outputs between them, and managing the flow.
 
 ## Inputs
 - `$i` - input file (optional; if not provided, ask the user)
@@ -40,29 +40,29 @@ If the user has already provided these via arguments or context, skip the questi
 
 ### Step 2 - Run entry skill
 **Classic pipeline:**
-Invoke `/draft-discussion i=<input> o=<output>/<p>-discussion.md`
+Read and follow `draft-discussion/SKILL.md` with args: `i=<input> o=<output>/<p>-discussion.md`
 
 Wait for the user to answer all clarification rounds. The skill will produce `<p>-discussion.md` and `<p>-discussion-qa.md`.
 
 **Agile pipeline:**
-Invoke `/grill-me i=<input> o=<output>/<p>-grilled-notes.md`
+Read and follow `grill-me/SKILL.md` with args: `i=<input> o=<output>/<p>-grilled-notes.md`
 
 Wait for the user to answer all question rounds. The skill will produce `<p>-grilled-notes.md`.
 
 ### Step 3 - Run analysis/requirements skill
 **Classic pipeline:**
-Invoke `/discussion-analysis i=<output>/<p>-discussion.md o=<output>/<p>-analysis.md`
+Read and follow `discussion-analysis/SKILL.md` with args: `i=<output>/<p>-discussion.md o=<output>/<p>-analysis.md`
 
 If the user provided a codebase root (`$c`), pass it through.
 
 **Agile pipeline:**
-Invoke `/to-prd i=<output>/<p>-grilled-notes.md o=<output>/<p>-prd.md`
+Read and follow `to-prd/SKILL.md` with args: `i=<output>/<p>-grilled-notes.md o=<output>/<p>-prd.md`
 
 If the user provided a codebase root (`$c`), pass it through.
 
 ### Step 4 - Run planning skill (Classic only)
 **Classic pipeline:**
-Invoke `/analysis-plan i=<output>/<p>-analysis.md o=<output>/<p>-plan.md`
+Read and follow `analysis-plan/SKILL.md` with args: `i=<output>/<p>-analysis.md o=<output>/<p>-plan.md`
 
 **STOP HERE. This is the approval gate.**
 
@@ -78,12 +78,12 @@ Skip this step. The PRD is the planning artifact.
 
 ### Step 5 - Run decomposition skill
 **Classic pipeline:**
-Invoke `/plan-tasks i=<output>/<p>-plan.md o=<output>/tasks/todo/ p=<p>`
+Read and follow `plan-tasks/SKILL.md` with args: `i=<output>/<p>-plan.md o=<output>/tasks/todo/ p=<p>`
 
 The skill produces one task file per task in `tasks/todo/`.
 
 **Agile pipeline:**
-Invoke `/to-issues i=<output>/<p>-prd.md o=<output>/tasks/todo/ p=<p>`
+Read and follow `to-issues/SKILL.md` with args: `i=<output>/<p>-prd.md o=<output>/tasks/todo/ p=<p>`
 
 The skill produces one task file per vertical slice in `tasks/todo/`.
 
@@ -94,16 +94,16 @@ For each task file in `tasks/todo/` (in dependency order):
 
 **6a - Execute**
 **Classic pipeline:**
-Invoke `/task-execute i=<task-file>`
+Read and follow `task-execute/SKILL.md` with args: `i=<task-file>`
 
 **Agile pipeline:**
-Invoke `/tdd i=<task-file>`
+Read and follow `tdd/SKILL.md` with args: `i=<task-file>`
 
 Wait for the skill to complete. If it fails or stops due to unmet dependencies, report and ask the user how to proceed.
 
 **6b - Review (if enabled)**
 If the user chose to run code-review:
-  Invoke `/code-review i=<task-file>`
+  Read and follow `code-review/SKILL.md` with args: `i=<task-file>`
 
   Check the verdict:
   - **PASS** or **PASS WITH WARNINGS**: proceed to 6c
@@ -112,15 +112,15 @@ If the user chose to run code-review:
   **6b-retry - Retry on failure (max 2 retries)**
   If the review verdict is FAIL:
   1. Report the blocker findings to the user
-  2. Re-invoke `/task-execute` (or `/tdd`) with the review findings as additional context
-  3. Re-invoke `/code-review`
+  2. Re-read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md`) with the review findings as additional context
+  3. Re-read and follow `code-review/SKILL.md` with args: `i=<task-file>`
   4. If still FAIL after 2 retries, stop and report. Ask the user how to proceed. Do not auto-advance.
 
 If code-review is disabled, skip directly to 6c.
 
 **6c - Verify (if enabled)**
 If the user chose to run task-verify:
-  Invoke `/task-verify i=<task-file>`
+  Read and follow `task-verify/SKILL.md` with args: `i=<task-file>`
 
   Check the verdict:
   - **All pass**: task is done, proceed to next task
@@ -135,7 +135,7 @@ After all tasks are processed, ask the user:
 - "All tasks complete. Would you like to generate a handoff document for the next session?"
 
 If yes:
-Invoke `/handoff o=<output>/sessions/<date>-<p>.md n="<next-session-purpose>"`
+Read and follow `handoff/SKILL.md` with args: `o=<output>/sessions/<date>-<p>.md n="<next-session-purpose>"`
 
 Ask the user for the next session purpose if not obvious.
 
@@ -158,7 +158,7 @@ Throughout the orchestration, track:
 Report state transitions clearly: "Moving from planning to decomposition..." or "Task 3 of 5: auth-task-03..."
 
 ## Failure modes
-- **Skill errors**: If a skill invocation errors out, stop and report the error. Do not attempt to continue.
+- **Skill errors**: If following a skill's procedure produces an error or fails, stop and report the error. Do not attempt to continue.
 - **User cancels**: If the user says "stop" or "cancel", stop immediately. Report what was completed and what remains.
 - **Dependency unmet**: If a task's dependencies are not in `tasks/done/`, skip it and report. Ask the user whether to continue with remaining tasks.
 - **Max retries exceeded**: After 2 failed review retries, stop on that task. Report the blockers. Ask the user whether to skip or fix manually.
