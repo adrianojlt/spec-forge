@@ -59,6 +59,11 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
+## Remote Sessions
+When asked about remote tasks or to run them, check `~/src/mine/ai-mine-specs/apps/`.
+Each app subfolder may have a `remote-tasks/` directory with `.md` task files.
+To run tasks for an app: `sf-scheduler remote --root ~/src/mine/ai-mine-specs/apps --app <app-name>`
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
