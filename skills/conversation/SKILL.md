@@ -19,7 +19,7 @@ Hold a read-only Q&A session about the codebase or a design problem. No implemen
 - Do not implement code, suggest implementations, or run tests.
 - Do not save output until the user explicitly says "save" (or equivalent: "write it", "save this", "done").
 - Read-only tools permitted during session: Read, Grep, Glob, Bash (read-only commands only, e.g. `ls`, `find`, `cat`). No Edit, Write, or shell commands that modify files.
-- On save: write `<o>.md`, `<o>.html`, and `<o>-qa.md`. Confirm all three files were written.
+- On save: write files per save mode (full: all three; markdown-only: `.md` only). Confirm which files were written.
 - If user saves multiple times in one session: overwrite in place. Do not append again.
 
 ## Procedure
@@ -42,18 +42,23 @@ Continue until the user says to save or stop.
 When the user says "save" (or equivalent):
 
 1. If `$o` was not provided at invocation time, ask: "Where should I save the conversation?" Use the provided response as the output path.
-2. Compile the full conversation: prior rounds (if continuation) plus all new rounds from this session.
-3. Write `<o>.md` following `md-template.md`. If updating an existing file, overwrite it with the full updated content.
-4. Write `<o>.html` following `html-template.html`. If updating an existing file, overwrite it.
-5. Write `<o>-qa.md` following `qa-template.md`. If updating an existing file, overwrite it.
-6. Confirm: "Saved: `<o>.md`, `<o>.html`, and `<o>-qa.md`."
+2. Detect save mode: if the user said "save markdown only" (or equivalent: "save md only", "only markdown", "just the markdown"), set mode to **markdown-only**. Otherwise, use **full** mode.
+3. Compile the full conversation: prior rounds (if continuation) plus all new rounds from this session.
+4. Write `<o>.md` following `md-template.md`. If updating an existing file, overwrite it with the full updated content.
+5. If mode is **full**: write `<o>.html` following `html-template.html`, and write `<o>-qa.md` following `qa-template.md`. Overwrite if they exist.
+6. Confirm written files:
+   - Full mode: "Saved: `<o>.md`, `<o>.html`, and `<o>-qa.md`."
+   - Markdown-only mode: "Saved: `<o>.md`."
 
 Do not end the session after saving. The user may continue asking questions and save again.
 
 ## Output contract
-Three files written on save:
+Default (full mode) - three files written on save:
 - `<o>.md` - structured Markdown summary (overview, files explored, key findings, open questions). See `md-template.md`.
 - `<o>.html` - styled HTML summary with inline CSS. See `html-template.html`.
 - `<o>-qa.md` - Q&A rounds in Markdown. See `qa-template.md`.
 
-All files are complete and self-contained. Each save overwrites all three files entirely.
+Markdown-only mode - one file written on save:
+- `<o>.md` - same structured Markdown summary as above.
+
+All files are complete and self-contained. Each save overwrites existing files entirely.
