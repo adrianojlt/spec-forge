@@ -40,7 +40,7 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
   -> asks which pipeline (Classic or Agile)
   -> chains all skills in sequence
   -> stops at approval gate (Classic: analysis-plan)
-  -> auto-retries code-review failures (max 2)
+  -> runs the execution loop: retries failures (targeted) until Done or Blocked
   -> produces final summary
 ```
 
@@ -210,7 +210,7 @@ Claude Code and OpenCode work best in Unix-like environments, so this approach p
 3. Chains skills in sequence, passing outputs between them
 4. Stops at the approval gate (Classic: `analysis-plan` review)
 5. Executes tasks one by one, optionally running `code-review` after each
-6. Auto-retries failed reviews up to 2 times, feeding findings back to `task-execute`
+6. Retries failed tasks via the file-driven loop: `task-execute` reads the persisted `failed_checks` and fixes only those, until the task reaches `Done` or `Blocked` (`Max attempts`)
 7. Optionally runs `task-verify` after each task
 8. Produces a final summary with all artifacts and their paths
 
@@ -238,6 +238,27 @@ Optionally seed `overview/principles.md` first with `/project-principles`. When 
 4. `/tdd` - Claude implements one task using red-green-refactor: confirm interface, write one failing test, write minimum code, refactor, repeat. Moves task to `tasks/done/` when all criteria are covered by passing tests.
 5. `/code-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
 
+### Implementation loop
+
+Execution is a file-driven loop, not a one-shot. State lives on disk so it survives across sessions and tools:
+
+- **Task state** - each task file carries `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:`, and `Max attempts:`. The folder also signals state: `tasks/todo/` vs `tasks/done/`.
+- **Feedback artifacts** - the executor (`task-execute` Classic / `tdd` Agile), `code-review`, and `task-verify` each write a report into `tasks/feedback/` per attempt (`<task-id>-attempt-NN.md`, `<task-id>-review-NN.md`, `<task-id>-verify-NN.md`). Highest `NN` is the latest. The reports carry YAML frontmatter with a `verdict` and a `failed_checks` list.
+- **Targeted re-entry** - on a retry, `task-execute` reads the latest review/verify report and fixes only the `failed_checks`. Retries target named failures, they do not redo the whole task.
+- **Loop exit** - the loop ends at `Status: Done` (all criteria pass) or `Status: Blocked` (`Attempts` reached `Max attempts`).
+
+One pass through the loop:
+```
+Approved -> /task-execute            -> Attempts++, writes attempt-NN report
+         -> /code-review             -> writes review-NN (verdict + failed_checks)
+   PASS  -> Status: Done, todo/ -> done/
+   FAIL  -> Status: Revise
+         -> /task-execute (reads review-NN, fixes failed_checks only)
+         -> ... repeat until Done or Blocked
+```
+
+Because every signal (status, attempts, verdicts, failed checks) is a file, a fresh session, OpenCode, or `/orchestrate` can resume the loop by reading the folder. Nothing important lives only in chat. `/orchestrate` drives this loop automatically; you can also run each step by hand for full control.
+
 ### Architecture review
 
 `/improve-codebase-architecture` (no arguments) - runs in the current directory. Identifies shallow modules, scattered concepts, and tight coupling. Produces `architecture-report.md` with evidence-backed candidates and specific proposals. No code changes.
@@ -257,12 +278,14 @@ After running `/bootstrap-spec-project p=my-app f=user-auth`:
   tasks/
     todo/                   <- tasks that need to be implemented
     done/
+    feedback/               <- loop reports per attempt (execute/review/verify)
   features/
     user-auth/
       inbox/
       tasks/
         todo/               <- task files (user-auth-task-01.md, ...)
         done/
+        feedback/           <- loop reports: *-attempt-NN.md, *-review-NN.md, *-verify-NN.md
       sessions/             <- feature level sessions
   prompts/                  <- custom prompts you might need to use later
   sessions/                 <- app level sessions

@@ -2,7 +2,9 @@
 
 Source: [path to plan.md]
 Date: [date]
-Status: [Draft | Approved | Done]
+Status: [Draft | Approved | Revise | Done | Blocked]
+Attempts: 0
+Max attempts: 3
 
 ---
 

@@ -1,8 +1,18 @@
+---
+task: [task ID, e.g. auth-task-01]
+attempt: [integer, matches the task's Attempts after this run]
+result: [Done | Revise | Blocked]
+failed_checks:
+  # One line per Given/When/Then left uncovered by a passing test. Empty on Done.
+  # Format: "<criterion ref>: <what is missing>".
+  - "[AC2]: [short actionable description]"
+---
+
 # TDD Execution Report: [Task ID] [Task Title]
 
 Source: [path to task file]
 Date: [date]
-Status: [Done]
+Status: [Done | Revise | Blocked]
 
 ---
 

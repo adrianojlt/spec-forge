@@ -31,7 +31,11 @@ For each Given/When/Then, establish the Given state, perform or trace the When, 
 Confirm the task's `Done` definition holds against current state.
 
 **Step 4 - Report**
-Write the verdict using `template.md`. State an overall result: all pass, or list of failures.
+Write the verdict using `template.md` and persist it to the sibling `tasks/feedback/` directory (create it if absent):
+```
+<feature>/tasks/feedback/<task-id>-verify-<NN>.md
+```
+`<NN>` = the task's current `Attempts` value, zero-padded. Each attempt gets its own file; never overwrite an earlier one. Populate the frontmatter: `verdict` (PASS if every criterion and the Done condition pass, else FAIL) and `failed_checks` (one line per failure; empty on PASS). On FAIL, this list is what a later `/task-execute` targets. Also state the overall result in chat.
 
 ## Readiness gate
 - Every acceptance criterion was checked
@@ -39,7 +43,7 @@ Write the verdict using `template.md`. State an overall result: all pass, or lis
 - The Done condition was assessed
 
 ## Output contract
-A verification report (chat or file). See `template.md`. No file or code changes.
+A verification report written to `<feature>/tasks/feedback/<task-id>-verify-<NN>.md` and stated in chat. See `template.md`. Writing this report is the only file the skill creates; it still never edits source or the task file and never changes the task `Status:`.
 
 ## Validation
 Verify against `checklist.md` before reporting.

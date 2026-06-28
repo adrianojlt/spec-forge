@@ -23,12 +23,17 @@ Replaces `/task-execute` for teams that require test-first discipline. Output fo
 - Refactor only after GREEN. Do not refactor while a test is failing.
 - Do not advance to the next behavior until the current test passes and refactoring is done.
 - Do not move the task file to `tasks/done/` unless every Given/When/Then criterion is covered by a passing test.
-- No scope creep. Implement only what the task file specifies.
+- If a criterion is left uncovered, leave the file in `tasks/todo/`, set its `Status:` to `Revise` (or `Blocked` at max attempts), increment `Attempts:`, and report which criteria are uncovered.
+- No scope creep. Implement only what the task file specifies. On a retry, fix only the `failed_checks` from the latest feedback report.
 
 ## Procedure
 
 **Step 1 - Read and confirm interface**
-Read `$i` in full. Before writing any code, confirm with the user:
+Read `$i` in full.
+
+Then check for prior loop feedback. Look in the sibling `tasks/feedback/` directory for the highest-numbered report for this task (`<task-id>-attempt-<NN>.md`, `<task-id>-review-<NN>.md`, `<task-id>-verify-<NN>.md`). If the latest one has `verdict: FAIL` (or `result: Revise`), this is a **retry**: scope the work to its `failed_checks` only. Write a failing test for each failed check, then make it pass. Do not re-touch behaviors already covered by passing tests. If no feedback file exists, this is a first attempt; cover the full task scope.
+
+Before writing any code, confirm with the user:
 - What new interfaces, functions, or API endpoints are needed
 - What existing interfaces change (signature, return type, side effects)
 
@@ -58,7 +63,23 @@ For each behavior (in order):
 Verify all criteria pass before moving the task file.
 
 **Step 6 - Write execution report and move task**
-Write the execution report using `template.md`. Move `$i` from `tasks/todo/` to `tasks/done/`.
+First, increment the task file's `Attempts:` by 1. Use this value as `<NN>` for the report filename.
+
+Write the execution report using `template.md` to the sibling `tasks/feedback/` directory (create it if absent):
+```
+<feature>/tasks/feedback/<task-id>-attempt-<NN>.md
+```
+Each attempt gets its own file; never overwrite an earlier one. Then:
+
+**On success** (every Given/When/Then is covered by a passing test, readiness gate met):
+- Set the task file `Status:` to `Done`.
+- Move `$i` from `tasks/todo/` to `tasks/done/`.
+
+**On failure** (a criterion has no passing test, or the run is stopped before the readiness gate):
+- Leave `$i` in `tasks/todo/`.
+- If `Attempts` is now `< Max attempts`: set `Status:` to `Revise`.
+- If `Attempts` has reached `Max attempts`: set `Status:` to `Blocked`. Stop; do not retry without human intervention.
+- Populate the report's `failed_checks` with the uncovered criteria. This drives the next retry's Step 1.
 
 ## Readiness gate
 All must pass before moving the task file:
@@ -68,10 +89,9 @@ All must pass before moving the task file:
 - Refactor step completed (or explicitly noted as not needed) for every behavior
 
 ## Output contract
-Two outcomes:
-- Tests and implementation written to codebase
-- `$i` moved from `tasks/todo/` to `tasks/done/`
-- Execution report written alongside task file. See `template.md` for required sections.
+- Tests and implementation written to codebase.
+- Execution report written to `<feature>/tasks/feedback/<task-id>-attempt-<NN>.md`. See `template.md` for required sections and frontmatter.
+- On success: `$i` moved from `tasks/todo/` to `tasks/done/` with `Status: Done`. On failure: `$i` stays in `tasks/todo/` with `Status: Revise` (retryable) or `Status: Blocked` (max attempts), `Attempts:` incremented.
 
 ## Validation
 Before moving the task file, verify each Given/When/Then maps to a named test in the report. Any unmapped criterion is a blocker.

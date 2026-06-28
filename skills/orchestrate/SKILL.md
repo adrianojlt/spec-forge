@@ -8,7 +8,7 @@ disable-model-invocation: true
 # orchestrate
 
 ## Purpose
-Run the complete Spec-Driven Development pipeline from idea to verified tasks. Semi-autonomous: runs skills in sequence, stops at human approval gates, auto-retries on code review failures (max 2 retries).
+Run the complete Spec-Driven Development pipeline from idea to verified tasks. Semi-autonomous: runs skills in sequence, stops at human approval gates, retries failed tasks via the file-driven loop until each reaches `Done` or `Blocked` (the task file's `Max attempts`).
 
 This skill does not produce code itself. It instructs you to read and follow other skills' SKILL.md files in the correct order, passing outputs between them, and managing the flow.
 
@@ -19,7 +19,7 @@ This skill does not produce code itself. It instructs you to read and follow oth
 
 ## Hard rules
 - Do not skip the approval gate at `analysis-plan` (Classic pipeline). This is the only mandatory human stop.
-- Do not auto-advance past a failed code review after 2 retries. Stop and report.
+- Do not auto-advance past a task that reached `Status: Blocked` (`Max attempts` exhausted). Stop and report.
 - Do not run tasks in parallel. Execute them sequentially in dependency order.
 - Do not modify task files directly. Let `task-execute` and `tdd` handle that.
 - Do not invent requirements or make design decisions. Defer to the user at gates.
@@ -92,14 +92,21 @@ After decomposition, report the task count and list task IDs. Ask the user to co
 ### Step 6 - Execute tasks (loop)
 For each task file in `tasks/todo/` (in dependency order):
 
-**6a - Execute**
+**6a - Execute (loop on the task's own self-check)**
 **Classic pipeline:**
 Read and follow `task-execute/SKILL.md` with args: `i=<task-file>`
 
 **Agile pipeline:**
 Read and follow `tdd/SKILL.md` with args: `i=<task-file>`
 
-Wait for the skill to complete. If it fails or stops due to unmet dependencies, report and ask the user how to proceed.
+Wait for the skill to complete. If it stops due to unmet dependencies, report and ask the user how to proceed.
+
+After it completes, read the task file's `Status:`. The executor self-checks its own acceptance criteria, so this loop runs even when code-review and task-verify are both disabled:
+- **`Done`**: proceed to 6b.
+- **`Revise`** (self-check failed, `Attempts` still `< Max attempts`): re-read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md`) again. Its Step 1 reads the latest `tasks/feedback/<task-id>-attempt-<NN>.md` and fixes only the `failed_checks`. Repeat until `Done` or `Blocked`.
+- **`Blocked`** (`Attempts` reached `Max attempts`): stop on this task and report. Do not auto-advance. Ask the user how to proceed.
+
+Only proceed to 6b once the task is `Done`. Code-review and task-verify are *additional* gates layered on top of this loop, not the thing that triggers it.
 
 **6b - Review (if enabled)**
 If the user chose to run code-review:
@@ -109,12 +116,12 @@ If the user chose to run code-review:
   - **PASS** or **PASS WITH WARNINGS**: proceed to 6c
   - **FAIL**: proceed to 6b-retry
 
-  **6b-retry - Retry on failure (max 2 retries)**
-  If the review verdict is FAIL:
-  1. Report the blocker findings to the user
-  2. Re-read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md`) with the review findings as additional context
-  3. Re-read and follow `code-review/SKILL.md` with args: `i=<task-file>`
-  4. If still FAIL after 2 retries, stop and report. Ask the user how to proceed. Do not auto-advance.
+  **6b-retry - Retry on failure (state-driven)**
+  Retries are driven by the task file's `Attempts` / `Max attempts` and the persisted feedback files, not by a counter held in chat. If the review verdict is FAIL:
+  1. Report the blocker findings to the user.
+  2. Re-read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md`). It reads the latest `tasks/feedback/<task-id>-review-<NN>.md` in its Step 1 and fixes only the `failed_checks` (targeted re-entry, not a blind redo).
+  3. Re-read and follow `code-review/SKILL.md` with args: `i=<task-file>`.
+  4. The loop ends when the task reaches `Status: Done` (pass) or `Status: Blocked` (`Attempts` reached `Max attempts`). On `Blocked`, stop and report. Do not auto-advance. Because state lives in the task file and `tasks/feedback/`, the loop resumes correctly even in a fresh session.
 
 If code-review is disabled, skip directly to 6c.
 
@@ -149,10 +156,10 @@ Present a summary:
 - Any unresolved issues or deferred work
 
 ## State tracking
-Throughout the orchestration, track:
+Source of truth for task state is on disk, not chat: each task file's `Status:` / `Attempts:` and the reports in `tasks/feedback/`. Throughout the orchestration, track:
 - Current pipeline stage (entry, analysis, planning, decomposition, execution, handoff)
-- Task progress (which tasks are done, which are pending, which failed)
-- Review retry count per task
+- Task progress, read from each task's `Status:` (Approved, Revise, Done, Blocked)
+- Retry state, read from each task's `Attempts:` vs `Max attempts:`
 - User decisions at gates (approved plan, skipped tasks, etc.)
 
 Report state transitions clearly: "Moving from planning to decomposition..." or "Task 3 of 5: auth-task-03..."

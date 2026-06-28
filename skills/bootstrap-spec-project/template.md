@@ -14,6 +14,8 @@ Standard ai-specs layout created by bootstrap-spec-project.
       .gitkeep
     done/                         <- completed simple tasks
       .gitkeep
+    feedback/                     <- loop reports (attempt/review/verify) per task
+      .gitkeep
   features/
     <feature_name>/
       inbox/                      <- rough drafts (input to /draft-discussion)
@@ -22,6 +24,8 @@ Standard ai-specs layout created by bootstrap-spec-project.
         todo/                     <- individual task files ready to work
           .gitkeep
         done/                     <- completed task files
+          .gitkeep
+        feedback/                 <- loop reports (attempt/review/verify) per task
           .gitkeep
       sessions/                   <- feature-level session handoffs
         .gitkeep
@@ -39,9 +43,11 @@ Standard ai-specs layout created by bootstrap-spec-project.
 | `backlog/` | Loose ideas and potential features not yet in the planning pipeline. |
 | `tasks/todo/` | Simple tasks not tied to a feature - no full pipeline needed. |
 | `tasks/done/` | Completed simple tasks. |
+| `tasks/feedback/` | Per-attempt loop reports (execute/review/verify) with verdicts and failed checks. |
 | `features/<name>/inbox/` | Raw drafts and ideas. Input to `/draft-discussion`. |
 | `features/<name>/tasks/todo/` | Individual task files from `/plan-tasks`, ready to work. |
 | `features/<name>/tasks/done/` | Completed task files (moved from todo when done). |
+| `features/<name>/tasks/feedback/` | Per-attempt loop reports driving targeted retries. |
 | `features/<name>/sessions/` | Feature-level session handoff documents. |
 | `prompts/` | Reusable prompt snippets for this project. |
 | `sessions/` | Project-level session handoff documents. |

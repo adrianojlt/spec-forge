@@ -26,11 +26,13 @@ dirs=(
     "$FEATURE_DIR/inbox"
     "$FEATURE_DIR/tasks/todo"
     "$FEATURE_DIR/tasks/done"
+    "$FEATURE_DIR/tasks/feedback"
     "$FEATURE_DIR/sessions"
     "$PROJECT_DIR/overview"
     "$PROJECT_DIR/backlog"
     "$PROJECT_DIR/tasks/todo"
     "$PROJECT_DIR/tasks/done"
+    "$PROJECT_DIR/tasks/feedback"
     "$PROJECT_DIR/prompts"
     "$PROJECT_DIR/sessions"
 )
@@ -94,12 +96,14 @@ $PROJECT_NAME/
   tasks/
     todo/           <- simple tasks not tied to a feature
     done/           <- completed simple tasks
+    feedback/       <- loop reports (attempt/review/verify) per task
   features/
     <feature>/
       inbox/        <- rough drafts (input to /draft-discussion)
       tasks/
         todo/       <- task files ready to work
         done/       <- completed task files
+        feedback/   <- loop reports (attempt/review/verify) per task
       sessions/     <- feature-level handoffs
   prompts/          <- reusable prompt snippets
   sessions/         <- project-level handoffs

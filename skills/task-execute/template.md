@@ -1,8 +1,18 @@
+---
+task: [task ID, e.g. auth-task-01]
+attempt: [integer, matches the task's Attempts after this run]
+result: [Done | Revise | Blocked]
+failed_checks:
+  # One line per failed acceptance criterion / Done condition. Empty on Done.
+  # Format: "<criterion ref>: <what was observed vs expected>".
+  - "[AC2]: [short actionable description]"
+---
+
 # Execution Report: [prefix-task-NN]
 
 Task: [path to task file]
 Date: [date]
-Result: [Done | Blocked]
+Result: [Done | Revise | Blocked]
 
 ---
 

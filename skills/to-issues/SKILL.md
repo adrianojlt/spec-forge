@@ -56,6 +56,8 @@ Task file format (compatible with `/plan-tasks` output):
 Source: [path to prd.md]
 Date: [date]
 Status: Draft
+Attempts: 0
+Max attempts: 3
 
 ---
 

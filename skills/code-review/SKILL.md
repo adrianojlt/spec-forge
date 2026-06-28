@@ -97,7 +97,20 @@ For each finding, assign severity:
 - **Nit** - Nice to fix. Style preferences, minor readability improvements.
 
 **Step 6 - Write report**
-Write the report using `template.md`. Present it in chat. Do not write it to a file unless the user requests it.
+Write the report using `template.md` and persist it so the loop can re-enter from it.
+
+Write to the task's sibling `feedback/` directory (create it if absent), next to `tasks/todo/` and `tasks/done/`:
+```
+<feature>/tasks/feedback/<task-id>-review-<NN>.md
+```
+`<NN>` = the task's current `Attempts` value, zero-padded (`01`, `02`, ...). Highest `<NN>` = latest review. Do not overwrite an earlier attempt's report; each attempt gets its own file so the loop history stays on disk.
+
+Populate the frontmatter exactly:
+- `task` / `attempt` - from the task file.
+- `verdict` - per the Verdict rules below.
+- `failed_checks` - one line per BLOCKER, plus any WARNING that must be fixed before re-execution. Each line is `<finding-id>: <what must change>`. On PASS, leave the list empty. This list is the contract a later `/task-execute` reads to retry only the failed items.
+
+Also present the report in chat.
 
 ## Readiness gate
 - All five dimensions were reviewed (or explicitly marked as N/A with rationale)
@@ -106,7 +119,7 @@ Write the report using `template.md`. Present it in chat. Do not write it to a f
 - Summary includes: total findings by severity, overall verdict (pass/fail)
 
 ## Output contract
-A structured report. See `template.md` for required sections.
+A structured report written to `<feature>/tasks/feedback/<task-id>-review-<NN>.md` and presented in chat. See `template.md` for required sections and the frontmatter contract. Writing this report file is the only file the skill creates; it still never edits source or the task file.
 
 **Verdict rules:**
 - Any blocker = **FAIL** (must fix before task-verify)

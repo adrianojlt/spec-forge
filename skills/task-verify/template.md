@@ -1,3 +1,14 @@
+---
+task: [task ID, e.g. auth-task-01]
+attempt: [integer, matches the task's current Attempts]
+verdict: [PASS | FAIL]
+failed_checks:
+  # One line per failed acceptance criterion / Done condition. Empty on PASS.
+  # This list is the re-entry payload a later task-execute fixes. Format:
+  # "<criterion ref>: <what was observed vs expected>".
+  - "[AC3]: [short actionable description]"
+---
+
 # Verification Report: [prefix-task-NN]
 
 Task: [path to task file]
