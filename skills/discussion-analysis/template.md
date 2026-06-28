@@ -1,6 +1,6 @@
 # Analysis: [Title]
 
-Source: [path to discussion.md]
+Source: [relative path to discussion.md, e.g. ./auth-discussion.md - never absolute]
 Date: [date]
 Status: [Draft | Approved | Done]
 

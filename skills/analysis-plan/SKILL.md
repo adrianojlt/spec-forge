@@ -16,6 +16,7 @@ Transform `analysis.md` into `plan.md` by sequencing work logically, making depe
 - `$c` - optional path to the existing codebase root. If set, ground Data/API/UI impact in real code paths instead of hypotheticals.
 
 ## Hard rules
+- Write the `Source:` header as a path relative to the output file's own folder (e.g. `./auth-analysis.md`), never absolute - keeps links valid if the specs folder is moved.
 - No code.
 - No task explosion (individual tasks are produced by plan-tasks, not here).
 - No implementation detail below design level.

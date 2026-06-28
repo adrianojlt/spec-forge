@@ -18,6 +18,7 @@ Sits between exploration (`/grill-me` or `/draft-discussion`) and decomposition 
 - `$c` - codebase root (optional). When given, verify any repo-specific assertions before writing.
 
 ## Hard rules
+- Write the `Source:` header as a path relative to the output file's own folder (e.g. `./auth-idea.md`), never absolute - keeps links valid if the specs folder is moved.
 - No code at this stage.
 - No task decomposition - that is `/to-issues`.
 - No implementation decisions (framework choices, schema design, etc.).

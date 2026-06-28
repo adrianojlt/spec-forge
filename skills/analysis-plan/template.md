@@ -1,6 +1,6 @@
 # Plan: [Title]
 
-Source: [path to analysis.md]
+Source: [relative path to analysis.md, e.g. ./auth-analysis.md - never absolute]
 Date: [date]
 Status: [Draft | Approved | Done]
 

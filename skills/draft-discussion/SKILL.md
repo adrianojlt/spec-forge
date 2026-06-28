@@ -16,6 +16,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 - Q&A transcript path - derived from `$o`, no separate argument: same directory, filename `<o-basename-without-ext>-qa.md` (e.g. `discussion.md` -> `discussion-qa.md`).
 
 ## Hard rules
+- Write the `Source:`/sibling-file header as a path relative to the output file's own folder (e.g. `./auth-discussion.md`), never absolute - keeps links valid if the specs folder is moved.
 - No code at this stage.
 - No architecture decisions unless confirmed by user.
 - Do not skip open questions.

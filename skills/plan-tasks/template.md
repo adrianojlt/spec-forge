@@ -1,6 +1,6 @@
 # [prefix-task-NN] [Task Title]
 
-Source: [path to plan.md]
+Source: [relative path to plan.md from this task file, e.g. ../../auth-plan.md - never absolute]
 Date: [date]
 Status: [Draft | Approved | Revise | Done | Blocked]
 Attempts: 0

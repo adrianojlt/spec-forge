@@ -1,7 +1,7 @@
 # Discussion Q&A: [Title]
 
-Source: [path to source draft]
-Discussion: [path to discussion.md]
+Source: [relative path to source draft, e.g. ./auth-draft.md - never absolute]
+Discussion: [relative path to discussion.md, e.g. ./auth-discussion.md - never absolute]
 Date: [date]
 Status: [In progress | Complete]
 

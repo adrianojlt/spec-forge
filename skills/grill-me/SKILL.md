@@ -17,6 +17,7 @@ Feeds into `/to-prd` or `/draft-discussion` depending on how formal the next ste
 - `$o` - where to write grilled-notes.md (optional; defaults to `grilled-notes.md` in current dir)
 
 ## Hard rules
+- Write the `Source:` header as a path relative to the output file's own folder (e.g. `./auth-idea.md`), never absolute - keeps links valid if the specs folder is moved.
 - No code at this stage.
 - No architecture decisions unless the user confirms them.
 - If a question can be answered by exploring the codebase, explore the codebase - do not ask the user.

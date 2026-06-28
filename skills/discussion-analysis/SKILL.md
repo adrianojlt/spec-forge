@@ -16,6 +16,7 @@ Transform `discussion.md` into `analysis.md` by analyzing the problem space, sep
 - `$c` - optional path to the existing codebase root. If set, ground the analysis in real code (brownfield). If unset, behavior is unchanged (greenfield).
 
 ## Hard rules
+- Write the `Source:` header as a path relative to the output file's own folder (e.g. `./auth-discussion.md`), never absolute - keeps links valid if the specs folder is moved.
 - No code.
 - No implementation plan.
 - No task list.

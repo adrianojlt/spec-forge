@@ -17,6 +17,7 @@ Replaces `/task-execute` for teams that require test-first discipline. Output fo
 - `$c` - codebase root (optional; inferred from `$i` location if not given)
 
 ## Hard rules
+- Write the report's `Source:` header as a path relative to the report's own folder (e.g. `../todo/auth-task-01.md`), never absolute - keeps links valid if the specs folder is moved.
 - No test-after. Tests must be written before the implementation code that makes them pass.
 - One test at a time. Do not write multiple failing tests before making them pass.
 - No skipping RED. Confirm the test fails before writing implementation.

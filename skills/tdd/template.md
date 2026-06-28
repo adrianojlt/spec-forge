@@ -10,7 +10,7 @@ failed_checks:
 
 # TDD Execution Report: [Task ID] [Task Title]
 
-Source: [path to task file]
+Source: [relative path to the task file, e.g. ../todo/auth-task-01.md - never absolute]
 Date: [date]
 Status: [Done | Revise | Blocked]
 

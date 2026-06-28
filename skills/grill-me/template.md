@@ -1,6 +1,6 @@
 # Grilled Notes: [Idea Title]
 
-Source: [path to $i, or "inline"]
+Source: [relative path to $i, e.g. ./auth-idea.md, or "inline" - never absolute]
 Date: [date]
 Status: [Complete]
 

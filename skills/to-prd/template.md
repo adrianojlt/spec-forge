@@ -1,6 +1,6 @@
 # PRD: [Feature or Product Name]
 
-Source: [path to $i]
+Source: [relative path to $i, e.g. ./auth-idea.md - never absolute]
 Date: [date]
 Status: [Draft | Approved]
 

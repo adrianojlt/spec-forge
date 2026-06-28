@@ -19,6 +19,7 @@ Contrast with `/plan-tasks`, which decomposes from a sequenced plan.md. `/to-iss
 - `$c` - codebase root (optional). When given, explore to understand existing layers and integration points.
 
 ## Hard rules
+- Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-prd.md` from `tasks/todo/`), never absolute - keeps links valid if the specs folder is moved.
 - No horizontal slices. "Set up the database schema" is not a valid task. "User can log in with email and password" is.
 - Every task must deliver user-visible value - something a user or stakeholder can observe working.
 - Blocking dependencies between tasks must be named explicitly.
@@ -53,7 +54,7 @@ Task file format (compatible with `/plan-tasks` output):
 ```
 # [$p-task-NN] [Slice Title - user-visible outcome]
 
-Source: [path to prd.md]
+Source: [relative path to prd.md from this task file, e.g. ../../auth-prd.md - never absolute]
 Date: [date]
 Status: Draft
 Attempts: 0

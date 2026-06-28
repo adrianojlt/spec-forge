@@ -32,6 +32,8 @@ Optional, before either pipeline: `/project-principles` -> overview/principles.m
 
 At session end: `/handoff` -> sessions/<name>.md
 
+After a feature ships (merged and stable): `/graduate o=<feature-dir> p=<prefix>` -> distills a durable `<p>-decision.md`, keeps your original draft, archives the process artifacts under `archive/`
+
 To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 
 **Full orchestration** (automated pipeline):
@@ -68,6 +70,7 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `code-review` | one task file | review report (read-only) | Review |
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
 | `handoff` | session state | sessions/*.md | Continuity |
+| `graduate` | shipped feature dir + prefix | decision.md + archive/ | Lifecycle (retire) |
 | `project-principles` | project rules | overview/principles.md | Governance |
 | `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
@@ -287,6 +290,8 @@ After running `/bootstrap-spec-project p=my-app f=user-auth`:
         done/
         feedback/           <- loop reports: *-attempt-NN.md, *-review-NN.md, *-verify-NN.md
       sessions/             <- feature level sessions
+      <feat>-decision.md    <- durable decision record after /graduate (snapshot, not maintained)
+      archive/              <- process artifacts moved here by /graduate (draft is kept in place)
   prompts/                  <- custom prompts you might need to use later
   sessions/                 <- app level sessions
 ```

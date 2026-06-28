@@ -16,6 +16,7 @@ Transform `plan.md` into individual task files, one per task, written to `$o`. E
 - `$p` - file name prefix derived from the feature name (e.g. `user-auth`)
 
 ## Hard rules
+- Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-plan.md` from `tasks/todo/`), never absolute - keeps links valid if the specs folder is moved.
 - No giant umbrella tasks.
 - No tasks that combine implementation with unrelated work.
 - Each task must be independently implementable and reviewable.

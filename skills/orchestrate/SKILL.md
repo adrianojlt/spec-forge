@@ -155,6 +155,15 @@ Present a summary:
 - Task verification results (if enabled; otherwise note "task-verify was disabled")
 - Any unresolved issues or deferred work
 
+### Step 9 - Graduate (optional, default no)
+After the final report, offer to graduate the feature, but **default to no**. A feature is rarely shippable the instant the build loop ends (it still needs merge / release / stabilization), and graduating archives the plan and task files. Ask:
+- "The build loop is done. Graduate this feature now? This distills a durable `<p>-decision.md`, keeps your original draft, and archives the process artifacts. Most users do this later, once the feature is merged and stable - run `/graduate o=<output> p=<p>` whenever you stop touching it. Graduate now? (default: no)"
+
+Only if the user explicitly says yes:
+Read and follow `graduate/SKILL.md` with args: `o=<output> p=<p>`
+
+Do not graduate as part of the normal pipeline flow. It is a separate, user-triggered lifecycle step.
+
 ## State tracking
 Source of truth for task state is on disk, not chat: each task file's `Status:` / `Attempts:` and the reports in `tasks/feedback/`. Throughout the orchestration, track:
 - Current pipeline stage (entry, analysis, planning, decomposition, execution, handoff)
