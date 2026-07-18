@@ -95,8 +95,8 @@ All skills use short argument names:
 
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
-| `i` | input / source file | grill-me, draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify, conversation (existing conversation to continue) |
-| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory; `conversation` writes `<o>.md` and `<o>.html`) |
+| `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify, conversation (existing conversation to continue) |
+| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory; `conversation` writes `<o>.md` and `<o>.html`; `grilling` optional) |
 | `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, to-prd, to-issues, tdd, code-review |
 | `p` | prefix (artifact filenames + task IDs) / project name | plan-tasks (prefix), to-issues (prefix), orchestrate (prefix), bootstrap-spec-project (project) |
 | `f` | feature name | bootstrap-spec-project |
