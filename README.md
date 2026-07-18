@@ -52,6 +52,8 @@ Unattended tasks (while away): see [`sf-scheduler/`](sf-scheduler/README.md) - d
 
 Codebase health check (any time): `/improve-codebase-architecture` -> architecture-report.md
 
+Standalone (not part of a pipeline): `/grilling` -> relentless one-at-a-time interview to stress-test a plan, decision, or idea; `/teach` -> stateful learning workspace (lessons, learning records, references) for a topic over multiple sessions
+
 Coding standards (language-specific): `/coding-principles` (generic) or `/java-coding-standards`, `/go-coding-standards`, `/rust-coding-standards`, `/swift-coding-standards`, `/typescript-coding-standards`, `/python-coding-standards`, `/kotlin-coding-standards`
 
 ## Skills
@@ -69,6 +71,8 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `tdd` | one task file | code + tests, task moved to tasks/done/ | Execution (TDD) |
 | `code-review` | one task file | review report (read-only) | Review |
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
+| `grilling` | plan, decision, or idea | shared understanding (interactive) | Interview (standalone) |
+| `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
 | `handoff` | session state | sessions/*.md | Continuity |
 | `graduate` | shipped feature dir + prefix | decision.md + archive/ | Lifecycle (retire) |
 | `project-principles` | project rules | overview/principles.md | Governance |
