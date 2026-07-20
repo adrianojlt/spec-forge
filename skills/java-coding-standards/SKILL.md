@@ -128,6 +128,18 @@ private final NaturalLanguageService naturalLanguageService;
 private final LLMProviderService llmProviderService;
 private final DatabaseMetadataService metadataService;
 ```
+```Java
+// ✅ Prefer this (a Human can read this better)
+SyncBackEvent event = new SyncBackEvent(
+        "UPDATE",
+        "doc-uuid",
+        "42",
+        Map.of("field", "value"),
+        null);
+
+// ❌ Over this
+SyncBackEvent event = new SyncBackEvent("UPDATE", "doc-uuid", "42", Map.of("field", "value"), null);
+```
 ### Magic Strings → Enums or Constants
 
 Never use raw string literals for values that:
