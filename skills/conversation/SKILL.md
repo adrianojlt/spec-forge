@@ -20,6 +20,7 @@ Hold a read-only Q&A session about the codebase or a design problem. No implemen
 - Do not save output until the user explicitly says "save" (or equivalent: "write it", "save this", "done").
 - Read-only tools permitted during session: Read, Grep, Glob, Bash (read-only commands only, e.g. `ls`, `find`, `cat`). No Edit, Write, or shell commands that modify files.
 - On save: write files per save mode (full: all three; markdown-only: `.md` only). Confirm which files were written.
+- Write the `Output:` header as a path relative to the output file's own folder (usually just `./<basename>` without extension), never absolute - keeps links valid if the specs folder is moved.
 - If user saves multiple times in one session: overwrite in place. Do not append again.
 
 ## Procedure

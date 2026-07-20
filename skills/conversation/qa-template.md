@@ -1,7 +1,7 @@
 # Conversation Q&A: [Title]
 
 Date: [YYYY-MM-DD]
-Output: [path to this file without extension]
+Output: [path to this file relative to its own folder, without extension, e.g. ./linkflow-mvp-conversation-qa]
 Status: [In Progress | Complete]
 
 ---
