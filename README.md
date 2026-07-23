@@ -46,7 +46,7 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
   -> produces final summary
 ```
 
-Codebase exploration (any time): `/conversation o=<output>` -> exploration.md + exploration.html (read-only Q&A session, saves conversation as Markdown and HTML)
+Codebase exploration (any time): `/conversation o=<output>` -> exploration.md + exploration-qa.md (read-only Q&A session; say "save html" to also get exploration.html)
 
 Unattended tasks (while away): see [`sf-scheduler/`](sf-scheduler/README.md) - drop a task file in a watched folder, a headless agent picks it up and leaves results on disk.
 
@@ -79,7 +79,7 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
 | `orchestrate` | input file + output dir + prefix | full pipeline execution | Orchestration |
-| `conversation` | optional existing conversation file | conversation.md + conversation.html | Exploration |
+| `conversation` | optional existing conversation file | conversation.md + conversation-qa.md (+ conversation.html on request) | Exploration |
 | `coding-principles` | any language | guidelines reference | Code Quality |
 | `java-coding-standards` | Java code | guidelines reference | Code Quality |
 | `go-coding-standards` | Go code | guidelines reference | Code Quality |
@@ -96,7 +96,7 @@ All skills use short argument names:
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
 | `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify, conversation (existing conversation to continue) |
-| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory; `conversation` writes `<o>.md` and `<o>.html`; `grilling` optional) |
+| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
 | `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, to-prd, to-issues, tdd, code-review |
 | `p` | prefix (artifact filenames + task IDs) / project name | plan-tasks (prefix), to-issues (prefix), orchestrate (prefix), bootstrap-spec-project (project) |
 | `f` | feature name | bootstrap-spec-project |
