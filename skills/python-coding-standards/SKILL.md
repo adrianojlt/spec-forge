@@ -1,7 +1,10 @@
 ---
 name: python-coding-standards
 description: "Python coding standards: type hints, error handling, async patterns, and project structure."
+disable-model-invocation: true
 ---
+
+**Activation:** If invoked with no code target or explicit request, reply that these standards are loaded and ask what to apply them to. Do not start reviewing or refactoring the project on your own. Apply the standards below only when writing or reviewing code at the user's request.
 
 # Python Coding Standards
 
