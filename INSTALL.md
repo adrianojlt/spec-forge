@@ -7,16 +7,26 @@ Skills installed here work in both **Claude Code** and **OpenCode**. OpenCode sc
 ## Requirements
 
 - Claude Code CLI installed
-- Bash (macOS/Linux)
+- Bash (macOS/Linux) or PowerShell 5.1+ (Windows)
 
 ## Personal install
 
 Installs skills into `~/.claude/skills/`. Available in all Claude Code sessions.
 
+macOS/Linux:
+
 ```bash
 chmod +x install-personal.sh
 ./install-personal.sh
 ```
+
+Windows (PowerShell), installs into `C:\Users\<you>\.claude\skills`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-personal.ps1
+```
+
+See the Windows section in `README.md` if you use WSL - the WSL home is not the Windows home.
 
 ## Project install
 

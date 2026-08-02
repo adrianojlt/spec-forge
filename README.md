@@ -190,22 +190,58 @@ The skills will work, but without the automatic invocation and argument handling
 
 ## Windows
 
-**Use WSL or Git Bash**
+Skills must land in the home directory of the environment where Claude Code actually runs. Windows has two separate home directories, and mixing them is the usual failure:
 
-The installation scripts (`install-personal.sh`, `install-project.sh`) and bootstrap script are bash-based and require a Unix-like environment. On Windows, use one of:
+| Environment | Home | Skills path |
+|-------------|------|-------------|
+| Windows (PowerShell / CMD) | `C:\Users\<you>` | `C:\Users\<you>\.claude\skills` |
+| WSL | `/home/<you>` | `/home/<you>/.claude/skills` |
 
-- **WSL (Windows Subsystem for Linux)** - Recommended. Full Linux environment.
-- **Git Bash** - Lightweight alternative. Comes with Git for Windows.
+If you run Claude Code from PowerShell but install from WSL, the skills go to the WSL home and Claude Code never sees them.
 
-Both provide full bash compatibility. The skill files themselves (Markdown) are cross-platform and work on any OS.
+**Recommended: PowerShell install**
 
-**Setup:**
-1. Install WSL or Git Bash
-2. Open WSL/Git Bash terminal
-3. Run installation scripts as documented above
-4. Use Claude Code/OpenCode within the same environment
+Use the native PowerShell script. No bash, no WSL:
 
-Claude Code and OpenCode work best in Unix-like environments, so this approach provides the most reliable experience.
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-personal.ps1
+```
+
+Verify:
+
+```powershell
+dir $env:USERPROFILE\.claude\skills
+```
+
+**Alternative: Git Bash**
+
+Git Bash ships with Git for Windows and its `$HOME` is `C:\Users\<you>`, so the bash script installs to the right place:
+
+```bash
+./install-personal.sh
+```
+
+**Alternative: WSL, installing into the Windows home**
+
+If you only have the bash script and you are in WSL but run Claude Code on Windows, override `HOME` so the files land in the Windows profile:
+
+```bash
+HOME=/mnt/c/Users/<YourWindowsUser> ./install-personal.sh
+```
+
+Running `./install-personal.sh` plainly inside WSL is correct only when you also run Claude Code inside WSL.
+
+**Project install**
+
+`install-project.sh` has no PowerShell equivalent. Use Git Bash or WSL for it, or copy manually:
+
+```powershell
+$dest = "C:\path\to\project\.claude\skills"
+New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Copy-Item -Path .\skills\* -Destination $dest -Recurse -Force
+```
+
+The skill files themselves (Markdown) are cross-platform and work on any OS.
 
 ## Workflow guide
 
