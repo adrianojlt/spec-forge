@@ -56,6 +56,8 @@ Standalone (not part of a pipeline): `/grilling` -> relentless one-at-a-time int
 
 Coding standards (language-specific): `/coding-principles` (generic) or `/java-coding-standards`, `/go-coding-standards`, `/rust-coding-standards`, `/swift-coding-standards`, `/typescript-coding-standards`, `/python-coding-standards`, `/kotlin-coding-standards`
 
+Framework review (standalone): `/angular-clean-code` -> reviews Angular code for template side effects, change detection workarounds, state ownership, RxJS leaks, DI scope, and testability; `/react-clean-code` -> reviews React code for purity violations, state structure, hooks, and async handling
+
 ## Skills
 
 | Skill | Input | Output | Stage |
@@ -88,6 +90,8 @@ Coding standards (language-specific): `/coding-principles` (generic) or `/java-c
 | `typescript-coding-standards` | TypeScript code | guidelines reference | Code Quality |
 | `python-coding-standards` | Python code | guidelines reference | Code Quality |
 | `kotlin-coding-standards` | Kotlin code | guidelines reference | Code Quality |
+| `angular-clean-code` | Angular code | review findings + safe refactors | Code Quality |
+| `react-clean-code` | React code | review findings + safe refactors | Code Quality |
 
 ## Arguments
 
