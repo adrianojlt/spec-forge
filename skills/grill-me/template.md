@@ -46,4 +46,4 @@ Status: [Complete]
 - [question] - deferred because [reason]
 
 ## Suggested Next Step
-[/to-prd | /draft-discussion] - [one sentence on why this next step fits]
+/draft-discussion - [one sentence on why this next step fits, and which themes remain unresolved]

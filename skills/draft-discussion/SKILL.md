@@ -11,7 +11,7 @@ disable-model-invocation: true
 Read a draft, ask structured clarifying questions across multiple rounds, then write `discussion.md` once the readiness gate passes.
 
 ## Inputs
-- `$i` - draft file to read
+- `$i` - input file to read: either a raw draft, or a `grilled-notes.md` produced by `/grill-me`
 - `$o` - where to write the discussion document
 - Q&A transcript path - derived from `$o`, no separate argument: same directory, filename `<o-basename-without-ext>-qa.md` (e.g. `discussion.md` -> `discussion-qa.md`).
 
@@ -21,7 +21,7 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 - No architecture decisions unless confirmed by user.
 - Do not skip open questions.
 - Do not write output until the readiness gate passes.
-- First round must contain $n grouped questions. $n defaults to 8-12; override with n=<min>-<max> argument (e.g. n=3-5).
+- First round must cover $n gaps, or fewer when the input pre-resolves themes. $n defaults to 8-12; override with n=<min>-<max> argument (e.g. n=3-5).
 - Never discard the raw Q&A. Persist it to the transcript file after every round, before asking the next round.
 
 ## Procedure
@@ -30,15 +30,17 @@ Read a draft, ask structured clarifying questions across multiple rounds, then w
 Read `$i` in full.
 
 **Step 2 - Clarification round 1**
-Ask $n grouped questions covering all of:
-1. Problem / context (what is broken or missing, why now)
-2. Goals and success criteria (what does success look like, how measured)
-3. Non-goals (what is explicitly out of scope)
-4. Constraints (time, budget, tech stack, org, legal, existing dependencies)
-5. Users and stakeholders (who uses this, who approves it)
-6. Known risks and unknowns
-7. Existing state (what exists, what is partially done, what is broken)
-8. Definition of done (when is this feature considered complete)
+First, detect whether `$i` is already grilled notes: look for the template markers `# Grilled Notes:` and `## Key Decisions Resolved`. If both are present, the input is pre-grilled. Seven of the eight themes below overlap with `/grill-me`, so do not re-ask them wholesale: map each theme to the grilled-notes section that covers it, and ask only the themes left unresolved (a missing section, or one whose content does not settle the theme). State which themes you are skipping and why before asking.
+
+Ask $n grouped questions covering all of the following (minus any theme the pre-grilled input already resolves):
+1. Problem / context (what is broken or missing, why now) - grilled notes: `## Idea Summary`
+2. Goals and success criteria (what does success look like, how measured) - grilled notes: `## Goals`
+3. Non-goals (what is explicitly out of scope) - grilled notes: `## Scope Boundary` (Not in scope)
+4. Constraints (time, budget, tech stack, org, legal, existing dependencies) - grilled notes: `## Constraints`
+5. Users and stakeholders (who uses this, who approves it) - not covered by grilled notes; always ask
+6. Known risks and unknowns - grilled notes: `## Risks` and `## Open Questions`
+7. Existing state (what exists, what is partially done, what is broken) - grilled notes: `## Idea Summary` and `## Key Decisions Resolved`
+8. Definition of done (when is this feature considered complete) - grilled notes: `## Scope Boundary` (In scope)
 
 After the user answers, immediately record this round to the Q&A transcript: create it using `qa-template.md` and write Round 1 with the grouped questions and the user's verbatim answers. Do this before asking any follow-up round.
 

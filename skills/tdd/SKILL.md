@@ -10,7 +10,7 @@ disable-model-invocation: true
 ## Purpose
 Implement one task via strict TDD: confirm the interface, write one failing test, write minimum code to pass, refactor, repeat until all Given/When/Then acceptance criteria are covered by passing tests.
 
-Replaces `/task-execute` for teams that require test-first discipline. Output format is compatible: moves the task file from `tasks/todo/` to `tasks/done/` on completion.
+An executor alternative to `/task-execute`, for teams that require test-first discipline. Output format is compatible: moves the task file from `tasks/todo/` to `tasks/done/` on completion.
 
 ## Inputs
 - `$i` - task file from `tasks/todo/`
@@ -34,11 +34,13 @@ Read `$i` in full.
 
 Then check for prior loop feedback. Look in the sibling `tasks/feedback/` directory for the highest-numbered report for this task (`<task-id>-attempt-<NN>.md`, `<task-id>-review-<NN>.md`, `<task-id>-verify-<NN>.md`). If the latest one has `verdict: FAIL` (or `result: Revise`), this is a **retry**: scope the work to its `failed_checks` only. Write a failing test for each failed check, then make it pass. Do not re-touch behaviors already covered by passing tests. If no feedback file exists, this is a first attempt; cover the full task scope.
 
-Before writing any code, confirm with the user:
+Before writing any code, state the interface:
 - What new interfaces, functions, or API endpoints are needed
 - What existing interfaces change (signature, return type, side effects)
 
-Do not proceed until the user confirms or adjusts the interface description.
+When invoked interactively (directly by a user), do not proceed until the user confirms or adjusts the interface description.
+
+When invoked non-interactively (driven by `orchestrate` or `sf-scheduler`), do not block. Assume the interface as stated and proceed, recording the assumed interface in the attempt report so it can be reviewed after the fact.
 
 **Step 2 - Explore**
 If `$c` is given (or can be inferred), explore the codebase to understand:

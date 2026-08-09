@@ -18,7 +18,7 @@ This skill does not produce code itself. It instructs you to read and follow oth
 - `$p` - prefix for all generated artifact filenames (optional; if not provided, ask the user)
 
 ## Hard rules
-- Do not skip the approval gate at `analysis-plan` (Classic pipeline). This is the only mandatory human stop.
+- Do not skip the approval gate at `analysis-plan`. This is the only mandatory human stop.
 - Do not auto-advance past a task that reached `Status: Blocked` (`Max attempts` exhausted). Stop and report.
 - Do not run tasks in parallel. Execute them sequentially in dependency order.
 - Do not modify task files directly. Let `task-execute` and `tdd` handle that.
@@ -29,39 +29,32 @@ This skill does not produce code itself. It instructs you to read and follow oth
 
 ### Step 1 - Gather context
 Ask the user:
-1. **Which pipeline?** Classic (draft -> discussion -> analysis -> plan -> tasks) or Agile (idea -> grill -> PRD -> issues)?
-2. **Input file?** If `$i` is provided, use it. Otherwise ask for the path to the draft or idea file.
+1. **Which executor?** `task-execute` (default) or `tdd` (test-first)?
+2. **Input file?** If `$i` is provided, use it. Otherwise ask for the path. It may be a raw draft, or a `grilled-notes.md` already produced by `/grill-me`.
 3. **Output directory?** If `$o` is provided, use it. Otherwise ask where to write artifacts (e.g. `features/auth/`).
 4. **Prefix?** If `$p` is provided, use it. Otherwise ask for a short prefix used for all generated filenames and task IDs (e.g. `auth` produces `auth-discussion.md`, `auth-analysis.md`, `auth-task-01`, etc.).
-5. **Run code-review after each task?** (yes/no, default: no)
+5. **Run task-review after each task?** (yes/no, default: no)
 6. **Run task-verify after each task?** (yes/no, default: no)
 
 If the user has already provided these via arguments or context, skip the questions.
 
 ### Step 2 - Run entry skill
-**Classic pipeline:**
+The input is either a raw draft or a `grilled-notes.md`. Detect which by looking for the grill-me template markers (`# Grilled Notes:` and `## Key Decisions Resolved`).
+
+Raw draft:
 Read and follow `draft-discussion/SKILL.md` with args: `i=<input> o=<output>/<p>-discussion.md`
+
+Grilled notes: pass a reduced question count, since grill-me has already resolved most themes.
+Read and follow `draft-discussion/SKILL.md` with args: `i=<input> o=<output>/<p>-discussion.md n=3-5`
 
 Wait for the user to answer all clarification rounds. The skill will produce `<p>-discussion.md` and `<p>-discussion-qa.md`.
 
-**Agile pipeline:**
-Read and follow `grill-me/SKILL.md` with args: `i=<input> o=<output>/<p>-grilled-notes.md`
-
-Wait for the user to answer all question rounds. The skill will produce `<p>-grilled-notes.md`.
-
-### Step 3 - Run analysis/requirements skill
-**Classic pipeline:**
+### Step 3 - Run analysis skill
 Read and follow `discussion-analysis/SKILL.md` with args: `i=<output>/<p>-discussion.md o=<output>/<p>-analysis.md`
 
 If the user provided a codebase root (`$c`), pass it through.
 
-**Agile pipeline:**
-Read and follow `to-prd/SKILL.md` with args: `i=<output>/<p>-grilled-notes.md o=<output>/<p>-prd.md`
-
-If the user provided a codebase root (`$c`), pass it through.
-
-### Step 4 - Run planning skill (Classic only)
-**Classic pipeline:**
+### Step 4 - Run planning skill
 Read and follow `analysis-plan/SKILL.md` with args: `i=<output>/<p>-analysis.md o=<output>/<p>-plan.md`
 
 **STOP HERE. This is the approval gate.**
@@ -73,19 +66,10 @@ Present the plan summary to the user (slice sequence, tradeoffs, risks, open que
 
 Do not proceed until the user explicitly approves.
 
-**Agile pipeline:**
-Skip this step. The PRD is the planning artifact.
-
 ### Step 5 - Run decomposition skill
-**Classic pipeline:**
 Read and follow `plan-tasks/SKILL.md` with args: `i=<output>/<p>-plan.md o=<output>/tasks/todo/ p=<p>`
 
 The skill produces one task file per task in `tasks/todo/`.
-
-**Agile pipeline:**
-Read and follow `to-issues/SKILL.md` with args: `i=<output>/<p>-prd.md o=<output>/tasks/todo/ p=<p>`
-
-The skill produces one task file per vertical slice in `tasks/todo/`.
 
 After decomposition, report the task count and list task IDs. Ask the user to confirm before proceeding to execution.
 
@@ -93,24 +77,24 @@ After decomposition, report the task count and list task IDs. Ask the user to co
 For each task file in `tasks/todo/` (in dependency order):
 
 **6a - Execute (loop on the task's own self-check)**
-**Classic pipeline:**
-Read and follow `task-execute/SKILL.md` with args: `i=<task-file>`
+Read and follow the executor the user chose in Step 1, with args: `i=<task-file>`
+- `task-execute` -> `task-execute/SKILL.md`
+- `tdd` -> `tdd/SKILL.md`
 
-**Agile pipeline:**
-Read and follow `tdd/SKILL.md` with args: `i=<task-file>`
+`tdd` is being driven non-interactively here, so its Step 1 interface gate does not block: it states the assumed interface in the attempt report and proceeds.
 
 Wait for the skill to complete. If it stops due to unmet dependencies, report and ask the user how to proceed.
 
-After it completes, read the task file's `Status:`. The executor self-checks its own acceptance criteria, so this loop runs even when code-review and task-verify are both disabled:
+After it completes, read the task file's `Status:`. The executor self-checks its own acceptance criteria, so this loop runs even when task-review and task-verify are both disabled:
 - **`Done`**: proceed to 6b.
-- **`Revise`** (self-check failed, `Attempts` still `< Max attempts`): re-read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md`) again. Its Step 1 reads the latest `tasks/feedback/<task-id>-attempt-<NN>.md` and fixes only the `failed_checks`. Repeat until `Done` or `Blocked`.
+- **`Revise`** (self-check failed, `Attempts` still `< Max attempts`): re-read and follow the chosen executor's SKILL.md again. Its Step 1 reads the latest `tasks/feedback/<task-id>-attempt-<NN>.md` and fixes only the `failed_checks`. Repeat until `Done` or `Blocked`.
 - **`Blocked`** (`Attempts` reached `Max attempts`): stop on this task and report. Do not auto-advance. Ask the user how to proceed.
 
-Only proceed to 6b once the task is `Done`. Code-review and task-verify are *additional* gates layered on top of this loop, not the thing that triggers it.
+Only proceed to 6b once the task is `Done`. Task-review and task-verify are *additional* gates layered on top of this loop, not the thing that triggers it.
 
 **6b - Review (if enabled)**
-If the user chose to run code-review:
-  Read and follow `code-review/SKILL.md` with args: `i=<task-file>`
+If the user chose to run task-review:
+  Read and follow `task-review/SKILL.md` with args: `i=<task-file>`
 
   Check the verdict:
   - **PASS** or **PASS WITH WARNINGS**: proceed to 6c
@@ -119,11 +103,11 @@ If the user chose to run code-review:
   **6b-retry - Retry on failure (state-driven)**
   Retries are driven by the task file's `Attempts` / `Max attempts` and the persisted feedback files, not by a counter held in chat. If the review verdict is FAIL:
   1. Report the blocker findings to the user.
-  2. Re-read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md`). It reads the latest `tasks/feedback/<task-id>-review-<NN>.md` in its Step 1 and fixes only the `failed_checks` (targeted re-entry, not a blind redo).
-  3. Re-read and follow `code-review/SKILL.md` with args: `i=<task-file>`.
+  2. Re-read and follow the chosen executor's SKILL.md. It reads the latest `tasks/feedback/<task-id>-review-<NN>.md` in its Step 1 and fixes only the `failed_checks` (targeted re-entry, not a blind redo).
+  3. Re-read and follow `task-review/SKILL.md` with args: `i=<task-file>`.
   4. The loop ends when the task reaches `Status: Done` (pass) or `Status: Blocked` (`Attempts` reached `Max attempts`). On `Blocked`, stop and report. Do not auto-advance. Because state lives in the task file and `tasks/feedback/`, the loop resumes correctly even in a fresh session.
 
-If code-review is disabled, skip directly to 6c.
+If task-review is disabled, skip directly to 6c.
 
 **6c - Verify (if enabled)**
 If the user chose to run task-verify:
@@ -148,10 +132,10 @@ Ask the user for the next session purpose if not obvious.
 
 ### Step 8 - Final report
 Present a summary:
-- Pipeline used
+- Executor used
 - Artifacts produced (with paths)
 - Tasks completed / failed / skipped
-- Code review verdicts (if enabled; otherwise note "code-review was disabled")
+- Task review verdicts (if enabled; otherwise note "task-review was disabled")
 - Task verification results (if enabled; otherwise note "task-verify was disabled")
 - Any unresolved issues or deferred work
 
@@ -188,6 +172,6 @@ No direct output files. The orchestrator produces:
 ## Validation
 Before reporting completion, verify:
 - All task files are either in `tasks/done/` or explicitly marked as skipped/failed
-- If code-review was enabled: no task has an unresolved FAIL verdict
-- The approval gate was respected (Classic pipeline only)
+- If task-review was enabled: no task has an unresolved FAIL verdict
+- The approval gate was respected
 - The final summary includes all artifacts and their paths

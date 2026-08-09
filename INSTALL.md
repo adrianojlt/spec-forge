@@ -65,4 +65,25 @@ Skills appear in the command list. If they do not appear:
 
 ## Update
 
-Re-run the install script. It overwrites existing files. Idempotent.
+Re-run the install script. It overwrites existing files. Idempotent for additions and changes.
+
+### Removing stale skills (manual)
+
+The installers only copy; they never prune. A skill that was deleted or renamed
+in this repo keeps living in your install directory and keeps showing up in
+Claude Code alongside the new name. Remove those directories yourself.
+
+`to-prd` and `to-issues` were deleted, and `code-review` was renamed to
+`task-review`. If you installed before that change, clean up with:
+
+```bash
+rm -rf ~/.claude/skills/to-prd ~/.claude/skills/to-issues ~/.claude/skills/code-review
+```
+
+For a project install, use `<project>/.claude/skills/` instead of `~/.claude/skills/`.
+
+PowerShell:
+
+```powershell
+Remove-Item -Recurse -Force $env:USERPROFILE\.claude\skills\to-prd, $env:USERPROFILE\.claude\skills\to-issues, $env:USERPROFILE\.claude\skills\code-review -ErrorAction SilentlyContinue
+```

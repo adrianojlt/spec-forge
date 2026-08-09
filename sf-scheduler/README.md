@@ -35,7 +35,7 @@ Each app under `~/ai-specs` has two intake folders the launcher scans:
 ## Task types
 
 - `analysis` - report on part of the code.
-- `review` - code-review report of findings to implement later.
+- `review` - task-review report of findings to implement later.
 - `implementation` - carry out an instruction, on a dedicated git branch only (never `main`).
 
 ## Where to start

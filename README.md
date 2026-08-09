@@ -4,31 +4,28 @@ Skill pack for Claude Code and Opencode implementing a staged, file-driven plann
 
 ## Workflows
 
-**Classic pipeline** (structured spec-first):
+One pipeline, two optional entry points and a choice of executor:
 ```
-draft.md
+[optional] /grill-me      -> grilled-notes.md (idea exploration + codebase grounding)
+                             |
+                             v
+draft.md OR grilled-notes.md
   -> /draft-discussion    -> discussion.md (+ discussion-qa.md)
   -> /discussion-analysis -> analysis.md
   -> /analysis-plan       -> plan.md  (review + approve before next step)
   -> /plan-tasks          -> tasks/todo/<prefix>-task-01.md
                              tasks/todo/<prefix>-task-02.md
                              ...
-  -> /task-execute        -> implements one task, verifies, moves todo/ -> done/
-  -> /code-review         -> (optional) review report (quality, security, performance, spec, tests)
+  -> executor choice:
+       /task-execute      -> implements one task, verifies, moves todo/ -> done/
+       /tdd               -> code + tests (red-green-refactor loop, moves todo/ -> done/)
+  -> /task-review         -> (optional) review report (quality, security, performance, spec, tests)
   -> /task-verify         -> (optional) read-only re-check of a task's acceptance criteria
 ```
 
-**Agile pipeline** (idea-to-vertical-slices):
-```
-idea
-  -> /grill-me            -> grilled-notes.md (idea exploration + codebase grounding)
-  -> /to-prd              -> prd.md (user stories + acceptance criteria)
-  -> /to-issues           -> tasks/todo/<prefix>-task-01.md (vertical slices)
-  -> /tdd                 -> code + tests (red-green-refactor loop, moves todo/ -> done/)
-  -> /code-review         -> (optional) review report (quality, security, performance, spec, tests)
-```
+Starting from grilled notes is a shortcut, not a different pipeline: `/draft-discussion` detects the grilled-notes format and asks only the themes grilling left unresolved.
 
-Optional, before either pipeline: `/project-principles` -> overview/principles.md (project-wide rules the pipeline reads)
+Optional, before the pipeline: `/project-principles` -> overview/principles.md (project-wide rules the pipeline reads)
 
 At session end: `/handoff` -> sessions/<name>.md
 
@@ -39,9 +36,9 @@ To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 **Full orchestration** (automated pipeline):
 ```
 /orchestrate i=<input> o=<output-dir> p=<prefix>
-  -> asks which pipeline (Classic or Agile)
+  -> asks which executor (task-execute or tdd)
   -> chains all skills in sequence
-  -> stops at approval gate (Classic: analysis-plan)
+  -> stops at approval gate (analysis-plan)
   -> runs the execution loop: retries failures (targeted) until Done or Blocked
   -> produces final summary
 ```
@@ -62,16 +59,14 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 
 | Skill | Input | Output | Stage |
 |-------|-------|--------|-------|
-| `grill-me` | idea or draft file | grilled-notes.md | Idea Exploration |
-| `draft-discussion` | draft.md | discussion.md + discussion-qa.md | Clarification |
+| `grill-me` | idea or draft file | grilled-notes.md | Optional entry point (idea exploration) |
+| `draft-discussion` | draft.md or grilled-notes.md | discussion.md + discussion-qa.md | Clarification |
 | `discussion-analysis` | discussion.md | analysis.md | Analysis |
 | `analysis-plan` | analysis.md | plan.md | Planning (approval gate) |
-| `to-prd` | grilled-notes or discussion | prd.md | Requirements |
-| `plan-tasks` | plan.md | tasks/todo/*.md (one per task) | Decomposition |
-| `to-issues` | prd.md | tasks/todo/*.md (vertical slices) | Decomposition |
+| `plan-tasks` | plan.md | tasks/todo/*.md (one per task, vertical slices) | Decomposition |
 | `task-execute` | one task file | code + task moved to tasks/done/ | Execution |
-| `tdd` | one task file | code + tests, task moved to tasks/done/ | Execution (TDD) |
-| `code-review` | one task file | review report (read-only) | Review |
+| `tdd` | one task file | code + tests, task moved to tasks/done/ | Execution (test-first) |
+| `task-review` | one task file | review report (read-only) | Review |
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
 | `grilling` | plan, decision, or idea | shared understanding (interactive) | Interview (standalone) |
 | `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
@@ -99,16 +94,16 @@ All skills use short argument names:
 
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
-| `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, to-prd, to-issues, task-execute, tdd, code-review, task-verify, conversation (existing conversation to continue) |
-| `o` | output file or directory | all writing skills (file; `plan-tasks` and `to-issues` write to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
-| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, to-prd, to-issues, tdd, code-review |
-| `p` | prefix (artifact filenames + task IDs) / project name | plan-tasks (prefix), to-issues (prefix), orchestrate (prefix), bootstrap-spec-project (project) |
+| `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, task-execute, tdd, task-review, task-verify, conversation (existing conversation to continue) |
+| `o` | output file or directory | all writing skills (file; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
+| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, tdd, task-review |
+| `p` | prefix (artifact filenames + task IDs) / project name | plan-tasks (prefix), orchestrate (prefix), bootstrap-spec-project (project) |
 | `f` | feature name | bootstrap-spec-project |
-| `n` | next-session purpose | handoff |
+| `n` | question count (draft-discussion, `n=<min>-<max>`) / next-session purpose (handoff) | draft-discussion, handoff |
 
 ## Example invocations
 
-Classic pipeline:
+Pipeline:
 ```
 /draft-discussion i=inbox/idea.md o=features/auth/discussion.md
 
@@ -120,22 +115,22 @@ Classic pipeline:
 
 /task-execute i=features/auth/tasks/todo/auth-task-01.md
 
-/code-review i=features/auth/tasks/done/auth-task-01.md
+/task-review i=features/auth/tasks/done/auth-task-01.md
 
 /task-verify i=features/auth/tasks/done/auth-task-01.md
 ```
 
-Agile pipeline:
+Optional grill-me pre-stage (grilled notes replace the draft as input, and the
+second pass needs fewer questions because grilling already resolved most themes):
 ```
 /grill-me i=inbox/idea.md o=features/auth/grilled-notes.md
 
-/to-prd i=features/auth/grilled-notes.md o=features/auth/prd.md
+/draft-discussion i=features/auth/grilled-notes.md o=features/auth/discussion.md n=3-5
+```
 
-/to-issues i=features/auth/prd.md o=features/auth/tasks/todo/ p=auth
-
+Test-first executor instead of `/task-execute`:
+```
 /tdd i=features/auth/tasks/todo/auth-task-01.md
-
-/code-review i=features/auth/tasks/done/auth-task-01.md
 ```
 
 Conversation (explore and save):
@@ -165,7 +160,7 @@ Brownfield (ground analysis/plan in an existing repo):
 
 /analysis-plan i=features/auth/analysis.md o=features/auth/plan.md c=/path/to/repo
 
-/to-prd i=features/auth/grilled-notes.md o=features/auth/prd.md c=/path/to/repo
+/grill-me i=inbox/idea.md o=features/auth/grilled-notes.md c=/path/to/repo
 ```
 
 ## Install modes
@@ -252,55 +247,50 @@ The skill files themselves (Markdown) are cross-platform and work on any OS.
 ### Full orchestration
 
 `/orchestrate` runs the entire pipeline from idea to verified tasks. It:
-1. Asks which pipeline (Classic or Agile) and gathers inputs
-2. Asks whether to enable code-review and task-verify (both optional, default: off)
+1. Asks which executor (`task-execute` or `tdd`) and gathers inputs (draft or grilled notes)
+2. Asks whether to enable task-review and task-verify (both optional, default: off)
 3. Chains skills in sequence, passing outputs between them
-4. Stops at the approval gate (Classic: `analysis-plan` review)
-5. Executes tasks one by one, optionally running `code-review` after each
+4. Stops at the approval gate (`analysis-plan` review)
+5. Executes tasks one by one with the chosen executor, optionally running `task-review` after each
 6. Retries failed tasks via the file-driven loop: `task-execute` reads the persisted `failed_checks` and fixes only those, until the task reaches `Done` or `Blocked` (`Max attempts`)
 7. Optionally runs `task-verify` after each task
 8. Produces a final summary with all artifacts and their paths
 
 Use `/orchestrate` when you want to run the full pipeline without manually invoking each skill. You still control the process at approval gates and can stop at any time.
 
-### Classic pipeline
+### The pipeline
 
+0. `/grill-me` (optional entry point) - Claude interrogates your idea with 8-15 grouped questions. Can explore the codebase to answer its own questions. Produces `grilled-notes.md` once all branches are resolved. Feed that file to `/draft-discussion` instead of a raw draft.
 1. Write a rough idea in `inbox/` or `features/<name>/inbox/` (no structure required). Unscoped ideas go in `backlog/`.
-2. `/draft-discussion` - Claude asks 8-12 clarifying questions, then writes `discussion.md`. The questions and your verbatim answers are saved alongside in `discussion-qa.md`, written after each round.
+2. `/draft-discussion` - Claude asks 8-12 clarifying questions, then writes `discussion.md`. The questions and your verbatim answers are saved alongside in `discussion-qa.md`, written after each round. Given grilled notes as input, it skips the themes already resolved and asks only the gaps (pass `n=3-5`).
 3. `/discussion-analysis` - Claude reads discussion, separates facts from assumptions, writes `analysis.md`.
 4. `/analysis-plan` - Claude sequences work, identifies dependencies, writes `plan.md`, then STOPS for your review and approval before `plan-tasks` runs.
-5. `/plan-tasks` - Claude decomposes the approved plan into atomic tasks, writes one file per task into `tasks/todo/`.
-6. `/task-execute` - Claude implements a single task, verifies its acceptance criteria, and moves the file from `tasks/todo/` to `tasks/done/`. Run once per task.
-7. `/code-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
+5. `/plan-tasks` - Claude decomposes the approved plan into atomic tasks, writes one file per task into `tasks/todo/`. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value.
+6. Executor, one per task, pick one:
+   - `/task-execute` - Claude implements a single task, verifies its acceptance criteria, and moves the file from `tasks/todo/` to `tasks/done/`.
+   - `/tdd` - Claude implements one task using red-green-refactor: state the interface, write one failing test, write minimum code, refactor, repeat. Moves the task to `tasks/done/` when all criteria are covered by passing tests.
+7. `/task-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
 8. `/task-verify` (optional) - read-only re-check of a task's Given/When/Then against the repo. Useful to audit done work.
 9. `/handoff` at session end to write a resumable session document.
 
 Optionally seed `overview/principles.md` first with `/project-principles`. When present, `discussion-analysis`, `analysis-plan`, and `task-execute` read it as binding constraints.
-
-### Agile pipeline
-
-1. `/grill-me` - Claude interrogates your idea with 8-15 grouped questions. Can explore the codebase to answer its own questions. Produces `grilled-notes.md` once all branches are resolved.
-2. `/to-prd` - Claude converts grilled notes into a PRD with user stories and Given/When/Then acceptance criteria.
-3. `/to-issues` - Claude breaks the PRD into vertical slices (tracer-bullet tasks), each delivering end-to-end user-visible value. Writes task files compatible with the rest of the pipeline.
-4. `/tdd` - Claude implements one task using red-green-refactor: confirm interface, write one failing test, write minimum code, refactor, repeat. Moves task to `tasks/done/` when all criteria are covered by passing tests.
-5. `/code-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
 
 ### Implementation loop
 
 Execution is a file-driven loop, not a one-shot. State lives on disk so it survives across sessions and tools:
 
 - **Task state** - each task file carries `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:`, and `Max attempts:`. The folder also signals state: `tasks/todo/` vs `tasks/done/`.
-- **Feedback artifacts** - the executor (`task-execute` Classic / `tdd` Agile), `code-review`, and `task-verify` each write a report into `tasks/feedback/` per attempt (`<task-id>-attempt-NN.md`, `<task-id>-review-NN.md`, `<task-id>-verify-NN.md`). Highest `NN` is the latest. The reports carry YAML frontmatter with a `verdict` and a `failed_checks` list.
+- **Feedback artifacts** - the executor (`task-execute` or `tdd`), `task-review`, and `task-verify` each write a report into `tasks/feedback/` per attempt (`<task-id>-attempt-NN.md`, `<task-id>-review-NN.md`, `<task-id>-verify-NN.md`). Highest `NN` is the latest. The reports carry YAML frontmatter with a `verdict` and a `failed_checks` list.
 - **Targeted re-entry** - on a retry, `task-execute` reads the latest review/verify report and fixes only the `failed_checks`. Retries target named failures, they do not redo the whole task.
 - **Loop exit** - the loop ends at `Status: Done` (all criteria pass) or `Status: Blocked` (`Attempts` reached `Max attempts`).
 
 One pass through the loop:
 ```
-Approved -> /task-execute            -> Attempts++, writes attempt-NN report
-         -> /code-review             -> writes review-NN (verdict + failed_checks)
+Approved -> /task-execute or /tdd    -> Attempts++, writes attempt-NN report
+         -> /task-review             -> writes review-NN (verdict + failed_checks)
    PASS  -> Status: Done, todo/ -> done/
    FAIL  -> Status: Revise
-         -> /task-execute (reads review-NN, fixes failed_checks only)
+         -> executor again (reads review-NN, fixes failed_checks only)
          -> ... repeat until Done or Blocked
 ```
 
@@ -310,7 +300,7 @@ Because every signal (status, attempts, verdicts, failed checks) is a file, a fr
 
 `/improve-codebase-architecture` (no arguments) - runs in the current directory. Identifies shallow modules, scattered concepts, and tight coupling. Produces `architecture-report.md` with evidence-backed candidates and specific proposals. No code changes.
 
-Stages before `task-execute` produce no code: each writes a reviewable file, and `analysis-plan` requires your explicit approval before the plan is decomposed into tasks. `task-execute` is the only skill that writes code, and only for one approved task at a time.
+Stages before the executor produce no code: each writes a reviewable file, and `analysis-plan` requires your explicit approval before the plan is decomposed into tasks. The executor (`task-execute` or `tdd`) is the only stage that writes code, and only for one approved task at a time.
 
 ## Project structure (ai-specs)
 

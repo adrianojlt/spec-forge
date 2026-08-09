@@ -1,11 +1,11 @@
 ---
-name: code-review
+name: task-review
 description: "Review code changes for quality, security, performance, spec compliance, and test quality. Report-only, task-scoped, language-aware."
 argument-hint: "i=<task.md> [c=<codebase>]"
 disable-model-invocation: true
 ---
 
-# code-review
+# task-review
 
 ## Purpose
 Review the code changes produced by `/task-execute` or `/tdd` for a single task. Produce a structured report with findings across five dimensions: code quality, security, performance, spec compliance, and test quality.
@@ -14,7 +14,7 @@ Read-only: writes no code, moves no files, changes no status. The report is for 
 
 Sits between execution and verification:
 ```
-task-execute / tdd -> code-review -> task-verify
+task-execute / tdd -> task-review -> task-verify
 ```
 
 ## Inputs

@@ -14,7 +14,7 @@ failed_checks:
 
 **Task:** [task ID and title]
 **Date:** [date]
-**Reviewer:** AI (code-review skill)
+**Reviewer:** AI (task-review skill)
 **Language:** [detected language]
 **Standards reference:** [loaded coding-standards skill or coding-principles]
 

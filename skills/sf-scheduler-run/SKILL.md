@@ -43,7 +43,7 @@ target `path` as needed for the task type.
 - `review` (read-only): review the code at `path` per the instructions. Produce
   a findings report: each finding with location, severity, and a suggested fix,
   framed so it can become an implementation task later. Write it to
-  `<out>/report.md`. You may use the repo's `code-review` skill to structure the
+  `<out>/report.md`. You may use the repo's `task-review` skill to structure the
   review.
 
 - `implementation` (mutating, branch-isolated):

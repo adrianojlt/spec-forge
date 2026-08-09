@@ -36,7 +36,7 @@ Focus on token expiry and session handling. Produce a findings report.
 ### `task-type` semantics
 
 - `analysis` - read-only. Produce a report describing part of the code at `path`.
-- `review` - read-only. Produce a code-review report of findings to implement later.
+- `review` - read-only. Produce a task-review report of findings to implement later.
 - `implementation` - mutating. Carry out the instruction on a **dedicated git branch only** (never `main`). The result records the branch name and a summary.
 
 ## Folder layout

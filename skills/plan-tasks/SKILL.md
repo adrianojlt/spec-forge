@@ -18,6 +18,8 @@ Transform `plan.md` into individual task files, one per task, written to `$o`. E
 ## Hard rules
 - Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-plan.md` from `tasks/todo/`), never absolute - keeps links valid if the specs folder is moved.
 - No giant umbrella tasks.
+- No horizontal slices. "Set up the database schema" is not a valid task. "User can log in with email and password" is.
+- Every task must deliver user-visible value - something a user or stakeholder can observe working.
 - No tasks that combine implementation with unrelated work.
 - Each task must be independently implementable and reviewable.
 - All acceptance criteria in Given/When/Then format.
@@ -52,6 +54,7 @@ Write one file per task into `$o`. File name pattern: `$p-task-<NN>.md` where NN
 
 ## Readiness gate
 - No task is broader than one focused work session
+- No task whose `Scope notes: In` spans only one layer (reject horizontal slices)
 - No task has undefined dependencies
 - Every task has at least 2 Given/When/Then criteria
 - All tasks pass INVEST check

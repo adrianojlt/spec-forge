@@ -10,7 +10,7 @@ disable-model-invocation: true
 ## Purpose
 Read an idea or draft and ask relentless questions until every assumption, constraint, and design branch is resolved. No output until all branches are closed. Can explore the codebase to answer its own questions rather than always deferring to the user.
 
-Feeds into `/to-prd` or `/draft-discussion` depending on how formal the next step needs to be.
+Feeds into `/draft-discussion`, which detects grilled notes and asks only the themes they leave unresolved.
 
 ## Inputs
 - `$i` - idea or draft file to explore (or describe the idea inline at invocation if no file exists yet)
