@@ -10,21 +10,21 @@ disable-model-invocation: true
 ## Purpose
 Drive a range of task files from `tasks/todo/` to `tasks/done/` without human intervention between tasks. Each task is delegated to a fresh subagent so no task inherits the accumulated context of the one before it, and each task that finishes cleanly is committed with the task's own title as the commit message.
 
-This skill orchestrates. It writes no code itself and it edits no task file. `task-execute` does the implementation and owns every task state transition; `code-review` and `task-verify` are optional gates layered on top. What this skill adds is the range, the isolation, the commits, and the stopping conditions.
+This skill orchestrates. It writes no code itself and it edits no task file. `task-execute` does the implementation and owns every task state transition; `task-review` and `task-verify` are optional gates layered on top. What this skill adds is the range, the isolation, the commits, and the stopping conditions.
 
 ## Inputs
 - `$i` - path to the first task file of the range, in a `tasks/todo/` directory (e.g. `features/auth/tasks/todo/auth-task-01.md`). The starting task number is parsed from the `-task-NN` suffix of this filename.
 - `$to` - the **inclusive** upper task number of the range. It is a task number, not a count: `i=<dir>/auth-task-01 to=5` runs tasks 01, 02, 03, 04 and 05. `to=1` with the same `i` runs task 01 alone.
-- `$r` - run `code-review` after each task. Defaults to **no**. Enable with `r=yes`.
+- `$r` - run `task-review` after each task. Defaults to **no**. Enable with `r=yes`.
 - `$v` - run `task-verify` after each task. Defaults to **no**. Enable with `v=yes`.
-- `$c` - optional path to the codebase root. When supplied it is forwarded to `code-review` as its `c=` argument. When omitted, `code-review` is invoked without `c=`.
+- `$c` - optional path to the codebase root. When supplied it is forwarded to `task-review` as its `c=` argument. When omitted, `task-review` is invoked without `c=`.
 
 Task files are located by matching `*-task-<NN>.md` in the same directory as `$i`, not by string-concatenating a filename. This keeps the range working with any prefix and with task numbers that are not two digits.
 
 ## Hard rules
 - Tasks run sequentially, in ascending task number. Never run two tasks at once.
 - Never push, never create a branch, never open a pull request. Commits are local only.
-- Never modify an existing skill. `task-execute`, `code-review`, and `task-verify` are consumed through their published argument contracts and left untouched.
+- Never modify an existing skill. `task-execute`, `task-review`, and `task-verify` are consumed through their published argument contracts and left untouched.
 - Never edit a task file. Only `task-execute` changes `Status:`, increments `Attempts:`, and moves files between `tasks/todo/` and `tasks/done/`.
 - Never ask the user a question once the run has started. Unattended operation is the point: after preflight passes, the run proceeds to completion or to a halt.
 - Redact secrets from any output.
@@ -52,7 +52,7 @@ Delegate the task to a **fresh subagent**. Every task gets its own, and every re
 Give the subagent this mandate, and nothing beyond it:
 
 1. Read and follow `task-execute/SKILL.md` with `i=<task file>`.
-2. Only if `$r` is enabled: read and follow `code-review/SKILL.md` with `i=<task file>`. Add `c=<codebase>` when `$c` was supplied to this skill; when `$c` was not supplied, omit the `c=` argument entirely rather than passing it empty.
+2. Only if `$r` is enabled: read and follow `task-review/SKILL.md` with `i=<task file>`. Add `c=<codebase>` when `$c` was supplied to this skill; when `$c` was not supplied, omit the `c=` argument entirely rather than passing it empty.
 3. Only if `$v` is enabled: read and follow `task-verify/SKILL.md` with `i=<task file>`.
 
 When `$r` is disabled, step 2 does not happen at all. When `$v` is disabled, step 3 does not happen at all. `task-execute` self-checks its own acceptance criteria either way, so a task still reaches a real verdict with both gates off.

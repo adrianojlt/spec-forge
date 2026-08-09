@@ -17,8 +17,8 @@ Run before reporting a range complete. Fail any item = report it; do not present
 - [ ] Every task was delegated to a subagent, not executed inline
 - [ ] Every retry attempt used a new subagent, never the one that just failed
 - [ ] No subagent ran a git write command
-- [ ] `code-review` ran only when `$r` was enabled; `task-verify` only when `$v` was enabled
-- [ ] `c=` was forwarded to `code-review` only when `$c` was supplied
+- [ ] `task-review` ran only when `$r` was enabled; `task-verify` only when `$v` was enabled
+- [ ] `c=` was forwarded to `task-review` only when `$c` was supplied
 
 ## Commit checks
 
