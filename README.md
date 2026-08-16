@@ -33,6 +33,15 @@ After a feature ships (merged and stable): `/graduate o=<feature-dir> p=<prefix>
 
 To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
 
+**Unattended range** (many tasks, one command):
+```
+/execute-tasks i=<first task.md> to=<last task number> [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]
+  -> runs a contiguous range of task files, one at a time
+  -> each task goes to a fresh subagent (no inherited context)
+  -> commits each completed task with the task title as the message
+  -> halts on the first blocked task
+```
+
 **Full orchestration** (automated pipeline):
 ```
 /orchestrate i=<input> o=<output-dir> p=<prefix>
@@ -68,6 +77,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `tdd` | one task file | code + tests, task moved to tasks/done/ | Execution (test-first) |
 | `task-review` | one task file | review report (read-only) | Review |
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
+| `execute-tasks` | first task file + last task number | a range of tasks executed and committed, one commit per task | Execution (unattended range) |
 | `grilling` | plan, decision, or idea | shared understanding (interactive) | Interview (standalone) |
 | `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
 | `handoff` | session state | sessions/*.md | Continuity |
@@ -94,10 +104,13 @@ All skills use short argument names:
 
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
-| `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, task-execute, tdd, task-review, task-verify, conversation (existing conversation to continue) |
+| `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks (first task file of the range), conversation (existing conversation to continue) |
 | `o` | output file or directory | all writing skills (file; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
-| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, tdd, task-review |
-| `p` | prefix (artifact filenames + task IDs) / project name | plan-tasks (prefix), orchestrate (prefix), bootstrap-spec-project (project) |
+| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, tdd, task-review, execute-tasks (forwarded to task-review) |
+| `p` | prefix (artifact filenames + task IDs) / project name / commit prefix | plan-tasks (prefix), orchestrate (prefix), bootstrap-spec-project (project), execute-tasks (commit message prefix, optional) |
+| `to` | last task number of a range (inclusive) | execute-tasks |
+| `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
+| `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
 | `f` | feature name | bootstrap-spec-project |
 | `n` | question count (draft-discussion, `n=<min>-<max>`) / next-session purpose (handoff) | draft-discussion, handoff |
 
@@ -118,6 +131,13 @@ Pipeline:
 /task-review i=features/auth/tasks/done/auth-task-01.md
 
 /task-verify i=features/auth/tasks/done/auth-task-01.md
+```
+
+Unattended range (tasks 01 through 05, each committed with an `[auth]` prefix):
+```
+/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
+
+/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 r=yes v=yes c=/path/to/repo p=auth:
 ```
 
 Optional grill-me pre-stage (grilled notes replace the draft as input, and the
@@ -295,6 +315,46 @@ Approved -> /task-execute or /tdd    -> Attempts++, writes attempt-NN report
 ```
 
 Because every signal (status, attempts, verdicts, failed checks) is a file, a fresh session, OpenCode, or `/orchestrate` can resume the loop by reading the folder. Nothing important lives only in chat. `/orchestrate` drives this loop automatically; you can also run each step by hand for full control.
+
+### Unattended task ranges
+
+`/execute-tasks` runs a contiguous range of task files end to end, with nobody watching. It orchestrates only: it writes no code and edits no task file, `task-execute` still does the implementation and still owns every status change.
+
+```
+/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
+```
+
+What it adds on top of `task-execute`:
+
+- **Range** - walks task numbers ascending, from the number parsed out of `i` through `to` inclusive. `to` is a task number, not a count. Missing numbers are skipped, and tasks already in `tasks/done/` are skipped, so re-invoking the same range after a halt resumes where it stopped.
+- **Isolation** - every task, and every retry attempt, gets a fresh subagent. Task five is never executed inside the accumulated context of tasks one through four.
+- **Commits** - each task that reaches `Status: Done` in `tasks/done/` gets exactly one local commit, its message taken from the task file's H1 with the bracketed task ID stripped. Never pushes, never branches, never opens a pull request.
+- **Stopping conditions** - a blocked task, or one that exhausts `Max attempts`, halts the whole run at that task and leaves the working tree untouched so you can see what the failed attempt produced.
+
+Preflight refuses the run if the range is inverted, the layout is wrong, git identity is unset, or the working tree is dirty. The clean-tree check matters because each task commit runs `git add -A`.
+
+Arguments:
+
+| Arg | Meaning |
+|-----|---------|
+| `i` | first task file of the range, in `tasks/todo/` |
+| `to` | last task number of the range, inclusive |
+| `r` | `r=yes` runs `task-review` after each task (default off) |
+| `v` | `v=yes` runs `task-verify` after each task (default off) |
+| `c` | codebase root, forwarded to `task-review` |
+| `p` | commit prefix (optional) |
+
+**The `p` commit prefix.** Without `p`, commit messages are the task title alone, and the commits of a feature are indistinguishable from anything else in the log. With `p`, the value is prepended verbatim plus a single space to every commit the run creates, so the whole feature can be spotted, filtered, or unwound as a unit:
+
+```
+/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
+
+[auth] Add token expiry check
+[auth] Reject expired refresh tokens
+[auth] Add logout endpoint
+```
+
+The prefix format is yours: the skill adds no brackets, colon, or separator of its own, so `p=[auth]`, `p=auth:`, and `p=feat(auth):` all work as typed. The prefix touches commit messages only, never the task files or the task IDs.
 
 ### Architecture review
 
