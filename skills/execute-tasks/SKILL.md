@@ -1,7 +1,7 @@
 ---
 name: execute-tasks
 description: Run a contiguous range of task files unattended. Each task goes to a fresh subagent, and each completed task gets one commit titled after the task.
-argument-hint: "i=<first task.md> to=<last task number> [r=yes] [v=yes] [c=<codebase>]"
+argument-hint: "i=<first task.md> to=<last task number> [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]"
 disable-model-invocation: true
 ---
 
@@ -18,6 +18,21 @@ This skill orchestrates. It writes no code itself and it edits no task file. `ta
 - `$r` - run `task-review` after each task. Defaults to **no**. Enable with `r=yes`.
 - `$v` - run `task-verify` after each task. Defaults to **no**. Enable with `v=yes`.
 - `$c` - optional path to the codebase root. When supplied it is forwarded to `task-review` as its `c=` argument. When omitted, `task-review` is invoked without `c=`.
+- `$p` - optional commit prefix. When supplied, every commit this skill creates during the run is prefixed with it, so all the commits belonging to one feature can be identified in the log. When omitted, commit messages are the task title alone, exactly as before.
+
+### The commit prefix
+
+`$p` is used verbatim, followed by a single space, in front of the commit message. Formatting is yours to choose: the skill adds no brackets, no colon, and no separator of its own.
+
+    p=[auth]      ->  [auth] Add token expiry check
+    p=auth:       ->  auth: Add token expiry check
+    p=feat(auth): ->  feat(auth): Add token expiry check
+
+Rules:
+- The prefix is applied to every commit of the run, without exception, including the fallback commit written when a task's H1 is malformed.
+- The prefix is applied only to the commit message. It never changes the task file, the task ID, or the report.
+- If `$p` is supplied but empty or whitespace only, treat it as not supplied rather than committing a leading space.
+- If `$p` already ends with whitespace, do not add a second space.
 
 Task files are located by matching `*-task-<NN>.md` in the same directory as `$i`, not by string-concatenating a filename. This keeps the range working with any prefix and with task numbers that are not two digits.
 
@@ -78,20 +93,21 @@ If the subagent reports success but the file says otherwise, the file wins. `tas
 **On success**, commit the task:
 
 1. Derive the commit message from the task file's H1. The H1 has the shape `# [prefix-task-NN] Task Title`; strip the leading bracketed ID and use the remaining title. `# [auth-task-03] Add token expiry check` becomes `Add token expiry check`.
-2. `git add -A`.
-3. Commit with that message.
+2. If `$p` was supplied, prepend it and a single space to that message, as described under "The commit prefix".
+3. `git add -A`.
+4. Commit with that message.
 
 Commit hygiene, all of it required:
 - Authorship comes from the repository's own `git config user.name` and `user.email`. Do not override the author.
 - No `Co-Authored-By` trailer of any kind.
 - No "Generated with" footer, no tool attribution, no emoji added to the subject.
-- The message is the task title and nothing else. No ID prefix, no conventional-commit type.
+- The message is the task title, with `$p` in front when it was supplied, and nothing else. No task ID, and no conventional-commit type unless `$p` itself supplies one.
 
 **On anything other than success**, create no commit. A task left in `tasks/todo/` with `Status: Revise` is going to be retried, and a task at `Status: Blocked` halts the run; neither has produced work that belongs in history. The retry and halt behavior itself is defined in the control-flow section.
 
 Two edge cases:
 - **Nothing to commit.** If the task completed but staged no changes, `git commit` would fail on an empty commit. Skip the commit, record the task as completed with no changes, and continue. Do not force an empty commit.
-- **Malformed H1.** If the task file has no H1, or its H1 does not match `# [prefix-task-NN] Title`, do not guess a message. Use the task ID taken from the filename as the commit message and note the malformed H1 in the report, so the commit is still traceable and the deviation is visible.
+- **Malformed H1.** If the task file has no H1, or its H1 does not match `# [prefix-task-NN] Title`, do not guess a message. Use the task ID taken from the filename as the commit message, still prefixed with `$p` when it was supplied, and note the malformed H1 in the report, so the commit is still traceable and the deviation is visible.
 
 ## Control flow
 
@@ -131,7 +147,7 @@ Nobody is watching an unattended run while it happens, so the output has one job
 **Between tasks**, emit a single line naming the task and its outcome. One line, not the execution report - the point of the range is that the user reads the end, not the middle. Keep the full detail for the end of the run or for a halt.
 
 ```
-task-03 done, committed "Add token expiry check"     (3 of 7)
+task-03 done, committed "[auth] Add token expiry check"   (3 of 7)
 task-04 skipped, already done                        (4 of 7)
 ```
 
@@ -145,7 +161,7 @@ task-04 skipped, already done                        (4 of 7)
 
    A task that completed but staged no changes is still `executed-and-committed` in shape, with its commit line reading "no changes to commit". Never leave a task out of the list.
 
-2. **Every commit subject** created during the run, in order. This is the audit trail: with both gates off, these commits were written on the strength of `task-execute`'s self-check alone, so the user needs to see exactly what landed in order to judge or unwind it.
+2. **Every commit subject** created during the run, in order, as committed - including the `$p` prefix when one was used. This is the audit trail: with both gates off, these commits were written on the strength of `task-execute`'s self-check alone, so the user needs to see exactly what landed in order to judge or unwind it.
 
 3. **Where the run stopped and why.** Either the range completed, or it halted at a named task for a named reason.
 

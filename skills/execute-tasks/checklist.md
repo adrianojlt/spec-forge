@@ -19,12 +19,15 @@ Run before reporting a range complete. Fail any item = report it; do not present
 - [ ] No subagent ran a git write command
 - [ ] `task-review` ran only when `$r` was enabled; `task-verify` only when `$v` was enabled
 - [ ] `c=` was forwarded to `task-review` only when `$c` was supplied
+- [ ] `$p` was used for commit messages only, and never passed to a subagent or written into a task file
 
 ## Commit checks
 
 - [ ] Every commit was created by the caller, after re-reading the task file from disk
 - [ ] A commit exists only for tasks reading `Status: Done` and sitting in `tasks/done/`
 - [ ] Each commit subject is the task title with the bracketed ID stripped
+- [ ] When `$p` was supplied, every commit subject carries it, followed by a single space
+- [ ] When `$p` was not supplied, no commit subject carries a prefix
 - [ ] No commit carries a `Co-Authored-By` trailer or a generated-with footer
 - [ ] Every commit author matches the repository's `git config user.name` and `user.email`
 - [ ] No empty commit was forced for a task that staged no changes
