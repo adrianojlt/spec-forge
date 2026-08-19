@@ -189,6 +189,8 @@ Brownfield (ground analysis/plan in an existing repo):
 
 **Project** (`<project>/.claude/skills/`): skills available only within that project directory.
 
+**Global rules** (`~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md`): the repo's `CLAUDE.md` copied as a managed block, via `install-rules.sh` / `install-rules.ps1`.
+
 See `INSTALL.md` for exact commands.
 
 ## Compatibility
@@ -223,7 +225,7 @@ If you run Claude Code from PowerShell but install from WSL, the skills go to th
 Use the native PowerShell script. No bash, no WSL:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install-personal.ps1
+powershell -ExecutionPolicy Bypass -File .\install-skills.ps1
 ```
 
 Verify:
@@ -237,7 +239,7 @@ dir $env:USERPROFILE\.claude\skills
 Git Bash ships with Git for Windows and its `$HOME` is `C:\Users\<you>`, so the bash script installs to the right place:
 
 ```bash
-./install-personal.sh
+./install-skills.sh
 ```
 
 **Alternative: WSL, installing into the Windows home**
@@ -245,10 +247,10 @@ Git Bash ships with Git for Windows and its `$HOME` is `C:\Users\<you>`, so the 
 If you only have the bash script and you are in WSL but run Claude Code on Windows, override `HOME` so the files land in the Windows profile:
 
 ```bash
-HOME=/mnt/c/Users/<YourWindowsUser> ./install-personal.sh
+HOME=/mnt/c/Users/<YourWindowsUser> ./install-skills.sh
 ```
 
-Running `./install-personal.sh` plainly inside WSL is correct only when you also run Claude Code inside WSL.
+Running `./install-skills.sh` plainly inside WSL is correct only when you also run Claude Code inside WSL.
 
 **Project install**
 

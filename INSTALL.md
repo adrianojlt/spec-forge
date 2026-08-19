@@ -16,17 +16,40 @@ Installs skills into `~/.claude/skills/`. Available in all Claude Code sessions.
 macOS/Linux:
 
 ```bash
-chmod +x install-personal.sh
-./install-personal.sh
+chmod +x install-skills.sh
+./install-skills.sh
 ```
 
 Windows (PowerShell), installs into `C:\Users\<you>\.claude\skills`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install-personal.ps1
+powershell -ExecutionPolicy Bypass -File .\install-skills.ps1
 ```
 
 See the Windows section in `README.md` if you use WSL - the WSL home is not the Windows home.
+
+## Global rules install
+
+Copies this repo's `CLAUDE.md` into `~/.claude/CLAUDE.md` (Claude Code) and
+`~/.config/opencode/AGENTS.md` (OpenCode), so the behavioral guidelines apply
+to all sessions.
+
+The content is written as a managed block between
+`<!-- BEGIN spec-forge -->` and `<!-- END spec-forge -->` markers. Only that
+block is replaced on re-run; everything else in those files is preserved.
+
+macOS/Linux:
+
+```bash
+chmod +x install-rules.sh
+./install-rules.sh
+```
+
+Windows (PowerShell):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-rules.ps1
+```
 
 ## Project install
 
