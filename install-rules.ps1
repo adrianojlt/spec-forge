@@ -28,7 +28,8 @@ function Install-ManagedSection {
 
     $srcContent = [System.IO.File]::ReadAllText($ClaudeSrc)
 
-    $newContent = $existing -replace "(?s)\Q$BeginTag\E.*?\Q$EndTag\E", ''
+    $pattern = '(?s)' + [regex]::Escape($BeginTag) + '.*?' + [regex]::Escape($EndTag)
+    $newContent = [regex]::Replace($existing, $pattern, '')
     $newContent = $newContent -replace '[\r\n]+$', ''
     $newContent += "`r`n`r`n$BeginTag`r`n"
     $newContent += $srcContent -replace '[\r\n]+$', ''
