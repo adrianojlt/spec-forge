@@ -111,6 +111,7 @@ All skills use short argument names:
 | `to` | last task number of a range (inclusive) | execute-tasks |
 | `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
 | `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
+| `d` | answer detail level (`d=01`-`d=05`, default `05 normal`) | conversation |
 | `f` | feature name | bootstrap-spec-project |
 | `n` | question count (draft-discussion, `n=<min>-<max>`) / next-session purpose (handoff) | draft-discussion, handoff |
 

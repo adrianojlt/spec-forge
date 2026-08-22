@@ -305,6 +305,7 @@
     <div class="meta">
       <span>Date: [YYYY-MM-DD]</span>
       <span>Output: [path to this file relative to its own folder, without extension, e.g. ./linkflow-mvp-conversation]</span>
+      <span>Detail: [detail level active at save time, e.g. 03 concise. Use 05 normal if no level was set.]</span>
       <span class="status">[Complete]</span>
       <!-- Use class="status in-progress" when session is still open -->
     </div>
@@ -349,6 +350,7 @@
   <!-- OVERVIEW -->
   <h2>Overview</h2>
   <div class="overview">
+    <!-- Paragraph count scales with the detail level: 01 -> 1, 02 -> 1, 03 -> 1-2, 04 -> 2-3, 05 -> 2-5. -->
     <p>[Summary paragraph 1: what problem or area was explored and why.]</p>
     <p>[Summary paragraph 2: what was found. Key structures, patterns, or behaviors.]</p>
     <p>[Summary paragraph 3 (optional): conclusions, implications, or next steps.]</p>

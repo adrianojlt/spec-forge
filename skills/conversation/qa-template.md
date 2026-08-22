@@ -3,6 +3,7 @@
 Date: [YYYY-MM-DD]
 Output: [path to this file relative to its own folder, without extension, e.g. ./linkflow-mvp-conversation-qa]
 Status: [In Progress | Complete]
+Detail: [detail level active at save time, e.g. 03 concise. Use 05 normal if no level was set.]
 
 ---
 

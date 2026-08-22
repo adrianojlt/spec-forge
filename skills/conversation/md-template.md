@@ -3,6 +3,7 @@
 Date: [YYYY-MM-DD]
 Output: [path to this file relative to its own folder, without extension, e.g. ./linkflow-mvp-conversation]
 Status: [In Progress | Complete]
+Detail: [detail level active at save time, e.g. 03 concise. Use 05 normal if no level was set.]
 
 ---
 
@@ -19,7 +20,7 @@ Status: [In Progress | Complete]
 
 ## Overview
 
-[2-5 paragraph summary of what was discussed, what was found, and the key conclusions or decisions reached. Written after the conversation ends. This section is the primary artifact for AI agent reuse - it should stand alone as context for a future session.]
+[Summary of what was discussed, what was found, and the key conclusions or decisions reached. Written after the conversation ends. This section is the primary artifact for AI agent reuse - it should stand alone as context for a future session. Length scales with the detail level: 01 -> 1 paragraph, 02 -> 1, 03 -> 1-2, 04 -> 2-3, 05 -> 2-5.]
 
 ### Key findings
 
