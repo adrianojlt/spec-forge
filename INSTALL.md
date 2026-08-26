@@ -51,6 +51,17 @@ Windows (PowerShell):
 powershell -ExecutionPolicy Bypass -File .\install-rules.ps1
 ```
 
+### Status line
+
+The same scripts also install a custom Claude Code status line
+(`model | ctx:NN% | cwd | session`). The status line script is copied to
+`~/.claude/` and `statusLine` is set in `~/.claude/settings.json`; all other
+settings are preserved.
+
+- macOS/Linux: installs `statusline-command.sh`, requires `jq` on PATH
+  (the step is skipped with a `[skip]` notice if `jq` is missing).
+- Windows: installs `statusline-command.ps1`, no extra dependency.
+
 ## Project install
 
 Installs skills into `<target-project>/.claude/skills/`. Available only in that project.

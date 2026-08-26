@@ -192,6 +192,8 @@ Brownfield (ground analysis/plan in an existing repo):
 
 **Global rules** (`~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md`): the repo's `CLAUDE.md` copied as a managed block, via `install-rules.sh` / `install-rules.ps1`.
 
+**Status line** (`~/.claude/settings.json`): a custom Claude Code status line showing model, context usage, cwd and session name, installed by the same `install-rules` scripts.
+
 See `INSTALL.md` for exact commands.
 
 ## Compatibility
