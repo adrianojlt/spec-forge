@@ -31,8 +31,6 @@ At session end: `/handoff` -> sessions/<name>.md
 
 After a feature ships (merged and stable): `/graduate o=<feature-dir> p=<prefix>` -> distills a durable `<p>-decision.md`, keeps your original draft, archives the process artifacts under `archive/`
 
-To start a new project: `/bootstrap-spec-project` -> ~/ai-specs/<project>/
-
 **Unattended range** (many tasks, one command):
 ```
 /execute-tasks i=<first task.md> to=<last task number> [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]
@@ -83,7 +81,6 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `handoff` | session state | sessions/*.md | Continuity |
 | `graduate` | shipped feature dir + prefix | decision.md + archive/ | Lifecycle (retire) |
 | `project-principles` | project rules | overview/principles.md | Governance |
-| `bootstrap-spec-project` | project/feature names | directory tree | Scaffolding |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
 | `orchestrate` | input file + output dir + prefix | full pipeline execution | Orchestration |
 | `conversation` | optional existing conversation file | conversation.md + conversation-qa.md (+ conversation.html on request) | Exploration |
@@ -107,12 +104,11 @@ All skills use short argument names:
 | `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks (first task file of the range), conversation (existing conversation to continue) |
 | `o` | output file or directory | all writing skills (file; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
 | `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, tdd, task-review, execute-tasks (forwarded to task-review) |
-| `p` | prefix (artifact filenames + task IDs) / project name / commit prefix | plan-tasks (prefix), orchestrate (prefix), bootstrap-spec-project (project), execute-tasks (commit message prefix, optional) |
+| `p` | prefix (artifact filenames + task IDs) / commit prefix | plan-tasks (prefix), orchestrate (prefix), execute-tasks (commit message prefix, optional) |
 | `to` | last task number of a range (inclusive) | execute-tasks |
 | `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
 | `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
 | `d` | answer detail level (`d=01`-`d=05`, default `05 normal`) | conversation |
-| `f` | feature name | bootstrap-spec-project |
 | `n` | question count (draft-discussion, `n=<min>-<max>`) / next-session purpose (handoff) | draft-discussion, handoff |
 
 ## Example invocations
@@ -168,8 +164,6 @@ Other:
 /handoff o=sessions/2026-05-23-auth.md n="Begin auth-task-02 implementation"
 
 /project-principles o=overview/principles.md
-
-/bootstrap-spec-project p=my-app f=user-auth
 
 /improve-codebase-architecture
 ```
@@ -366,31 +360,3 @@ The prefix format is yours: the skill adds no brackets, colon, or separator of i
 `/improve-codebase-architecture` (no arguments) - runs in the current directory. Identifies shallow modules, scattered concepts, and tight coupling. Produces `architecture-report.md` with evidence-backed candidates and specific proposals. No code changes.
 
 Stages before the executor produce no code: each writes a reviewable file, and `analysis-plan` requires your explicit approval before the plan is decomposed into tasks. The executor (`task-execute` or `tdd`) is the only stage that writes code, and only for one approved task at a time.
-
-## Project structure (ai-specs)
-
-After running `/bootstrap-spec-project p=my-app f=user-auth`:
-
-```
-~/ai-specs/my-app/
-  README.md
-  overview/                 <- project docs (architecture, decisions, context)
-    principles.md           <- project-wide rules read by the pipeline (/project-principles)
-  backlog/                  <- loose ideas not yet in the planning pipeline
-  tasks/
-    todo/                   <- tasks that need to be implemented
-    done/
-    feedback/               <- loop reports per attempt (execute/review/verify)
-  features/
-    user-auth/
-      inbox/
-      tasks/
-        todo/               <- task files (user-auth-task-01.md, ...)
-        done/
-        feedback/           <- loop reports: *-attempt-NN.md, *-review-NN.md, *-verify-NN.md
-      sessions/             <- feature level sessions
-      <feat>-decision.md    <- durable decision record after /graduate (snapshot, not maintained)
-      archive/              <- process artifacts moved here by /graduate (draft is kept in place)
-  prompts/                  <- custom prompts you might need to use later
-  sessions/                 <- app level sessions
-```
