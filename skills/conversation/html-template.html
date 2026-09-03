@@ -5,295 +5,496 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conversation: [Title]</title>
   <style>
+    /* =======================================================
+       DESIGN TOKENS
+       All colors go through these variables. Dark mode only
+       re-defines the variables, never the component rules.
+    ======================================================= */
+    :root {
+      --bg: #f4f4f1;
+      --surface: #ffffff;
+      --surface-2: #faf9f6;
+      --text: #17181a;
+      --muted: #5f6368;
+      --faint: #8a8d93;
+      --border: #e3e1dc;
+      --border-strong: #c6c3bc;
+      --accent: #1f5fa8;
+      --accent-soft: #eaf2fb;
+      --ok: #1c7a48;
+      --ok-soft: #e8f6ee;
+      --warn: #a96a05;
+      --warn-soft: #fdf3e1;
+      --danger: #b3271f;
+      --danger-soft: #fdecea;
+      --code-fg: #a63d2f;
+      --code-bg: #f3f2ee;
+      --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 8px rgba(0,0,0,.03);
+      --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16171a;
+        --surface: #1d1f23;
+        --surface-2: #232529;
+        --text: #e8e8e6;
+        --muted: #a6a9af;
+        --faint: #7e828a;
+        --border: #313439;
+        --border-strong: #4a4e55;
+        --accent: #74a9e6;
+        --accent-soft: #17293d;
+        --ok: #6cc48d;
+        --ok-soft: #162c20;
+        --warn: #e0a94a;
+        --warn-soft: #33270f;
+        --danger: #ef8279;
+        --danger-soft: #35201e;
+        --code-fg: #e8a08d;
+        --code-bg: #26282d;
+        --shadow: none;
+      }
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 15px;
-      line-height: 1.6;
-      color: #1a1a1a;
-      background: #f7f7f5;
-      padding: 2rem 1rem;
+      font-size: 15.5px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+      padding: 2rem 1rem 5rem;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .page {
-      max-width: 820px;
-      margin: 0 auto;
-    }
+    .page { max-width: 900px; margin: 0 auto; }
 
-    /* Header */
+    /* ---------------- Header ---------------- */
     .header {
-      border-bottom: 2px solid #1a1a1a;
-      padding-bottom: 1rem;
-      margin-bottom: 2rem;
+      border-bottom: 3px solid var(--text);
+      padding-bottom: 1.1rem;
+      margin-bottom: 1rem;
     }
-    .header h1 { font-size: 1.6rem; font-weight: 700; }
-    .meta { font-size: 0.85rem; color: #666; margin-top: 0.35rem; }
-    .meta span { margin-right: 1.5rem; }
-    .status {
-      display: inline-block;
-      padding: 0.15rem 0.5rem;
-      border-radius: 3px;
-      font-size: 0.75rem;
-      font-weight: 600;
+    .header h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+    .meta span {
+      font-size: 0.78rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.12rem 0.6rem;
+    }
+    .meta .status {
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      background: #e8f5e9;
-      color: #2e7d32;
+      background: var(--ok-soft);
+      border-color: transparent;
+      color: var(--ok);
     }
-    .status.in-progress { background: #fff8e1; color: #f57f17; }
+    .meta .status.in-progress { background: var(--warn-soft); color: var(--warn); }
 
-    /* Section headings */
+    /* ---------------- Sticky section nav ---------------- */
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+      margin-bottom: 1.5rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .toc a {
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+    }
+    .toc a:hover { color: var(--accent); background: var(--accent-soft); }
+
+    /* ---------------- Section headings ---------------- */
     h2 {
-      font-size: 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin: 2.75rem 0 0.9rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ---------------- Files explored (table) ---------------- */
+    .files-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .files-table th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--faint);
+      background: transparent;
+      text-align: left;
+      font-weight: 700;
+      padding: 0 0.7rem 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .files-table td {
+      padding: 0.42rem 0.7rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .files-table tbody tr:hover td { background: var(--surface); }
+    .files-table td:first-child { white-space: nowrap; width: 1%; }
+    .files-table .file-note { color: var(--muted); }
+    .files-table tr.group td {
+      background: var(--surface-2);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--faint);
+      padding: 0.35rem 0.7rem;
+      white-space: normal;
+    }
+    /* Path split: dim the directory, emphasize the file name */
+    .path { font-family: var(--mono); font-size: 0.8rem; }
+    .path .dir { color: var(--faint); }
+    .path .name { color: var(--code-fg); font-weight: 600; }
+    @media (max-width: 720px) {
+      .files-table td:first-child { white-space: normal; width: auto; }
+      .path { overflow-wrap: anywhere; }
+    }
+
+    /* ---------------- Rounds ---------------- */
+    .round {
+      margin-bottom: 1.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .round-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      background: var(--surface-2);
+      padding: 0.45rem 1rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #555;
-      margin: 2.5rem 0 1rem;
-      padding-bottom: 0.3rem;
-      border-bottom: 1px solid #ddd;
+      color: var(--faint);
+      border-bottom: 1px solid var(--border);
     }
+    .round-title { text-transform: none; letter-spacing: 0; color: var(--muted); font-weight: 600; }
 
-    /* Files explored */
-    .files-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
+    .question {
+      padding: 0.9rem 1.1rem;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
     }
-    .files-list li {
+    .answer { padding: 1.1rem 1.1rem 1.3rem; }
+    .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.45rem;
+    }
+    .question .label { color: var(--accent); }
+    .answer .label { color: var(--ok); }
+    .question p { color: var(--muted); }
+    .question p + p, .answer p + p { margin-top: 0.65rem; }
+
+    /* Answer inner structure */
+    .answer h3 {
+      font-size: 1.02rem;
+      font-weight: 700;
+      margin: 1.6rem 0 0.6rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .answer h3:first-of-type { margin-top: 0.3rem; }
+    .answer h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin: 1.1rem 0 0.35rem;
+    }
+    /* direct children only, so lists inside diagrams keep their own layout */
+    .answer > ul, .answer > ol { margin: 0.5rem 0 0.5rem 1.3rem; }
+    .answer > ul > li, .answer > ol > li { margin-bottom: 0.28rem; }
+    .answer li::marker { color: var(--faint); }
+    hr { border: 0; border-top: 1px solid var(--border); margin: 1.75rem 0; }
+
+    /* ---------------- Inline code / blocks ---------------- */
+    code {
+      font-family: var(--mono);
+      font-size: 0.84em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.08em 0.32em;
+      color: var(--code-fg);
+      overflow-wrap: anywhere;
+    }
+    pre {
+      background: #1b1d21;
+      color: #d9d9d4;
+      padding: 0.95rem 1.1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      margin: 0.85rem 0;
+    }
+    pre code { background: none; border: none; color: inherit; padding: 0; font-size: inherit; }
+
+    /* ---------------- Badges ---------------- */
+    .badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      vertical-align: 0.08em;
+    }
+    .badge.ok { background: var(--ok-soft); color: var(--ok); }
+    .badge.warn { background: var(--warn-soft); color: var(--warn); }
+    .badge.danger { background: var(--danger-soft); color: var(--danger); }
+
+    /* ---------------- Callouts ---------------- */
+    .callout {
+      margin: 1rem 0;
+      padding: 0.7rem 0.95rem;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      background: var(--accent-soft);
+      font-size: 0.92rem;
+    }
+    .callout-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--accent);
+      margin-bottom: 0.2rem;
+    }
+    .callout.tip { border-color: var(--ok); background: var(--ok-soft); }
+    .callout.tip .callout-title { color: var(--ok); }
+    .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+    .callout.warn .callout-title { color: var(--warn); }
+    .callout.danger { border-color: var(--danger); background: var(--danger-soft); }
+    .callout.danger .callout-title { color: var(--danger); }
+
+    /* =======================================================
+       DIAGRAMS
+    ======================================================= */
+    .diagram {
+      margin: 1.1rem 0;
+      padding: 1rem 1.1rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .diagram-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--faint);
+      margin-bottom: 0.85rem;
+    }
+    .diagram-note { font-size: 0.8rem; color: var(--faint); margin-top: 0.7rem; }
+
+    /* Flow: horizontal pipeline, up to ~5 boxes. Scrolls, never wraps.
+       Arrows are drawn by CSS - do NOT write arrow elements. */
+    .flow { display: flex; align-items: stretch; gap: 1.7rem; overflow-x: auto; padding-bottom: 0.3rem; }
+    .flow-box {
+      position: relative;
+      flex: 0 0 auto;
       display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
-      padding: 0.4rem 0.6rem;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
+      align-items: center;
+      padding: 0.5rem 0.9rem;
+      background: var(--surface);
+      border: 1.5px solid var(--accent);
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-align: center;
+    }
+    .flow-box + .flow-box::before {
+      content: "";
+      position: absolute;
+      left: -1.7rem;
+      top: 50%;
+      width: 1.7rem;
+      height: 1.5px;
+      background: var(--border-strong);
+    }
+    .flow-box + .flow-box::after {
+      content: "";
+      position: absolute;
+      left: -0.62rem;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-top: 1.5px solid var(--border-strong);
+      border-right: 1.5px solid var(--border-strong);
+      transform: translateY(-50%) rotate(45deg);
+    }
+    .flow-box.secondary { border-color: var(--border-strong); color: var(--muted); }
+    .flow-box.highlight { background: var(--accent-soft); }
+    .flow-box.added { border-style: dashed; border-color: var(--ok); color: var(--ok); background: var(--ok-soft); }
+    .flow-arrow { display: none; } /* legacy: arrows are CSS-drawn */
+
+    /* Steps: vertical numbered pipeline. Use instead of .flow when there
+       are more than 5 stages or the stage labels are long. */
+    .steps { counter-reset: step; list-style: none; margin: 0; }
+    .steps li {
+      position: relative;
+      margin-left: 0.9rem;
+      padding: 0.15rem 0 0.85rem 2.35rem;
+      border-left: 1.5px solid var(--border-strong);
       font-size: 0.9rem;
     }
-    .files-list code {
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 0.82rem;
-      color: #c0392b;
+    .steps li:last-child { border-left-color: transparent; padding-bottom: 0; }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: -0.9rem;
+      top: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+    }
+    .steps li.added::before { background: var(--ok); }
+    .steps li.muted::before { background: var(--border-strong); color: var(--text); }
+    .steps .step-label { font-weight: 600; }
+    .steps .step-note { color: var(--muted); font-size: 0.85rem; display: block; }
+
+    /* Layer stack: top-to-bottom architecture */
+    .layer-stack { display: flex; flex-direction: column; gap: 4px; }
+    .layer {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.87rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border-left: 4px solid;
+    }
+    .layer .layer-note { font-weight: 400; font-size: 0.8rem; opacity: 0.8; text-align: right; }
+    .layer-1 { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+    .layer-2 { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+    .layer-3 { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+    .layer-4 { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+    .layer-5 { background: var(--surface); color: var(--muted); border-color: var(--border-strong); }
+
+    /* Comparison grid: set --cols for 3+ options */
+    .grid-diagram { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 0.4rem; }
+    .grid-cell {
+      padding: 0.55rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.87rem;
+    }
+    .grid-cell.header-cell {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      border-color: var(--accent);
+      text-align: center;
+    }
+    .grid-cell.pro::before { content: "\2713"; color: var(--ok); font-weight: 700; margin-right: 0.4rem; }
+    .grid-cell.con::before { content: "\2715"; color: var(--danger); font-weight: 700; margin-right: 0.4rem; }
+    @media (max-width: 620px) { .grid-diagram { grid-template-columns: 1fr; } }
+
+    /* ---------------- Data tables ---------------- */
+    .table-wrap { overflow-x: auto; margin: 0.85rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    th {
+      background: var(--surface-2);
+      color: var(--muted);
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--border-strong);
       white-space: nowrap;
     }
-    .files-list .file-note { color: #555; }
+    td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tbody tr:hover td { background: var(--surface-2); }
 
-    /* Rounds */
-    .round {
-      margin-bottom: 1.5rem;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #fff;
-    }
-    .round-header {
-      background: #f0f0ee;
-      padding: 0.4rem 0.75rem;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: #777;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .question, .answer {
-      padding: 0.8rem 1rem;
-    }
-    .question {
-      border-bottom: 1px solid #f0f0ee;
-    }
-    .label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 0.3rem;
-    }
-    .question .label { color: #1565c0; }
-    .answer .label { color: #2e7d32; }
-    .question p, .answer p { margin-top: 0.3rem; }
+    /* ---------------- Overview / findings / questions ---------------- */
+    .overview p { margin-bottom: 0.95rem; color: var(--text); }
 
-    /* Inline code */
-    code {
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 0.85em;
-      background: #f4f4f2;
-      border: 1px solid #e0e0e0;
-      border-radius: 3px;
-      padding: 0.1em 0.3em;
-      color: #c0392b;
-    }
-
-    /* Code blocks */
-    pre {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 1rem;
-      border-radius: 5px;
-      overflow-x: auto;
-      font-size: 0.85rem;
-      margin: 0.75rem 0;
-    }
-    pre code {
-      background: none;
-      border: none;
-      color: inherit;
-      padding: 0;
-      font-size: inherit;
-    }
-
-    /* Overview */
-    .overview p { margin-bottom: 0.9rem; color: #333; }
-
-    /* Key findings */
-    .findings-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-    }
+    .findings-list, .questions-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
     .findings-list li {
-      padding: 0.5rem 0.75rem 0.5rem 1rem;
-      border-left: 3px solid #1565c0;
-      background: #f8f9ff;
-      border-radius: 0 4px 4px 0;
-    }
-
-    /* Open questions */
-    .questions-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
+      padding: 0.55rem 0.85rem;
+      border-left: 3px solid var(--accent);
+      background: var(--surface);
+      border-radius: 0 5px 5px 0;
+      box-shadow: var(--shadow);
     }
     .questions-list li {
       display: flex;
       align-items: flex-start;
-      gap: 0.5rem;
-      padding: 0.45rem 0.75rem;
-      background: #fff8e1;
-      border: 1px solid #ffe082;
-      border-radius: 4px;
+      gap: 0.6rem;
+      padding: 0.55rem 0.85rem;
+      background: var(--warn-soft);
+      border-left: 3px solid var(--warn);
+      border-radius: 0 5px 5px 0;
     }
-    .questions-list li::before {
-      content: "?";
-      font-weight: 700;
-      color: #f57f17;
-      flex-shrink: 0;
-    }
+    .questions-list li::before { content: "?"; font-weight: 700; color: var(--warn); flex-shrink: 0; }
 
-    /* -------------------------------------------------------
-       DIAGRAM PATTERNS
-       Use these patterns when the AI needs to draw diagrams.
-       Replace placeholder content with actual diagram content.
-    ------------------------------------------------------- */
-
-    /* Box diagram: components / modules */
-    .diagram {
-      margin: 1rem 0;
-      padding: 1rem;
-      background: #fafafa;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+    /* ---------------- Print ---------------- */
+    @media print {
+      body { background: #fff; padding: 0; font-size: 11pt; }
+      .toc { display: none; }
+      .round, .diagram, .findings-list li { break-inside: avoid; box-shadow: none; }
+      h2 { break-after: avoid; }
     }
-    .diagram-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: #888;
-      margin-bottom: 0.75rem;
-    }
-
-    /* Flow: left-to-right boxes connected by arrows */
-    .flow {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0;
-    }
-    .flow-box {
-      padding: 0.5rem 0.9rem;
-      background: #fff;
-      border: 2px solid #1565c0;
-      border-radius: 5px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #1565c0;
-      text-align: center;
-      white-space: nowrap;
-    }
-    .flow-box.secondary { border-color: #555; color: #555; }
-    .flow-box.highlight { background: #e3f2fd; }
-    .flow-arrow {
-      padding: 0 0.4rem;
-      color: #999;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-
-    /* Grid: two-column comparison or mapping */
-    .grid-diagram {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
-    }
-    .grid-cell {
-      padding: 0.6rem 0.75rem;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      font-size: 0.875rem;
-    }
-    .grid-cell.header-cell {
-      background: #1565c0;
-      color: #fff;
-      font-weight: 700;
-      border-color: #1565c0;
-    }
-
-    /* Layer stack: top-to-bottom layered architecture */
-    .layer-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .layer {
-      padding: 0.55rem 1rem;
-      text-align: center;
-      font-size: 0.875rem;
-      font-weight: 600;
-      border-radius: 3px;
-    }
-    .layer-1 { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
-    .layer-2 { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
-    .layer-3 { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
-    .layer-4 { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
-    .layer-5 { background: #f3e5f5; color: #4a148c; border: 1px solid #ce93d8; }
-
-    /* Table */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0.75rem 0;
-    }
-    th {
-      background: #1565c0;
-      color: #fff;
-      padding: 0.5rem 0.75rem;
-      text-align: left;
-      font-weight: 600;
-    }
-    td {
-      padding: 0.45rem 0.75rem;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    tr:nth-child(even) td { background: #f7f7f5; }
   </style>
 </head>
 <body>
@@ -311,18 +512,43 @@
     </div>
   </div>
 
-  <!-- FILES EXPLORED (omit section if no files were read) -->
-  <h2>Files Explored</h2>
-  <ul class="files-list">
-    <li><code>src/path/to/file.go</code> <span class="file-note">Brief note on what was found</span></li>
-    <li><code>src/path/to/another.ts</code> <span class="file-note">Brief note</span></li>
-  </ul>
+  <!-- SECTION NAV (drop the Files link if that section is omitted) -->
+  <nav class="toc">
+    <a href="#files">Files</a>
+    <a href="#rounds">Q&amp;A</a>
+    <a href="#overview">Overview</a>
+    <a href="#findings">Findings</a>
+    <a href="#open">Open Questions</a>
+  </nav>
+
+  <!-- FILES EXPLORED (omit section if no files were read)
+       Split each path: dim directory in .dir, file name in .name.
+       Optional <tr class="group"> rows group files by area (backend, frontend, ...). -->
+  <h2 id="files">Files Explored</h2>
+  <div class="table-wrap">
+    <table class="files-table">
+      <thead>
+        <tr><th>File</th><th>What it showed</th></tr>
+      </thead>
+      <tbody>
+        <tr class="group"><td colspan="2">Backend</td></tr>
+        <tr>
+          <td><span class="path"><span class="dir">src/path/to/</span><span class="name">file.go</span></span></td>
+          <td class="file-note">Brief note on what was found</td>
+        </tr>
+        <tr>
+          <td><span class="path"><span class="dir">src/path/to/</span><span class="name">another.ts</span></span></td>
+          <td class="file-note">Brief note</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- Q&A ROUNDS (include every round of the conversation, same content as <o>-qa.md) -->
-  <h2>Q&amp;A Rounds</h2>
+  <h2 id="rounds">Q&amp;A Rounds</h2>
 
   <div class="round">
-    <div class="round-header">Round 1</div>
+    <div class="round-header">Round 1 <span class="round-title">[optional short topic label]</span></div>
     <div class="question">
       <div class="label">Question</div>
       <p>[User's question, verbatim]</p>
@@ -348,7 +574,7 @@
   <!-- Repeat one .round block per round. -->
 
   <!-- OVERVIEW -->
-  <h2>Overview</h2>
+  <h2 id="overview">Overview</h2>
   <div class="overview">
     <!-- Paragraph count scales with the detail level: 01 -> 1, 02 -> 1, 03 -> 1-2, 04 -> 2-3, 05 -> 2-5. -->
     <p>[Summary paragraph 1: what problem or area was explored and why.]</p>
@@ -356,71 +582,99 @@
     <p>[Summary paragraph 3 (optional): conclusions, implications, or next steps.]</p>
   </div>
 
-  <h2>Key Findings</h2>
+  <h2 id="findings">Key Findings</h2>
   <ul class="findings-list">
     <li>[Finding 1 - specific, cites file/line if relevant]</li>
     <li>[Finding 2]</li>
     <li>[Finding 3]</li>
   </ul>
 
-  <h2>Open Questions</h2>
+  <h2 id="open">Open Questions</h2>
   <ul class="questions-list">
     <li>[Question that was raised but not resolved]</li>
     <li>[Anything that needs follow-up]</li>
   </ul>
 
   <!-- -------------------------------------------------------
-    DIAGRAM EXAMPLES - copy the pattern needed into a round's answer block.
+    PATTERN LIBRARY - copy the pattern needed into a round's answer block.
     Remove this comment section from generated output.
+
+    Readability rules:
+    - Prefer a table over a bullet list whenever every item carries the same
+      two or three attributes (file + note, option + cost + latency).
+    - Prefer .steps over .flow for any pipeline with more than 5 stages.
+    - Never write arrow characters inside a .flow: CSS draws the connectors.
+    - One diagram per idea. A diagram that only repeats the paragraph above
+      it is noise, delete it.
   ------------------------------------------------------- -->
 
   <!--
-  FLOW DIAGRAM (left-to-right pipeline):
+  FLOW (short horizontal pipeline, up to 5 boxes, no arrow elements):
   <div class="diagram">
     <div class="diagram-title">Request Flow</div>
     <div class="flow">
       <div class="flow-box">Client</div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box highlight">Auth Middleware</div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box">Handler</div>
-      <div class="flow-arrow">→</div>
       <div class="flow-box secondary">Database</div>
     </div>
+    <div class="diagram-note">Optional one-line reading aid.</div>
   </div>
 
-  LAYER STACK (top-to-bottom architecture):
+  STEPS (vertical numbered pipeline; use beyond 5 stages or with long labels.
+  Class "added" marks a proposed new stage, "muted" an unchanged one):
+  <div class="diagram">
+    <div class="diagram-title">Query Pipeline</div>
+    <ol class="steps">
+      <li><span class="step-label">Resolve config</span><span class="step-note">service.go:48</span></li>
+      <li><span class="step-label">Build prompt</span><span class="step-note">prompt.go:131</span></li>
+      <li class="added"><span class="step-label">New stage</span><span class="step-note">proposed</span></li>
+    </ol>
+  </div>
+
+  LAYER STACK (top-to-bottom architecture, note column optional):
   <div class="diagram">
     <div class="diagram-title">Architecture Layers</div>
     <div class="layer-stack">
-      <div class="layer layer-1">API / HTTP Handlers</div>
-      <div class="layer layer-2">Service / Business Logic</div>
-      <div class="layer layer-3">Repository / Data Access</div>
+      <div class="layer layer-1">API / HTTP Handlers <span class="layer-note">controller/</span></div>
+      <div class="layer layer-2">Service / Business Logic <span class="layer-note">service/</span></div>
+      <div class="layer layer-3">Repository / Data Access <span class="layer-note">repository/</span></div>
       <div class="layer layer-4">Database</div>
     </div>
   </div>
 
-  GRID / COMPARISON TABLE:
+  COMPARISON GRID (set --cols for 3+ options; .pro and .con add check/cross marks):
   <div class="diagram">
     <div class="diagram-title">Approach Comparison</div>
-    <div class="grid-diagram">
+    <div class="grid-diagram" style="--cols:2">
       <div class="grid-cell header-cell">Option A</div>
       <div class="grid-cell header-cell">Option B</div>
-      <div class="grid-cell">Simpler implementation</div>
-      <div class="grid-cell">More flexible</div>
-      <div class="grid-cell">Less control</div>
-      <div class="grid-cell">More boilerplate</div>
+      <div class="grid-cell pro">Simpler implementation</div>
+      <div class="grid-cell pro">More flexible</div>
+      <div class="grid-cell con">Less control</div>
+      <div class="grid-cell con">More boilerplate</div>
     </div>
   </div>
 
-  DATA TABLE:
-  <table>
-    <thead><tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr></thead>
-    <tbody>
-      <tr><td>Row 1 A</td><td>Row 1 B</td><td>Row 1 C</td></tr>
-      <tr><td>Row 2 A</td><td>Row 2 B</td><td>Row 2 C</td></tr>
-    </tbody>
-  </table>
+  DATA TABLE (always wrap in .table-wrap so it scrolls on narrow screens):
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr></thead>
+      <tbody>
+        <tr><td>Row 1 A</td><td>Row 1 B</td><td>Row 1 C</td></tr>
+        <tr><td>Row 2 A</td><td>Row 2 B</td><td>Row 2 C</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  CALLOUT (variants: default, tip, warn, danger):
+  <div class="callout warn">
+    <div class="callout-title">Trade-off</div>
+    <p>Text of the caveat.</p>
+  </div>
+
+  BADGE (inline verdict marker; variants: default, ok, warn, danger):
+  <h4>Option B <span class="badge ok">Recommended</span></h4>
   -->
 
 </div>
