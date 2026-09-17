@@ -58,6 +58,8 @@ Codebase health check (any time): `/improve-codebase-architecture` -> architectu
 
 Standalone (not part of a pipeline): `/grilling` -> relentless one-at-a-time interview to stress-test a plan, decision, or idea; `/teach` -> stateful learning workspace (lessons, learning records, references) for a topic over multiple sessions
 
+Shorter answers (any time): `/detail-level d=<01-05>` -> caps how much the agent writes per turn in chat; ask for more detail at any point without leaving the mode; `d=5` is off
+
 Coding standards (language-specific): `/coding-principles` (generic) or `/java-coding-standards`, `/go-coding-standards`, `/rust-coding-standards`, `/swift-coding-standards`, `/typescript-coding-standards`, `/python-coding-standards`, `/kotlin-coding-standards`
 
 Framework review (standalone): `/angular-clean-code` -> reviews Angular code for template side effects, change detection workarounds, state ownership, RxJS leaks, DI scope, and testability; `/react-clean-code` -> reviews React code for purity violations, state structure, hooks, and async handling
@@ -78,6 +80,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `execute-tasks` | first task file + last task number | a range of tasks executed and committed, one commit per task | Execution (unattended range) |
 | `grilling` | plan, decision, or idea | shared understanding (interactive) | Interview (standalone) |
 | `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
+| `detail-level` | detail level `01`-`05` | shorter chat answers (no files written) | Output control (standalone) |
 | `handoff` | session state | sessions/*.md | Continuity |
 | `graduate` | shipped feature dir + prefix | decision.md + archive/ | Lifecycle (retire) |
 | `project-principles` | project rules | overview/principles.md | Governance |
@@ -108,7 +111,7 @@ All skills use short argument names:
 | `to` | last task number of a range (inclusive) | execute-tasks |
 | `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
 | `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
-| `d` | answer detail level (`d=01`-`d=05`, default `05 normal`) | conversation |
+| `d` | answer detail level (`d=01`-`d=05`, default `05 normal`) | conversation, detail-level (defaults to `01` when given no argument) |
 | `n` | question count (draft-discussion, `n=<min>-<max>`) / next-session purpose (handoff) | draft-discussion, handoff |
 
 ## Example invocations
@@ -156,6 +159,17 @@ Conversation (explore and save):
 
 /conversation i=features/auth/exploration.md o=features/auth/exploration
 ```
+
+Shorter answers (chat only, no files affected):
+```
+/detail-level d=2
+
+/detail-level          # no argument: starts at 01 minimal
+
+/detail-level d=5      # off, same as never loading it
+```
+Mid-session, in plain language: `detail level 3`, `more detail` (expands the
+previous answer only, the level stays), `back to normal`.
 
 Other:
 ```
