@@ -28,7 +28,7 @@ task-execute / tdd -> task-review -> task-verify
 - Every finding must have a severity: blocker, warning, or nit.
 - Do not flag style issues that are already handled by the project's formatter or linter.
 - Do not invent requirements beyond what the task file specifies.
-- If the language can be detected, load the corresponding coding-standards skill (e.g. `/java-coding-standards`, `/go-coding-standards`) and use it as the reference for code quality findings.
+- If the language can be detected, read and follow the corresponding coding-standards skill's file (e.g. `java-coding-standards/SKILL.md`, `go-coding-standards/SKILL.md`) and use it as the reference for code quality findings.
 
 ## Procedure
 
@@ -45,7 +45,7 @@ Determine which files were changed for this task:
 - List all changed files with line ranges
 
 **Step 3 - Detect language and load standards**
-Identify the primary language from file extensions. If a matching coding-standards skill exists, load it and use its rules as the reference for code quality findings. If no matching skill exists, use `/coding-principles` as the reference.
+Identify the primary language from file extensions. If a matching coding-standards skill exists, read and follow its `SKILL.md` (e.g. `go-coding-standards/SKILL.md`) and use its rules as the reference for code quality findings. If no matching skill exists, use `/coding-principles` as the reference.
 
 **Step 4 - Review across five dimensions**
 
