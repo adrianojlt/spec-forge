@@ -40,6 +40,8 @@ After a feature ships (merged and stable): `/graduate o=<feature-dir> p=<prefix>
   -> halts on the first blocked task
 ```
 
+Opening a pull request (any time, e.g. after `/execute-tasks`): ask the agent to open the PR; `pr` loads automatically and shapes the body (Summary visual, before/after Evidence taken from `tasks/feedback/`, Merge Danger). It does not push or create branches itself.
+
 **Full orchestration** (automated pipeline):
 ```
 /orchestrate i=<input> o=<output-dir> p=<prefix>
@@ -78,6 +80,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `task-review` | one task file | review report (read-only) | Review |
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
 | `execute-tasks` | first task file + last task number | a range of tasks executed and committed, one commit per task | Execution (unattended range) |
+| `pr` | branch commits (+ tasks/feedback/) | PR body: Summary, Evidence, Merge Danger | Delivery (model-invoked) |
 | `grilling` | plan, decision, or idea | shared understanding (interactive) | Interview (standalone) |
 | `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
 | `detail-level` | detail level `01`-`05` | shorter chat answers (no files written) | Output control (standalone) |
