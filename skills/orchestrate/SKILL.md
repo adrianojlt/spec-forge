@@ -11,17 +11,17 @@ disable-model-invocation: true
 Take an idea to committed code with two human touchpoints: approving the spec, and confirming the task list before the unattended run. Everything else is driven by files on disk, so any step can be resumed in a fresh session.
 
 ```
-idea / draft / grilled-notes
+idea / draft / grilling summary
   -> interview -> <p>-spec.md          gate 1: approve spec
   -> plan-tasks -> tasks/todo/*.md     gate 2: confirm tasks + run options
   -> execute-tasks (fresh subagent per task, one commit per task)
   -> final report
 ```
 
-The separate `draft-discussion -> discussion-analysis -> analysis-plan` stages are not used here. They remain available for running by hand.
+This is the only skill that produces a spec. To plan without executing, stop at gate 2: the spec and task files stay on disk, and `/execute-tasks` can run them later.
 
 ## Inputs
-- `$i` - idea, draft, or `grilled-notes.md`. Optional: if omitted, take the idea from the conversation.
+- `$i` - idea, draft, or a summary written by `/grilling`. Optional: if omitted, take the idea from the conversation.
 - `$o` - feature directory for all artifacts (e.g. `features/auth/`). Ask if missing.
 - `$p` - prefix for artifact filenames and task IDs. If missing, use the last segment of `$o` and say so.
 - `$c` - codebase root. Optional, defaults to the current working directory.
@@ -35,7 +35,7 @@ The separate `draft-discussion -> discussion-analysis -> analysis-plan` stages a
 ## Procedure
 
 ### 1. Interview
-Read `$i`. If it is grilled notes (`# Grilled Notes:` and `## Key Decisions Resolved`), treat its resolved decisions as settled and ask only about the gaps. If `overview/principles.md` exists, its rules are binding.
+Read `$i`. If it records a confirmed understanding (e.g. a `/grilling` summary), treat what it settles as decided and ask only about the gaps. If `overview/principles.md` exists, its rules are binding.
 
 Interview in the style of `grilling/SKILL.md`: one question at a time, each with your recommended answer. Look facts up in `$c` instead of asking; the decisions are the user's.
 

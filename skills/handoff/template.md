@@ -21,7 +21,7 @@ Next purpose: [one sentence from $n]
 
 ## Next Recommended Action
 
-[One clear action: e.g. "Run /plan-tasks on features/auth/plan.md and review output before starting user-auth-task-01."]
+[One clear action: e.g. "Run /execute-tasks on features/auth/tasks/todo/auth-task-03.md to=5 after resolving the token-expiry question."]
 
 ## Suggested Skills
 

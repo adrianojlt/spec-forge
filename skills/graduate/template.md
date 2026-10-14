@@ -27,4 +27,4 @@ Code: [link or relative path to the PR / commit / key source files, if known]
 
 ## Archived process artifacts
 
-The draft, discussion, analysis, plan, and task files were archived under `./archive/` when this feature graduated. They are a snapshot of the build process as of [date] and are not maintained.
+The spec, task files and feedback were archived under `./archive/` when this feature graduated. They are a snapshot of the build process as of [date] and are not maintained.

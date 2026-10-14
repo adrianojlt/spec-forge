@@ -8,67 +8,24 @@ disable-model-invocation: true
 # task-execute
 
 ## Purpose
-Implement one task file end to end: write the code in its scope, verify every acceptance criterion, then move the file from `tasks/todo/` to `tasks/done/` and mark it Done. This is the only skill in the pipeline that produces code, and it is scoped to exactly one task.
+Implement one task file end to end: write the code in its scope, verify every acceptance criterion, and record the outcome on disk so the loop (`execute-tasks`, a later session, or a human) can continue from it.
 
 ## Inputs
 - `$i` - path to a single task file in `tasks/todo/` (e.g. `features/user-auth/tasks/todo/user-auth-task-01.md`), or in `tasks/done/` when a review or verify failed on it
 
-## Hard rules
-- Implement only what is in this task's `Scope notes: In`. Do nothing in `Not in`.
-- Respect `Depends on:`. If any named dependency still sits in `tasks/todo/`, stop and report. Do not implement.
-- Surgical changes only. Touch only what the task requires. Match existing code style. Do not refactor unrelated code.
-- Do not move the file to `tasks/done/` unless every acceptance criterion and the Done condition pass.
-- If any criterion fails, keep the file in (or move it back to) `tasks/todo/`, set its `Status:` to `Revise` (or `Blocked` at max attempts), increment `Attempts:`, and report which criterion failed and why.
-- Redact secrets from any output.
+## Rules
+- Implement only `Scope notes: In`; nothing in `Not in`. If `overview/principles.md` exists, its rules are binding.
+- Every task ID in `Depends on:` must already be in `tasks/done/`. If one is not, stop and report without implementing.
+- Verify each Given/When/Then and the Done condition against the result, running tests or commands where possible. Evidence, not assertion.
 
-## Procedure
+## Retry or first attempt
+Look in the sibling `tasks/feedback/` for this task's `<task-id>-attempt-<NN>.md`, `-review-<NN>.md` and `-verify-<NN>.md`. The latest is the highest `<NN>`; at equal `<NN>`, a review or verify report is newer than the attempt report.
+- No report: first attempt, implement the full scope.
+- Latest has `result: Revise` or `verdict: FAIL`: retry. Fix only its `failed_checks`; do not re-touch what already passed. If `Attempts` already equals `Max attempts`, do no work: set `Status: Blocked`, make sure the file is in `tasks/todo/`, and report.
+- `$i` is in `tasks/done/` and this is not a retry: the task is already done. Report and stop.
 
-**Step 1 - Read**
-Read `$i` in full. Read `overview/principles.md` if it exists and treat its rules as binding constraints.
-
-Then check for prior loop feedback in the sibling `tasks/feedback/` directory: this task's `<task-id>-attempt-<NN>.md`, `<task-id>-review-<NN>.md` and `<task-id>-verify-<NN>.md`. The latest is the highest `<NN>`; at equal `<NN>`, a review or verify report is newer than the attempt report. If the latest has `result: Revise` or `verdict: FAIL`, this is a **retry**:
-- If `Attempts` already equals `Max attempts`, do no work: set `Status:` to `Blocked`, make sure the file is in `tasks/todo/`, and report.
-- Otherwise scope the work to the `failed_checks` list only. Fix those items. Do not re-touch code that already passed.
-- This is targeted re-entry, not a full redo. If no feedback file exists, this is a first attempt; implement the full task scope per Step 3.
-
-If `$i` is in `tasks/done/` and this is not a retry, the task is already done: report that and stop.
-
-**Step 2 - Check dependencies**
-For each ID in `Depends on:`, confirm the matching file is already in `tasks/done/` (not `tasks/todo/`). If any dependency is unmet, stop and report. Take no further action.
-
-**Step 3 - Implement**
-Implement only the work in `Scope notes: In`. Make the minimum code change that satisfies the acceptance criteria. Stay inside the task boundary.
-
-**Step 4 - Verify**
-Check every `Acceptance criteria` (Given/When/Then) against the resulting state. Run tests or commands where the criterion is testable. Confirm the `Done` condition holds. Record pass/fail per criterion.
-
-**Step 5 - Move and mark**
-First, increment the task file's `Attempts:` by 1 (this run counts as an attempt). Use this value as `<NN>` for the report filename.
-
-Write the execution report using `template.md` to the sibling `tasks/feedback/` directory (create it if absent):
-```
-<feature>/tasks/feedback/<task-id>-attempt-<NN>.md
-```
-Each attempt gets its own file; never overwrite an earlier attempt. Then:
-
-**On success** (every acceptance criterion and the Done condition pass):
-- Set the task file `Status:` to `Done`.
-- Move the file from `tasks/todo/` to the sibling `tasks/done/` directory (a retry that started in `tasks/done/` stays there).
-
-**On failure** (any criterion or the Done condition fails):
-- Keep the file in `tasks/todo/`, or move it back there if the retry started in `tasks/done/`.
-- If `Attempts` is now `< Max attempts`: set `Status:` to `Revise`. The task is ready for another targeted run.
-- If `Attempts` has reached `Max attempts`: set `Status:` to `Blocked`. Stop the loop and report; do not retry again without human intervention.
-- Report which criteria failed and why (the report's `failed_checks` drives the next retry's Step 1).
-
-## Readiness gate
-- All `Depends on:` tasks are in `tasks/done/`
-- Every acceptance criterion verified pass
-- Done condition met
-- No edits outside the task's declared scope
-
-## Output contract
-An execution report written to `<feature>/tasks/feedback/<task-id>-attempt-<NN>.md`. See `template.md`. On success, the task file lives in `tasks/done/` with `Status: Done`. On failure, it is in `tasks/todo/` with `Status: Revise` (retryable) or `Status: Blocked` (max attempts reached), and `Attempts:` incremented.
-
-## Validation
-Verify against `checklist.md` before moving the file. Do not move on any failure.
+## Recording the outcome
+1. Increment `Attempts:` in the task file. The new value is `<NN>`.
+2. Write `tasks/feedback/<task-id>-attempt-<NN>.md` following `template.md` (create the folder if absent; never overwrite an earlier report). Its `failed_checks` drives the next retry.
+3. All criteria and the Done condition pass: set `Status: Done` and move the file to `tasks/done/` (a retry that started there stays there).
+4. Anything fails: the file goes to (or stays in) `tasks/todo/` with `Status: Revise`, or `Status: Blocked` once `Attempts` reaches `Max attempts`. Report which criteria failed and why.

@@ -8,7 +8,7 @@ disable-model-invocation: true
 # grilling
 
 ## Purpose
-Interview the user relentlessly about a plan, decision, or idea, walking down each branch of the decision tree one at a time until a shared understanding is reached. Unlike `/grill-me` (which batches questions and always writes a file), grilling is a conversational stress-test: one question at a time, a recommended answer for each, and a written summary only when asked.
+Interview the user relentlessly about a plan, decision, or idea, walking down each branch of the decision tree one at a time until a shared understanding is reached. A conversational stress-test: one question at a time, a recommended answer for each, and a written summary only when asked. `orchestrate` uses the same interview style, and a summary written here can be its input.
 
 ## Inputs
 - `$i` - idea, plan, or file to interrogate (optional; describe it inline at invocation if no file exists)

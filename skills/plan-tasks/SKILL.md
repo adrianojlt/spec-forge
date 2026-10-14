@@ -1,6 +1,6 @@
 ---
 name: plan-tasks
-description: Decompose an approved plan.md or spec.md into task files, one per vertical slice, each with Given/When/Then acceptance criteria.
+description: Decompose an approved spec into task files, one per vertical slice, each with Given/When/Then acceptance criteria.
 argument-hint: "i=<path> o=<path> p=<prefix>"
 disable-model-invocation: true
 ---
@@ -8,10 +8,10 @@ disable-model-invocation: true
 # plan-tasks
 
 ## Purpose
-Turn an approved plan (`plan.md` from `analysis-plan`, or `<p>-spec.md` from `orchestrate`) into task files, one per task, written to `$o`. Each task file is what a single executor run (`task-execute` or `tdd`, often in a fresh subagent with no other context) implements and verifies on its own, so it must carry everything that run needs.
+Turn an approved spec (`<p>-spec.md` from `orchestrate`, or any plan with `Status: Approved` and dependency-ordered slices) into task files, one per task, written to `$o`. Each task file is what a single executor run (`task-execute` or `tdd`, often in a fresh subagent with no other context) implements and verifies on its own, so it must carry everything that run needs.
 
 ## Inputs
-- `$i` - path to the approved plan.md or spec.md
+- `$i` - path to the approved spec
 - `$o` - directory where task files will be written (e.g. `features/user-auth/tasks/todo/`)
 - `$p` - prefix for file names and task IDs (e.g. `user-auth`)
 
@@ -22,7 +22,7 @@ Turn an approved plan (`plan.md` from `analysis-plan`, or `<p>-spec.md` from `or
 - Acceptance criteria are Given/When/Then, checkable without judgment, and cover at least one failure path besides the happy path. Carry over the slice's criteria from the plan when it has them, and add what is missing.
 - Order and number tasks by dependency, matching the plan's sequence. `Depends on:` names only earlier task IDs.
 - No `TBD` in scope, criteria, or Done.
-- Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-plan.md` from `tasks/todo/`), never absolute.
+- Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-spec.md` from `tasks/todo/`), never absolute.
 
 ## Output
 One file per task in `$o`, named `$p-task-<NN>.md` with `<NN>` zero-padded (01, 02, ...), following `template.md`.

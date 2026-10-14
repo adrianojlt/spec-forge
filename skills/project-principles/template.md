@@ -5,7 +5,7 @@ Status: [Draft | Approved]
 
 ---
 
-> Binding, project-wide rules. Read by discussion-analysis, analysis-plan, and
+> Binding, project-wide rules. Read by orchestrate and
 > task-execute. Keep short. One line per rule.
 
 ## Principles
