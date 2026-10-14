@@ -1,6 +1,6 @@
 ---
 name: plan-tasks
-description: Decompose plan.md into atomic, testable tasks. One file per task written to tasks_dir. Enforce INVEST and Given/When/Then format.
+description: Decompose an approved plan.md or spec.md into task files, one per vertical slice, each with Given/When/Then acceptance criteria.
 argument-hint: "i=<path> o=<path> p=<prefix>"
 disable-model-invocation: true
 ---
@@ -8,59 +8,25 @@ disable-model-invocation: true
 # plan-tasks
 
 ## Purpose
-Transform `plan.md` into individual task files, one per task, written to `$o`. Each task must be independently implementable, testable, and have clear acceptance criteria.
+Turn an approved plan (`plan.md` from `analysis-plan`, or `<p>-spec.md` from `orchestrate`) into task files, one per task, written to `$o`. Each task file is what a single executor run (`task-execute` or `tdd`, often in a fresh subagent with no other context) implements and verifies on its own, so it must carry everything that run needs.
 
 ## Inputs
-- `$i` - path to plan.md
+- `$i` - path to the approved plan.md or spec.md
 - `$o` - directory where task files will be written (e.g. `features/user-auth/tasks/todo/`)
-- `$p` - file name prefix derived from the feature name (e.g. `user-auth`)
+- `$p` - prefix for file names and task IDs (e.g. `user-auth`)
 
-## Hard rules
-- Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-plan.md` from `tasks/todo/`), never absolute - keeps links valid if the specs folder is moved.
-- No giant umbrella tasks.
-- No horizontal slices. "Set up the database schema" is not a valid task. "User can log in with email and password" is.
-- Every task must deliver user-visible value - something a user or stakeholder can observe working.
-- No tasks that combine implementation with unrelated work.
-- Each task must be independently implementable and reviewable.
-- All acceptance criteria in Given/When/Then format.
-- All tasks must pass INVEST check.
-- Dependency ordering must match plan.md sequence.
-- Assume `plan.md` is user-approved (via the analysis-plan review gate). If it still reads as a raw draft (Status: Draft, or unresolved open questions), confirm with the user before decomposing.
+## Rules
+- The plan must be approved (`Status: Approved`). If it is not, or it has unresolved open questions, confirm with the user before decomposing.
+- Default to one task per slice of the plan. Split a slice only when it is too big for one executor run, or when it holds parts that ship independently.
+- Never split by layer. "Set up the database schema" is not a task; "User can log in with email and password" is. Every task delivers something a user or stakeholder can observe working.
+- Acceptance criteria are Given/When/Then, checkable without judgment, and cover at least one failure path besides the happy path. Carry over the slice's criteria from the plan when it has them, and add what is missing.
+- Order and number tasks by dependency, matching the plan's sequence. `Depends on:` names only earlier task IDs.
+- No `TBD` in scope, criteria, or Done.
+- Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-plan.md` from `tasks/todo/`), never absolute.
 
-## Procedure
+## Output
+One file per task in `$o`, named `$p-task-<NN>.md` with `<NN>` zero-padded (01, 02, ...), following `template.md`.
 
-**Step 1 - Read**
-Read `$i` in full. Confirm the plan was approved at the analysis-plan review gate before proceeding.
+The H1 is exactly `# [<p>-task-<NN>] <Title>`, brackets included: `execute-tasks` strips the bracketed ID and uses the title as the commit message. The title is an imperative phrase under 60 characters.
 
-**Step 2 - Slice to tasks**
-For each scope slice in the plan, decompose into the minimum number of atomic tasks. A task should be completable in one focused session.
-
-**Step 3 - Order**
-Order tasks by dependency. Task IDs are sequential and derived from `$p` (e.g. user-auth-task-01, user-auth-task-02).
-
-**Step 4 - Write each task**
-For each task, compose:
-- ID (e.g. `user-auth-task-01`, derived from `$p` and sequence number)
-- Title (imperative verb phrase, under 60 chars)
-- Purpose (one sentence: why this task, what it unlocks)
-- Depends on (task IDs or "none")
-- Scope notes (what is in and what is NOT in this task)
-- Acceptance criteria (Given/When/Then, minimum 2 criteria)
-- INVEST check (one word each: Independent/Negotiable/Valuable/Estimable/Small/Testable)
-- Done definition
-
-**Step 5 - Write output**
-Write one file per task into `$o`. File name pattern: `$p-task-<NN>.md` where NN is zero-padded (01, 02, ...). Write files in dependency order. Confirm count of files written.
-
-## Readiness gate
-- No task is broader than one focused work session
-- No task whose `Scope notes: In` spans only one layer (reject horizontal slices)
-- No task has undefined dependencies
-- Every task has at least 2 Given/When/Then criteria
-- All tasks pass INVEST check
-
-## Output contract
-One file per task. See `template.md` for the single-task file structure.
-
-## Validation
-Verify against `checklist.md` before writing. Reject and split tasks that fail.
+Report the number of files written and list each task ID and title.

@@ -26,12 +26,4 @@ Given [another context]
 When [action]
 Then [outcome]
 
-**INVEST check:**
-- Independent: [yes/no]
-- Negotiable: [yes/no]
-- Valuable: [yes/no]
-- Estimable: [yes/no]
-- Small: [yes/no]
-- Testable: [yes/no]
-
-**Done:** [Specific completion condition. Not "it works" but e.g. "migration runs clean on staging, test passes, PR merged."]
+**Done:** [Specific completion condition the executor can check in the repo. Not "it works" but e.g. "login tests pass and an expired token gets a 401."]

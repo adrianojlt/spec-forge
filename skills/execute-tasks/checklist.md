@@ -19,13 +19,15 @@ Run before reporting a range complete. Fail any item = report it; do not present
 - [ ] No subagent ran a git write command
 - [ ] The executor was `tdd` only when `e=tdd`, otherwise `task-execute`
 - [ ] `task-review` ran only when `$r` was enabled; `task-verify` only when `$v` was enabled
+- [ ] Review and verify ran in a checker subagent, never in the executor subagent whose work they judged
+- [ ] A gate `FAIL` sent the task back to a new executor subagent; it was never committed
 - [ ] `c=` was forwarded to `task-review` only when `$c` was supplied
 - [ ] `$p` was used for commit messages only, and never passed to a subagent or written into a task file
 
 ## Commit checks
 
 - [ ] Every commit was created by the caller, after re-reading the task file from disk
-- [ ] A commit exists only for tasks reading `Status: Done` and sitting in `tasks/done/`
+- [ ] A commit exists only for tasks reading `Status: Done`, sitting in `tasks/done/`, and passing every enabled gate
 - [ ] Each commit subject is the task title with the bracketed ID stripped
 - [ ] When `$p` was supplied, every commit subject carries it, followed by a single space
 - [ ] When `$p` was not supplied, no commit subject carries a prefix

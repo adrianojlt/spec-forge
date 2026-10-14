@@ -299,7 +299,7 @@ It replaces the `draft-discussion -> discussion-analysis -> analysis-plan` stage
 2. `/draft-discussion` - Claude asks 8-12 clarifying questions, then writes `discussion.md`. The questions and your verbatim answers are saved alongside in `discussion-qa.md`, written after each round. Given grilled notes as input, it skips the themes already resolved and asks only the gaps (pass `n=3-5`).
 3. `/discussion-analysis` - Claude reads discussion, separates facts from assumptions, writes `analysis.md`.
 4. `/analysis-plan` - Claude sequences work, identifies dependencies, writes `plan.md`, then STOPS for your review and approval before `plan-tasks` runs.
-5. `/plan-tasks` - Claude decomposes the approved plan into atomic tasks, writes one file per task into `tasks/todo/`. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value.
+5. `/plan-tasks` - Claude decomposes the approved plan (or an orchestrate spec) into task files in `tasks/todo/`, by default one per slice. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value.
 6. Executor, one per task, pick one:
    - `/task-execute` - Claude implements a single task, verifies its acceptance criteria, and moves the file from `tasks/todo/` to `tasks/done/`.
    - `/tdd` - Claude implements one task using red-green-refactor: state the interface, write one failing test, write minimum code, refactor, repeat. Moves the task to `tasks/done/` when all criteria are covered by passing tests.
@@ -315,17 +315,18 @@ Execution is a file-driven loop, not a one-shot. State lives on disk so it survi
 
 - **Task state** - each task file carries `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:`, and `Max attempts:`. The folder also signals state: `tasks/todo/` vs `tasks/done/`.
 - **Feedback artifacts** - the executor (`task-execute` or `tdd`), `task-review`, and `task-verify` each write a report into `tasks/feedback/` per attempt (`<task-id>-attempt-NN.md`, `<task-id>-review-NN.md`, `<task-id>-verify-NN.md`). Highest `NN` is the latest. The reports carry YAML frontmatter with a `verdict` and a `failed_checks` list.
-- **Targeted re-entry** - on a retry, `task-execute` reads the latest review/verify report and fixes only the `failed_checks`. Retries target named failures, they do not redo the whole task.
+- **Targeted re-entry** - on a retry, the executor reads the latest failing report (its own attempt report, or a review/verify report) and fixes only the `failed_checks`. Retries target named failures, they do not redo the whole task. A review or verify that fails on a task already in `tasks/done/` sends it back to the executor, which moves it back to `tasks/todo/` if the fix fails.
 - **Loop exit** - the loop ends at `Status: Done` (all criteria pass) or `Status: Blocked` (`Attempts` reached `Max attempts`).
 
 One pass through the loop:
 ```
 Approved -> /task-execute or /tdd    -> Attempts++, writes attempt-NN report
+   self-check FAIL -> Status: Revise, stays in todo/
+   self-check PASS -> Status: Done, todo/ -> done/
          -> /task-review             -> writes review-NN (verdict + failed_checks)
-   PASS  -> Status: Done, todo/ -> done/
-   FAIL  -> Status: Revise
-         -> executor again (reads review-NN, fixes failed_checks only)
-         -> ... repeat until Done or Blocked
+   PASS  -> task finished
+   FAIL  -> executor again (reads review-NN, fixes failed_checks only)
+         -> ... repeat until finished or Blocked (Attempts reached Max attempts)
 ```
 
 Because every signal (status, attempts, verdicts, failed checks) is a file, a fresh session, OpenCode, or `/orchestrate` can resume the loop by reading the folder. Nothing important lives only in chat. `/execute-tasks` (and `/orchestrate`, through it) drives this loop automatically; you can also run each step by hand for full control.
@@ -341,8 +342,8 @@ Because every signal (status, attempts, verdicts, failed checks) is a file, a fr
 What it adds on top of `task-execute`:
 
 - **Range** - walks task numbers ascending, from the number parsed out of `i` through `to` inclusive. `to` is a task number, not a count. Missing numbers are skipped, and tasks already in `tasks/done/` are skipped, so re-invoking the same range after a halt resumes where it stopped.
-- **Isolation** - every task, and every retry attempt, gets a fresh subagent. Task five is never executed inside the accumulated context of tasks one through four.
-- **Commits** - each task that reaches `Status: Done` in `tasks/done/` gets exactly one local commit, its message taken from the task file's H1 with the bracketed task ID stripped. Never pushes, never branches, never opens a pull request.
+- **Isolation** - every task, and every retry attempt, gets a fresh executor subagent. Task five is never executed inside the accumulated context of tasks one through four. With `r=yes` or `v=yes`, review and verify run in a separate checker subagent, so no agent grades its own work. A failing gate sends the task back to a new executor.
+- **Commits** - each task that reaches `Status: Done` in `tasks/done/` and passes every enabled gate gets exactly one local commit, its message taken from the task file's H1 with the bracketed task ID stripped. Never pushes, never branches, never opens a pull request.
 - **Stopping conditions** - a blocked task, or one that exhausts `Max attempts`, halts the whole run at that task and leaves the working tree untouched so you can see what the failed attempt produced.
 
 Preflight refuses the run if the range is inverted, the layout is wrong, git identity is unset, or the working tree is dirty. The clean-tree check matters because each task commit runs `git add -A`.

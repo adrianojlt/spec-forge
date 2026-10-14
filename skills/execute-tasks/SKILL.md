@@ -63,17 +63,18 @@ If any check fails, refuse the run: report which check failed and why, and chang
 
 This is the body of the loop. It covers a single task file and is repeated for every task in the range.
 
-Delegate the task to a **fresh subagent**. Every task gets its own, and every retry attempt gets its own: a subagent is never reused, and never inherits the context of a previous task or a previous attempt. That isolation is the reason this skill exists - it is what keeps task five from being executed inside the accumulated context of tasks one through four.
+Each attempt runs in up to two **fresh subagents**: an executor that writes the code, then, only when `$r` or `$v` is enabled, a separate checker that judges it. A subagent is never reused and never inherits the context of a previous task or attempt, and the checker never shares context with the executor whose work it judges. That isolation is the reason this skill exists: it keeps task five from being executed inside the accumulated context of tasks one through four, and it keeps every agent from grading its own work.
 
-Give the subagent this mandate, and nothing beyond it:
+**Executor subagent.** Mandate, and nothing beyond it: read and follow the executor's skill with `i=<task file>`: `task-execute/SKILL.md`, or `tdd/SKILL.md` when `e=tdd`.
 
-1. Read and follow the executor's skill with `i=<task file>`: `task-execute/SKILL.md`, or `tdd/SKILL.md` when `e=tdd`.
-2. Only if `$r` is enabled: read and follow `task-review/SKILL.md` with `i=<task file>`. Add `c=<codebase>` when `$c` was supplied to this skill; when `$c` was not supplied, omit the `c=` argument entirely rather than passing it empty.
-3. Only if `$v` is enabled: read and follow `task-verify/SKILL.md` with `i=<task file>`.
+**Checker subagent.** Runs only when the executor left the task at `Status: Done` in `tasks/done/` and at least one gate is enabled. Mandate, and nothing beyond it:
 
-When `$r` is disabled, step 2 does not happen at all. When `$v` is disabled, step 3 does not happen at all. `task-execute` self-checks its own acceptance criteria either way, so a task still reaches a real verdict with both gates off.
+1. Only if `$r` is enabled: read and follow `task-review/SKILL.md` with `i=<task file>`. Add `c=<codebase>` when `$c` was supplied to this skill; when `$c` was not supplied, omit the `c=` argument entirely rather than passing it empty.
+2. Only if `$v` is enabled: read and follow `task-verify/SKILL.md` with `i=<task file>`.
 
-State these prohibitions to the subagent explicitly:
+Both gates are read-only: the checker writes its reports and nothing else. When both are disabled, no checker runs; the executor self-checks its own acceptance criteria either way, so a task still reaches a real verdict with both gates off.
+
+State these prohibitions to every subagent explicitly:
 
 - **No git writes.** The subagent must never run `git commit`, `git add`, `git push`, `git stash`, or create a branch or tag. Committing is the caller's job and happens after the subagent has finished. A subagent that judged its own work must not also be the thing that writes that judgement into history.
 - **No work outside the task.** It implements only what the task file's `Scope notes: In` describes, exactly as `task-execute` already requires.
@@ -85,11 +86,14 @@ Report progress for this task, then continue to the outcome step below.
 
 When the subagent returns, do not take its word for what happened. Re-read the task file from disk.
 
-The authoritative success signal is both of these together:
-- the task file's `Status:` reads `Done`, and
-- the file now sits in `tasks/done/` rather than `tasks/todo/`.
+The authoritative success signal is all of these together:
+- the task file's `Status:` reads `Done`,
+- the file now sits in `tasks/done/` rather than `tasks/todo/`, and
+- for each enabled gate, its report for this attempt (`tasks/feedback/<task-id>-review-<NN>.md` or `-verify-<NN>.md`, `<NN>` = the task's current `Attempts`) has `verdict: PASS` or `verdict: PASS_WITH_WARNINGS` in its frontmatter.
 
-If the subagent reports success but the file says otherwise, the file wins. The executor owns those transitions and only sets them after its own verification passed, so disk state is evidence and the subagent's narrative is not.
+If a subagent reports success but the files say otherwise, the files win. The executor owns the task transitions and the checker owns the verdicts, so disk state is evidence and a subagent's narrative is not. An enabled gate whose report for this attempt is missing means the checker failed: halt.
+
+A `FAIL` verdict on a task the executor marked `Done` is not success. It sends the task back to a new executor subagent; see the control-flow section.
 
 **On success**, commit the task:
 
@@ -104,7 +108,7 @@ Commit hygiene, all of it required:
 - No "Generated with" footer, no tool attribution, no emoji added to the subject.
 - The message is the task title, with `$p` in front when it was supplied, and nothing else. No task ID, and no conventional-commit type unless `$p` itself supplies one.
 
-**On anything other than success**, create no commit. A task left in `tasks/todo/` with `Status: Revise` is going to be retried, and a task at `Status: Blocked` halts the run; neither has produced work that belongs in history. The retry and halt behavior itself is defined in the control-flow section.
+**On anything other than success**, create no commit. A task at `Status: Revise`, or one whose gate failed, is going to be retried, and a task at `Status: Blocked` halts the run; none has produced work that belongs in history. The retry and halt behavior itself is defined in the control-flow section.
 
 Two edge cases:
 - **Nothing to commit.** If the task completed but staged no changes, `git commit` would fail on an empty commit. Skip the commit, record the task as completed with no changes, and continue. Do not force an empty commit.
@@ -120,16 +124,17 @@ For each number in the range:
 
 **No file matches `NN`.** Note it as skipped-missing and continue to the next number. A gap is not an error, and it produces no commit.
 
-**The match is already in `tasks/done/`.** Note it as skipped-already-done and continue. This is what makes re-invoking a range after a halt work: everything finished on the earlier run is passed over. It produces no commit - never manufacture an empty commit to mark a task that was already complete.
+**The match is already in `tasks/done/`.** Note it as skipped-already-done and continue. This is what makes re-invoking a range after a halt work: everything finished on the earlier run is passed over. It produces no commit - never manufacture an empty commit to mark a task that was already complete. Exception: if its latest review or verify report in `tasks/feedback/` has `verdict: FAIL` (an earlier run stopped between a failed gate and the retry), it is not done. Run it as below.
 
 **The match is in `tasks/todo/`.** Run it:
 
-1. Delegate to a fresh subagent, per the "Running one task" section.
-2. Re-read the task file and apply the "Outcome and commit" section.
-3. Branch on what the file now says:
-   - **`Status: Done`** - the commit has been made. Advance to the next number.
-   - **`Status: Revise`** and `Attempts` is below `Max attempts` - retry. Go back to step 1 with a **brand-new subagent**. Never reuse the subagent that just failed; the executor reads the latest report in `tasks/feedback/` and re-enters targeted at the failed checks only.
-   - **`Status: Blocked`**, or `Attempts` has reached `Max attempts` - halt.
+1. Run the executor subagent, then the checker subagent when a gate is enabled, per the "Running one task" section.
+2. Re-read the task file and the gate reports and apply the "Outcome and commit" section.
+3. Branch on what disk now says:
+   - **Success** - the commit has been made. Advance to the next number.
+   - **`Status: Done` but a gate verdict is `FAIL`** - retry. Go back to step 1 with a **brand-new executor subagent**. The executor re-enters the task from `tasks/done/`, fixes only the failing report's `failed_checks`, and itself sets `Blocked` if `Max attempts` is already used up.
+   - **`Status: Revise`** - retry the same way. Never reuse the subagent that just failed; the executor reads the latest report in `tasks/feedback/` and re-enters targeted at the failed checks only.
+   - **`Status: Blocked`** - halt.
 
 **Halting.** A blocked task stops the entire run at that task. Do not advance to the next number, and do not attempt the rest of the range - later tasks generally build on earlier ones, so continuing past a block produces damage rather than progress.
 
