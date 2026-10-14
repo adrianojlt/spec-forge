@@ -1,7 +1,7 @@
 ---
 name: execute-tasks
 description: Run a contiguous range of task files unattended. Each task goes to a fresh subagent, and each completed task gets one commit titled after the task.
-argument-hint: "i=<first task.md> to=<last task number> [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]"
+argument-hint: "i=<first task.md> to=<last task number> [e=tdd] [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]"
 disable-model-invocation: true
 ---
 
@@ -10,11 +10,12 @@ disable-model-invocation: true
 ## Purpose
 Drive a range of task files from `tasks/todo/` to `tasks/done/` without human intervention between tasks. Each task is delegated to a fresh subagent so no task inherits the accumulated context of the one before it, and each task that finishes cleanly is committed with the task's own title as the commit message.
 
-This skill orchestrates. It writes no code itself and it edits no task file. `task-execute` does the implementation and owns every task state transition; `task-review` and `task-verify` are optional gates layered on top. What this skill adds is the range, the isolation, the commits, and the stopping conditions.
+This skill orchestrates. It writes no code itself and it edits no task file. The executor (`task-execute`, or `tdd` with `e=tdd`) does the implementation and owns every task state transition; `task-review` and `task-verify` are optional gates layered on top. What this skill adds is the range, the isolation, the commits, and the stopping conditions.
 
 ## Inputs
 - `$i` - path to the first task file of the range, in a `tasks/todo/` directory (e.g. `features/auth/tasks/todo/auth-task-01.md`). The starting task number is parsed from the `-task-NN` suffix of this filename.
 - `$to` - the **inclusive** upper task number of the range. It is a task number, not a count: `i=<dir>/auth-task-01 to=5` runs tasks 01, 02, 03, 04 and 05. `to=1` with the same `i` runs task 01 alone.
+- `$e` - executor. `task-execute` by default; `e=tdd` uses `tdd` instead. Any other value refuses the run before the first task.
 - `$r` - run `task-review` after each task. Defaults to **no**. Enable with `r=yes`.
 - `$v` - run `task-verify` after each task. Defaults to **no**. Enable with `v=yes`.
 - `$c` - optional path to the codebase root. When supplied it is forwarded to `task-review` as its `c=` argument. When omitted, `task-review` is invoked without `c=`.
@@ -40,7 +41,7 @@ Task files are located by matching `*-task-<NN>.md` in the same directory as `$i
 - Tasks run sequentially, in ascending task number. Never run two tasks at once.
 - Never push, never create a branch, never open a pull request. Commits are local only.
 - Never modify an existing skill. `task-execute`, `task-review`, and `task-verify` are consumed through their published argument contracts and left untouched.
-- Never edit a task file. Only `task-execute` changes `Status:`, increments `Attempts:`, and moves files between `tasks/todo/` and `tasks/done/`.
+- Never edit a task file. Only the executor changes `Status:`, increments `Attempts:`, and moves files between `tasks/todo/` and `tasks/done/`.
 - Never ask the user a question once the run has started. Unattended operation is the point: after preflight passes, the run proceeds to completion or to a halt.
 - Redact secrets from any output.
 
@@ -66,7 +67,7 @@ Delegate the task to a **fresh subagent**. Every task gets its own, and every re
 
 Give the subagent this mandate, and nothing beyond it:
 
-1. Read and follow `task-execute/SKILL.md` with `i=<task file>`.
+1. Read and follow the executor's skill with `i=<task file>`: `task-execute/SKILL.md`, or `tdd/SKILL.md` when `e=tdd`.
 2. Only if `$r` is enabled: read and follow `task-review/SKILL.md` with `i=<task file>`. Add `c=<codebase>` when `$c` was supplied to this skill; when `$c` was not supplied, omit the `c=` argument entirely rather than passing it empty.
 3. Only if `$v` is enabled: read and follow `task-verify/SKILL.md` with `i=<task file>`.
 
@@ -88,7 +89,7 @@ The authoritative success signal is both of these together:
 - the task file's `Status:` reads `Done`, and
 - the file now sits in `tasks/done/` rather than `tasks/todo/`.
 
-If the subagent reports success but the file says otherwise, the file wins. `task-execute` owns those transitions and only sets them after its own verification passed, so disk state is evidence and the subagent's narrative is not.
+If the subagent reports success but the file says otherwise, the file wins. The executor owns those transitions and only sets them after its own verification passed, so disk state is evidence and the subagent's narrative is not.
 
 **On success**, commit the task:
 
@@ -127,7 +128,7 @@ For each number in the range:
 2. Re-read the task file and apply the "Outcome and commit" section.
 3. Branch on what the file now says:
    - **`Status: Done`** - the commit has been made. Advance to the next number.
-   - **`Status: Revise`** and `Attempts` is below `Max attempts` - retry. Go back to step 1 with a **brand-new subagent**. Never reuse the subagent that just failed; `task-execute` reads the latest report in `tasks/feedback/` and re-enters targeted at the failed checks only.
+   - **`Status: Revise`** and `Attempts` is below `Max attempts` - retry. Go back to step 1 with a **brand-new subagent**. Never reuse the subagent that just failed; the executor reads the latest report in `tasks/feedback/` and re-enters targeted at the failed checks only.
    - **`Status: Blocked`**, or `Attempts` has reached `Max attempts` - halt.
 
 **Halting.** A blocked task stops the entire run at that task. Do not advance to the next number, and do not attempt the rest of the range - later tasks generally build on earlier ones, so continuing past a block produces damage rather than progress.

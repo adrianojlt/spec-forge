@@ -40,7 +40,7 @@ Before writing any code, state the interface:
 
 When invoked interactively (directly by a user), do not proceed until the user confirms or adjusts the interface description.
 
-When invoked non-interactively (driven by `orchestrate` or `sf-scheduler`), do not block. Assume the interface as stated and proceed, recording the assumed interface in the attempt report so it can be reviewed after the fact.
+When invoked non-interactively (driven by `execute-tasks`, `orchestrate`, or `sf-scheduler`), do not block. Assume the interface as stated and proceed, recording the assumed interface in the attempt report so it can be reviewed after the fact.
 
 **Step 2 - Explore**
 If `$c` is given (or can be inferred), explore the codebase to understand:

@@ -33,7 +33,7 @@ After a feature ships (merged and stable): `/graduate o=<feature-dir> p=<prefix>
 
 **Unattended range** (many tasks, one command):
 ```
-/execute-tasks i=<first task.md> to=<last task number> [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]
+/execute-tasks i=<first task.md> to=<last task number> [e=tdd] [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]
   -> runs a contiguous range of task files, one at a time
   -> each task goes to a fresh subagent (no inherited context)
   -> commits each completed task with the task title as the message
@@ -44,12 +44,11 @@ Opening a pull request (any time, e.g. after `/execute-tasks`): ask the agent to
 
 **Full orchestration** (automated pipeline):
 ```
-/orchestrate i=<input> o=<output-dir> p=<prefix>
-  -> asks which executor (task-execute or tdd)
-  -> chains all skills in sequence
-  -> stops at approval gate (analysis-plan)
-  -> runs the execution loop: retries failures (targeted) until Done or Blocked
-  -> produces final summary
+/orchestrate [i=<input>] o=<output-dir> [p=<prefix>] [c=<codebase>]
+  -> interview -> <p>-spec.md     (gate 1: approve spec)
+  -> plan-tasks -> tasks/todo/    (gate 2: confirm tasks + run options)
+  -> /execute-tasks: subagent per task, targeted retries, one commit per task
+  -> final summary
 ```
 
 Codebase exploration (any time): `/conversation o=<output>` -> exploration.md + exploration-qa.md (read-only Q&A session; say "save html" to also get exploration.html)
@@ -88,7 +87,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `graduate` | shipped feature dir + prefix | decision.md + archive/ | Lifecycle (retire) |
 | `project-principles` | project rules | overview/principles.md | Governance |
 | `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
-| `orchestrate` | input file + output dir + prefix | full pipeline execution | Orchestration |
+| `orchestrate` | idea/draft + output dir + prefix | spec.md + tasks + committed code | Orchestration |
 | `conversation` | optional existing conversation file | conversation.md + conversation-qa.md (+ conversation.html on request) | Exploration |
 | `coding-principles` | any language | guidelines reference | Code Quality |
 | `java-coding-standards` | Java code | guidelines reference | Code Quality |
@@ -109,7 +108,8 @@ All skills use short argument names:
 |-----|-----------|---------|
 | `i` | input / source file | grill-me, grilling (optional), draft-discussion, discussion-analysis, analysis-plan, plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks (first task file of the range), conversation (existing conversation to continue) |
 | `o` | output file or directory | all writing skills (file; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
-| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, tdd, task-review, execute-tasks (forwarded to task-review) |
+| `c` | codebase root (optional, brownfield) | grill-me, discussion-analysis, analysis-plan, tdd, task-review, orchestrate, execute-tasks (forwarded to task-review) |
+| `e` | executor (`e=tdd`, default `task-execute`) | execute-tasks |
 | `p` | prefix (artifact filenames + task IDs) / commit prefix | plan-tasks (prefix), orchestrate (prefix), execute-tasks (commit message prefix, optional) |
 | `to` | last task number of a range (inclusive) | execute-tasks |
 | `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
@@ -282,17 +282,15 @@ The skill files themselves (Markdown) are cross-platform and work on any OS.
 
 ### Full orchestration
 
-`/orchestrate` runs the entire pipeline from idea to verified tasks. It:
-1. Asks which executor (`task-execute` or `tdd`) and gathers inputs (draft or grilled notes)
-2. Asks whether to enable task-review and task-verify (both optional, default: off)
-3. Chains skills in sequence, passing outputs between them
-4. Stops at the approval gate (`analysis-plan` review)
-5. Executes tasks one by one with the chosen executor, optionally running `task-review` after each
-6. Retries failed tasks via the file-driven loop: `task-execute` reads the persisted `failed_checks` and fixes only those, until the task reaches `Done` or `Blocked` (`Max attempts`)
-7. Optionally runs `task-verify` after each task
-8. Produces a final summary with all artifacts and their paths
+`/orchestrate` takes a feature from idea to committed code. It:
+1. Interviews you one question at a time (grilling style), looking facts up in the codebase instead of asking. Accepts a raw idea, a draft, or grilled notes.
+2. Writes a single `<p>-spec.md` (problem, goals, non-goals, decisions, vertical slices with acceptance criteria, risks) and stops for your approval
+3. Runs `plan-tasks` on the approved spec
+4. Shows the task list and asks for run options in one message: executor (`task-execute` or `tdd`), task-review, task-verify, commit prefix. Checks the working tree is clean, and offers to commit the spec and task files if they are the only changes.
+5. Hands the range to `/execute-tasks`: a fresh subagent per task, targeted retries, one commit per task, halts on the first blocked task
+6. Reports artifacts, per-task outcomes, commits, and next steps (PR, graduate)
 
-Use `/orchestrate` when you want to run the full pipeline without manually invoking each skill. You still control the process at approval gates and can stop at any time.
+It replaces the `draft-discussion -> discussion-analysis -> analysis-plan` stages with one spec, so there are two gates (spec, task list) instead of a chain of documents. Those skills remain available when you want to run the pipeline by hand. State lives on disk, so `/orchestrate` resumes at the first step whose output is missing.
 
 ### The pipeline
 
@@ -330,11 +328,11 @@ Approved -> /task-execute or /tdd    -> Attempts++, writes attempt-NN report
          -> ... repeat until Done or Blocked
 ```
 
-Because every signal (status, attempts, verdicts, failed checks) is a file, a fresh session, OpenCode, or `/orchestrate` can resume the loop by reading the folder. Nothing important lives only in chat. `/orchestrate` drives this loop automatically; you can also run each step by hand for full control.
+Because every signal (status, attempts, verdicts, failed checks) is a file, a fresh session, OpenCode, or `/orchestrate` can resume the loop by reading the folder. Nothing important lives only in chat. `/execute-tasks` (and `/orchestrate`, through it) drives this loop automatically; you can also run each step by hand for full control.
 
 ### Unattended task ranges
 
-`/execute-tasks` runs a contiguous range of task files end to end, with nobody watching. It orchestrates only: it writes no code and edits no task file, `task-execute` still does the implementation and still owns every status change.
+`/execute-tasks` runs a contiguous range of task files end to end, with nobody watching. It orchestrates only: it writes no code and edits no task file, the executor (`task-execute`, or `tdd` with `e=tdd`) still does the implementation and still owns every status change.
 
 ```
 /execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
@@ -355,6 +353,7 @@ Arguments:
 |-----|---------|
 | `i` | first task file of the range, in `tasks/todo/` |
 | `to` | last task number of the range, inclusive |
+| `e` | `e=tdd` uses `tdd` as the executor (default `task-execute`) |
 | `r` | `r=yes` runs `task-review` after each task (default off) |
 | `v` | `v=yes` runs `task-verify` after each task (default off) |
 | `c` | codebase root, forwarded to `task-review` |

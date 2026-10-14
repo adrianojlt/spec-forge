@@ -1,177 +1,85 @@
 ---
 name: orchestrate
-description: "Run the full SDD pipeline end-to-end. Semi-autonomous orchestrator that chains skills, handles approval gates, and retries on review failures."
-argument-hint: "[i=<input-file>] [o=<output-dir>] [p=<prefix>]"
+description: "Take a feature from idea to committed code: interview, one spec with an approval gate, task files, then an unattended execute-tasks run. For larger features."
+argument-hint: "[i=<idea-file>] [o=<output-dir>] [p=<prefix>] [c=<codebase>]"
 disable-model-invocation: true
 ---
 
 # orchestrate
 
 ## Purpose
-Run the complete Spec-Driven Development pipeline from idea to verified tasks. Semi-autonomous: runs skills in sequence, stops at human approval gates, retries failed tasks via the file-driven loop until each reaches `Done` or `Blocked` (the task file's `Max attempts`).
+Take an idea to committed code with two human touchpoints: approving the spec, and confirming the task list before the unattended run. Everything else is driven by files on disk, so any step can be resumed in a fresh session.
 
-This skill does not produce code itself. It instructs you to read and follow other skills' SKILL.md files in the correct order, passing outputs between them, and managing the flow.
+```
+idea / draft / grilled-notes
+  -> interview -> <p>-spec.md          gate 1: approve spec
+  -> plan-tasks -> tasks/todo/*.md     gate 2: confirm tasks + run options
+  -> execute-tasks (fresh subagent per task, one commit per task)
+  -> final report
+```
+
+The separate `draft-discussion -> discussion-analysis -> analysis-plan` stages are not used here. They remain available for running by hand.
 
 ## Inputs
-- `$i` - input file (optional; if not provided, ask the user)
-- `$o` - output directory for feature artifacts (optional; if not provided, ask the user)
-- `$p` - prefix for all generated artifact filenames (optional; if not provided, ask the user)
+- `$i` - idea, draft, or `grilled-notes.md`. Optional: if omitted, take the idea from the conversation.
+- `$o` - feature directory for all artifacts (e.g. `features/auth/`). Ask if missing.
+- `$p` - prefix for artifact filenames and task IDs. If missing, use the last segment of `$o` and say so.
+- `$c` - codebase root. Optional, defaults to the current working directory.
 
-## Hard rules
-- Do not skip the approval gate at `analysis-plan`. This is the only mandatory human stop.
-- Do not auto-advance past a task that reached `Status: Blocked` (`Max attempts` exhausted). Stop and report.
-- Do not run tasks in parallel. Execute them sequentially in dependency order.
-- Do not modify task files directly. Let `task-execute` and `tdd` handle that.
-- Do not invent requirements or make design decisions. Defer to the user at gates.
-- If any skill fails or errors, stop and report. Do not attempt to recover silently.
+## Rules
+- Two gates, never skipped: spec approval (step 2) and task confirmation (step 4). Advance only on an explicit yes.
+- This skill writes the spec and nothing else by hand. Task files belong to `plan-tasks`; code, task status and commits belong to `execute-tasks` and the executor it drives. The only exceptions are creating `tasks/done/` and the optional artifacts commit in step 4.
+- If a delegated skill fails, stop and report. No silent recovery.
+- If the user says stop, stop and report what exists on disk and what remains.
 
 ## Procedure
 
-### Step 1 - Gather context
-Ask the user:
-1. **Which executor?** `task-execute` (default) or `tdd` (test-first)?
-2. **Input file?** If `$i` is provided, use it. Otherwise ask for the path. It may be a raw draft, or a `grilled-notes.md` already produced by `/grill-me`.
-3. **Output directory?** If `$o` is provided, use it. Otherwise ask where to write artifacts (e.g. `features/auth/`).
-4. **Prefix?** If `$p` is provided, use it. Otherwise ask for a short prefix used for all generated filenames and task IDs (e.g. `auth` produces `auth-discussion.md`, `auth-analysis.md`, `auth-task-01`, etc.).
-5. **Run task-review after each task?** (yes/no, default: no)
-6. **Run task-verify after each task?** (yes/no, default: no)
+### 1. Interview
+Read `$i`. If it is grilled notes (`# Grilled Notes:` and `## Key Decisions Resolved`), treat its resolved decisions as settled and ask only about the gaps. If `overview/principles.md` exists, its rules are binding.
 
-If the user has already provided these via arguments or context, skip the questions.
+Interview in the style of `grilling/SKILL.md`: one question at a time, each with your recommended answer. Look facts up in `$c` instead of asking; the decisions are the user's.
 
-### Step 2 - Run entry skill
-The input is either a raw draft or a `grilled-notes.md`. Detect which by looking for the grill-me template markers (`# Grilled Notes:` and `## Key Decisions Resolved`).
+Stop when you can write the spec without inventing anything. Skip questions whose answer would not change the spec.
 
-Raw draft:
-Read and follow `draft-discussion/SKILL.md` with args: `i=<input> o=<output>/<p>-discussion.md`
+### 2. Spec (gate 1)
+Write `<o>/<p>-spec.md` from `template.md` with `Status: Draft`. Slices are vertical (each delivers something a user can observe), ordered by dependency, and carry Given/When/Then acceptance criteria.
 
-Grilled notes: pass a reduced question count, since grill-me has already resolved most themes.
-Read and follow `draft-discussion/SKILL.md` with args: `i=<input> o=<output>/<p>-discussion.md n=3-5`
+Present in chat: the slice sequence, key decisions and their tradeoffs, top risks, open questions. Ask the user to approve, request edits (apply them and re-present), or edit the file themselves.
 
-Wait for the user to answer all clarification rounds. The skill will produce `<p>-discussion.md` and `<p>-discussion-qa.md`.
+On explicit approval, set `Status: Approved`.
 
-### Step 3 - Run analysis skill
-Read and follow `discussion-analysis/SKILL.md` with args: `i=<output>/<p>-discussion.md o=<output>/<p>-analysis.md`
+### 3. Tasks
+Read and follow `plan-tasks/SKILL.md` with `i=<o>/<p>-spec.md o=<o>/tasks/todo/ p=<p>`.
 
-If the user provided a codebase root (`$c`), pass it through.
+Create `<o>/tasks/done/` if missing; `execute-tasks` preflight requires it.
 
-### Step 4 - Run planning skill
-Read and follow `analysis-plan/SKILL.md` with args: `i=<output>/<p>-analysis.md o=<output>/<p>-plan.md`
+### 4. Confirm tasks and run options (gate 2)
+Show the task list (ID, title, depends on). Ask for the run options in one message, with defaults:
+- executor: `task-execute` (default) or `tdd`
+- task-review after each task: no (default) or yes
+- task-verify after each task: no (default) or yes
+- commit prefix: none (default), e.g. `[<p>]`
 
-**STOP HERE. This is the approval gate.**
+"go" accepts all defaults.
 
-Present the plan summary to the user (slice sequence, tradeoffs, risks, open questions). Ask:
-1. Approve the plan as-is
-2. Request edits (apply them, then re-present)
-3. Edit the plan themselves and tell you when done
+Then run `git status --porcelain` in the working directory. `execute-tasks` refuses a dirty tree, because each task commit runs `git add -A`.
+- Clean: continue.
+- Dirty only with files under `<o>` written by this run: offer one commit of exactly those paths, message `<p>: spec and tasks`, no `Co-Authored-By` trailer or tool footer (same hygiene as `execute-tasks` commits). If the user declines, stop and tell them to commit or stash before resuming.
+- Dirty with anything else: list the paths and stop. The user decides what to do with them.
 
-Do not proceed until the user explicitly approves.
+### 5. Execute
+Read and follow `execute-tasks/SKILL.md` with `i=<o>/tasks/todo/<p>-task-01.md to=<last task number>`, adding `e=tdd`, `r=yes`, `v=yes` and `p=<commit prefix>` as chosen in step 4, and `c=<c>` when `$c` was given.
 
-### Step 5 - Run decomposition skill
-Read and follow `plan-tasks/SKILL.md` with args: `i=<output>/<p>-plan.md o=<output>/tasks/todo/ p=<p>`
+The run is unattended from here: no questions until `execute-tasks` completes or halts.
 
-The skill produces one task file per task in `tasks/todo/`.
+### 6. Final report
+- Artifacts: spec path, tasks directory.
+- The `execute-tasks` report as produced: per-task outcomes, commit subjects, stop reason, uncommitted work.
+- On a halt: the blocked task, its latest report in `tasks/feedback/`, and how to resume (deal with the partial work, then rerun `/execute-tasks` with the same range; done tasks are skipped).
+- Next steps, one line each: open a PR (the `pr` skill), and `/graduate o=<o> p=<p>` once the feature is merged and stable.
 
-After decomposition, report the task count and list task IDs. Ask the user to confirm before proceeding to execution.
-
-### Step 6 - Execute tasks (loop)
-For each task file in `tasks/todo/` (in dependency order):
-
-**6a - Execute (loop on the task's own self-check)**
-Read and follow the executor the user chose in Step 1, with args: `i=<task-file>`
-- `task-execute` -> `task-execute/SKILL.md`
-- `tdd` -> `tdd/SKILL.md`
-
-`tdd` is being driven non-interactively here, so its Step 1 interface gate does not block: it states the assumed interface in the attempt report and proceeds.
-
-Wait for the skill to complete. If it stops due to unmet dependencies, report and ask the user how to proceed.
-
-After it completes, read the task file's `Status:`. The executor self-checks its own acceptance criteria, so this loop runs even when task-review and task-verify are both disabled:
-- **`Done`**: proceed to 6b.
-- **`Revise`** (self-check failed, `Attempts` still `< Max attempts`): re-read and follow the chosen executor's SKILL.md again. Its Step 1 reads the latest `tasks/feedback/<task-id>-attempt-<NN>.md` and fixes only the `failed_checks`. Repeat until `Done` or `Blocked`.
-- **`Blocked`** (`Attempts` reached `Max attempts`): stop on this task and report. Do not auto-advance. Ask the user how to proceed.
-
-Only proceed to 6b once the task is `Done`. Task-review and task-verify are *additional* gates layered on top of this loop, not the thing that triggers it.
-
-**6b - Review (if enabled)**
-If the user chose to run task-review:
-  Read and follow `task-review/SKILL.md` with args: `i=<task-file>`
-
-  Check the verdict:
-  - **PASS** or **PASS WITH WARNINGS**: proceed to 6c
-  - **FAIL**: proceed to 6b-retry
-
-  **6b-retry - Retry on failure (state-driven)**
-  Retries are driven by the task file's `Attempts` / `Max attempts` and the persisted feedback files, not by a counter held in chat. If the review verdict is FAIL:
-  1. Report the blocker findings to the user.
-  2. Re-read and follow the chosen executor's SKILL.md. It reads the latest `tasks/feedback/<task-id>-review-<NN>.md` in its Step 1 and fixes only the `failed_checks` (targeted re-entry, not a blind redo).
-  3. Re-read and follow `task-review/SKILL.md` with args: `i=<task-file>`.
-  4. The loop ends when the task reaches `Status: Done` (pass) or `Status: Blocked` (`Attempts` reached `Max attempts`). On `Blocked`, stop and report. Do not auto-advance. Because state lives in the task file and `tasks/feedback/`, the loop resumes correctly even in a fresh session.
-
-If task-review is disabled, skip directly to 6c.
-
-**6c - Verify (if enabled)**
-If the user chose to run task-verify:
-  Read and follow `task-verify/SKILL.md` with args: `i=<task-file>`
-
-  Check the verdict:
-  - **All pass**: task is done, proceed to next task
-  - **Failures**: report to the user. Ask whether to re-execute or skip.
-
-If task-verify is disabled, the task is considered done after execution (and review if enabled). Proceed to next task.
-
-After each task completes (or is skipped), report progress: "Task X of Y complete. Next: <task-id>."
-
-### Step 7 - Handoff (optional)
-After all tasks are processed, ask the user:
-- "All tasks complete. Would you like to generate a handoff document for the next session?"
-
-If yes:
-Read and follow `handoff/SKILL.md` with args: `o=<output>/sessions/<date>-<p>.md n="<next-session-purpose>"`
-
-Ask the user for the next session purpose if not obvious.
-
-### Step 8 - Final report
-Present a summary:
-- Executor used
-- Artifacts produced (with paths)
-- Tasks completed / failed / skipped
-- Task review verdicts (if enabled; otherwise note "task-review was disabled")
-- Task verification results (if enabled; otherwise note "task-verify was disabled")
-- Any unresolved issues or deferred work
-
-### Step 9 - Graduate (optional, default no)
-After the final report, offer to graduate the feature, but **default to no**. A feature is rarely shippable the instant the build loop ends (it still needs merge / release / stabilization), and graduating archives the plan and task files. Ask:
-- "The build loop is done. Graduate this feature now? This distills a durable `<p>-decision.md`, keeps your original draft, and archives the process artifacts. Most users do this later, once the feature is merged and stable - run `/graduate o=<output> p=<p>` whenever you stop touching it. Graduate now? (default: no)"
-
-Only if the user explicitly says yes:
-Read and follow `graduate/SKILL.md` with args: `o=<output> p=<p>`
-
-Do not graduate as part of the normal pipeline flow. It is a separate, user-triggered lifecycle step.
-
-## State tracking
-Source of truth for task state is on disk, not chat: each task file's `Status:` / `Attempts:` and the reports in `tasks/feedback/`. Throughout the orchestration, track:
-- Current pipeline stage (entry, analysis, planning, decomposition, execution, handoff)
-- Task progress, read from each task's `Status:` (Approved, Revise, Done, Blocked)
-- Retry state, read from each task's `Attempts:` vs `Max attempts:`
-- User decisions at gates (approved plan, skipped tasks, etc.)
-
-Report state transitions clearly: "Moving from planning to decomposition..." or "Task 3 of 5: auth-task-03..."
-
-## Failure modes
-- **Skill errors**: If following a skill's procedure produces an error or fails, stop and report the error. Do not attempt to continue.
-- **User cancels**: If the user says "stop" or "cancel", stop immediately. Report what was completed and what remains.
-- **Dependency unmet**: If a task's dependencies are not in `tasks/done/`, skip it and report. Ask the user whether to continue with remaining tasks.
-- **Max retries exceeded**: After 2 failed review retries, stop on that task. Report the blockers. Ask the user whether to skip or fix manually.
-
-## Output contract
-No direct output files. The orchestrator produces:
-- All artifacts from the chained skills (discussion.md, analysis.md, plan.md, task files, etc.)
-- A final summary report (in chat)
-- Optional handoff document
-
-## Validation
-Before reporting completion, verify:
-- All task files are either in `tasks/done/` or explicitly marked as skipped/failed
-- If task-review was enabled: no task has an unresolved FAIL verdict
-- The approval gate was respected
-- The final summary includes all artifacts and their paths
+## Resuming
+State lives on disk. Pick up at the first step whose output is missing:
+- No spec, or spec `Status: Draft` -> step 1 or 2.
+- Spec `Status: Approved`, no task files -> step 3.
+- Task files in `tasks/todo/` -> step 4.
