@@ -51,16 +51,26 @@ Windows (PowerShell):
 powershell -ExecutionPolicy Bypass -File .\install-rules.ps1
 ```
 
-### Status line
+## Status line install
 
-The same scripts also install a custom Claude Code status line
+Installs a custom Claude Code status line
 (`model | ctx:NN% | cwd | session`). The status line script is copied to
 `~/.claude/` and `statusLine` is set in `~/.claude/settings.json`; all other
 settings are preserved.
 
-- macOS/Linux: installs `statusline-command.sh`, requires `jq` on PATH
-  (the step is skipped with a `[skip]` notice if `jq` is missing).
-- Windows: installs `statusline-command.ps1`, no extra dependency.
+macOS/Linux (installs `statusline-command.sh`, requires `jq` on PATH; the step
+is skipped with a `[skip]` notice if `jq` is missing):
+
+```bash
+chmod +x install-statusline.sh
+./install-statusline.sh
+```
+
+Windows (PowerShell, installs `statusline-command.ps1`, no extra dependency):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-statusline.ps1
+```
 
 ## Project install
 
@@ -107,11 +117,18 @@ The installers only copy; they never prune. A skill that was deleted or renamed
 in this repo keeps living in your install directory and keeps showing up in
 Claude Code alongside the new name. Remove those directories yourself.
 
-`to-prd` and `to-issues` were deleted, and `code-review` was renamed to
-`task-review`. If you installed before that change, clean up with:
+Skills removed or renamed so far:
+
+- `code-review` renamed to `task-review`
+- `grill-me` replaced by `grilling`
+- `to-prd`, `to-issues`, `draft-discussion`, `discussion-analysis`,
+  `analysis-plan` removed (folded into `orchestrate` and `plan-tasks`)
+- `bootstrap-spec-project` removed
+
+If you installed before any of these changes, clean up with:
 
 ```bash
-rm -rf ~/.claude/skills/to-prd ~/.claude/skills/to-issues ~/.claude/skills/code-review
+cd ~/.claude/skills && rm -rf code-review grill-me to-prd to-issues draft-discussion discussion-analysis analysis-plan bootstrap-spec-project
 ```
 
 For a project install, use `<project>/.claude/skills/` instead of `~/.claude/skills/`.
@@ -119,5 +136,6 @@ For a project install, use `<project>/.claude/skills/` instead of `~/.claude/ski
 PowerShell:
 
 ```powershell
-Remove-Item -Recurse -Force $env:USERPROFILE\.claude\skills\to-prd, $env:USERPROFILE\.claude\skills\to-issues, $env:USERPROFILE\.claude\skills\code-review -ErrorAction SilentlyContinue
+$old = 'code-review','grill-me','to-prd','to-issues','draft-discussion','discussion-analysis','analysis-plan','bootstrap-spec-project'
+$old | ForEach-Object { Remove-Item -Recurse -Force (Join-Path $env:USERPROFILE ".claude\skills\$_") -ErrorAction SilentlyContinue }
 ```

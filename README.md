@@ -1,6 +1,6 @@
 # spec-forge
 
-Skill pack for Claude Code and Opencode implementing a staged, file-driven planning workflow.
+Skill pack for **Claude Code** and **Opencode** implementing a staged, file-driven planning workflow.
 
 ## Workflows
 
@@ -66,7 +66,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `task-verify` | one task file | pass/fail report (read-only) | Verification |
 | `execute-tasks` | first task file + last task number | a range of tasks executed and committed, one commit per task | Execution (unattended range) |
 | `pr` | branch commits (+ tasks/feedback/) | PR body: Summary, Evidence, Merge Danger | Delivery (model-invoked) |
-| `grilling` | plan, decision, or idea | shared understanding (interactive, file on request) | Interview |
+| `grilling` | plan, decision, or idea | shared understanding (interactive, file on request) | Interview (standalone) |
 | `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
 | `detail-level` | detail level `01`-`05` | shorter chat answers (no files written) | Output control (standalone) |
 | `handoff` | session state | sessions/*.md | Continuity |
@@ -85,6 +85,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `kotlin-coding-standards` | Kotlin code | guidelines reference | Code Quality |
 | `angular-clean-code` | Angular code | review findings + safe refactors | Code Quality |
 | `react-clean-code` | React code | review findings + safe refactors | Code Quality |
+| `sf-scheduler-run` | sf-scheduler task file + results dir | report.md or summary.md (+ commits on an `sf-sched/` branch) | Unattended (launcher-invoked) |
 
 ## Arguments
 
@@ -96,7 +97,7 @@ All skills use short argument names:
 | `o` | output file or directory | all writing skills (file; `orchestrate` takes the feature directory; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
 | `c` | codebase root (optional, brownfield) | orchestrate, tdd, task-review, execute-tasks (forwarded to task-review) |
 | `e` | executor (`e=tdd`, default `task-execute`) | execute-tasks |
-| `p` | prefix (artifact filenames + task IDs) / commit prefix | plan-tasks (prefix), orchestrate (prefix), execute-tasks (commit message prefix, optional) |
+| `p` | prefix (artifact filenames + task IDs) / commit prefix | plan-tasks (prefix), orchestrate (prefix), graduate (prefix), execute-tasks (commit message prefix, optional) |
 | `to` | last task number of a range (inclusive) | execute-tasks |
 | `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
 | `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
@@ -176,7 +177,7 @@ Brownfield (ground the spec in an existing repo other than the current directory
 
 **Global rules** (`~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md`): the repo's `CLAUDE.md` copied as a managed block, via `install-rules.sh` / `install-rules.ps1`.
 
-**Status line** (`~/.claude/settings.json`): a custom Claude Code status line showing model, context usage, cwd and session name, installed by the same `install-rules` scripts.
+**Status line** (`~/.claude/settings.json`): a custom Claude Code status line showing model, context usage, cwd and session name, via `install-statusline.sh` / `install-statusline.ps1`.
 
 See `INSTALL.md` for exact commands.
 
@@ -267,8 +268,8 @@ Two gates (spec, task list) instead of a chain of documents. To plan without exe
 
 ### The pipeline
 
-1. Write a rough idea in `inbox/` or `features/<name>/inbox/` (no structure required). Unscoped ideas go in `backlog/`.
-2. `/grilling` (optional) - one question at a time, each with a recommended answer, until a shared understanding is confirmed. Pass `o=` to save the summary and feed it to `/orchestrate`.
+1. Write a rough idea wherever suits your project (no structure required).
+2. `/grilling` (optional, standalone) - one question at a time, each with a recommended answer, until a shared understanding is confirmed. Not a pipeline step: `/orchestrate` runs its own interview. Pass `o=` to save the summary and feed it to `/orchestrate`, which then asks only about the gaps.
 3. `/orchestrate` - interview and `<p>-spec.md`, approved by you before anything is decomposed.
 4. `/plan-tasks` - decomposes the approved spec into task files in `tasks/todo/`, by default one per slice. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value.
 5. Executor, one per task, pick one:
@@ -279,6 +280,8 @@ Two gates (spec, task list) instead of a chain of documents. To plan without exe
 8. `/handoff` at session end to write a resumable session document.
 
 Optionally seed `overview/principles.md` first with `/project-principles`. When present, `orchestrate` and `task-execute` read it as binding constraints.
+
+Stages before the executor produce no code: each writes a reviewable file, and `orchestrate` requires your explicit approval of the spec before it is decomposed into tasks. The executor (`task-execute` or `tdd`) is the only stage that writes code, and only for one approved task at a time.
 
 ### Implementation loop
 
@@ -346,5 +349,3 @@ The prefix format is yours: the skill adds no brackets, colon, or separator of i
 ### Architecture review
 
 `/improve-codebase-architecture` (no arguments) - runs in the current directory. Identifies shallow modules, scattered concepts, and tight coupling. Produces `architecture-report.md` with evidence-backed candidates and specific proposals. No code changes.
-
-Stages before the executor produce no code: each writes a reviewable file, and `orchestrate` requires your explicit approval of the spec before it is decomposed into tasks. The executor (`task-execute` or `tdd`) is the only stage that writes code, and only for one approved task at a time.
