@@ -18,7 +18,7 @@ Review the code an executor (`task-execute` or `tdd`) produced for one task, and
 - Read-only: never edit source, never move the task file, never change its `Status:`.
 - Review only this task's changes: the uncommitted diff when run inside `execute-tasks`, otherwise the diff since the task started, or the files its scope names when there is no git.
 - Cover five dimensions: code quality, security, performance, spec compliance (against `Scope notes` and every Given/When/Then), and test quality. Mark a dimension N/A with a reason rather than skipping it.
-- For code quality, use the matching `<language>-coding-standards/SKILL.md` as the reference when one exists, else `coding-principles/SKILL.md`.
+- For code quality, use the matching `<language>-coding-standards/SKILL.md` as the reference when one exists, else `coding-principles/SKILL.md`. Also check the change follows the task's `Patterns to mirror`; a deviation without a reason in the attempt report is at least a warning.
 - Every finding has a severity, `file:line`, the issue, and a concrete fix. Skip what the project's formatter or linter already handles. Do not invent requirements beyond the task file.
 - Severity: **blocker** = must fix (bugs, security holes, spec violations, data loss risk); **warning** = should fix; **nit** = optional.
 

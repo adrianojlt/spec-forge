@@ -16,6 +16,9 @@ Max attempts: 3
 - In: [what this task covers]
 - Not in: [what is explicitly excluded from this task]
 
+**Patterns to mirror:** [omit if the spec lists none]
+- [Convention]: `[path/File#symbol]` - [what to mirror or avoid]
+
 **Acceptance criteria:**
 
 Given [initial context or state]
@@ -25,5 +28,8 @@ Then [expected outcome]
 Given [another context]
 When [action]
 Then [outcome]
+
+**Validate:** [omit if the spec lists none]
+- `[command]` - [what it proves]
 
 **Done:** [Specific completion condition the executor can check in the repo. Not "it works" but e.g. "login tests pass and an expired token gets a 401."]

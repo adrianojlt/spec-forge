@@ -257,21 +257,22 @@ The skill files themselves (Markdown) are cross-platform and work on any OS.
 ### Full orchestration
 
 `/orchestrate` takes a feature from idea to committed code. It:
-1. Interviews you one question at a time (grilling style), looking facts up in the codebase instead of asking. Accepts a raw idea, a draft, or a `/grilling` summary.
-2. Writes a single `<p>-spec.md` (problem, goals, non-goals, decisions, vertical slices with acceptance criteria, risks) and stops for your approval
-3. Runs `plan-tasks` on the approved spec
-4. Shows the task list and asks for run options in one message: executor (`task-execute` or `tdd`), task-review, task-verify, commit prefix. Checks the working tree is clean, and offers to commit the spec and task files if they are the only changes.
-5. Hands the range to `/execute-tasks`: a fresh subagent per task, targeted retries, one commit per task, halts on the first blocked task
-6. Reports artifacts, per-task outcomes, commits, and next steps (PR, graduate)
+1. Sizes the change and states the tier in one line (you can override it): trivial changes are sent back to be made directly, small ones skip the interview and get a one-slice spec with a single approval, everything else runs every step. Changes touching security or a public API are never below standard.
+2. Interviews you one question at a time (grilling style), looking facts up in the codebase instead of asking, and records the conventions and test commands the change touches. Accepts a raw idea, a draft, or a `/grilling` summary.
+3. Writes a single `<p>-spec.md` (problem, goals, non-goals, decisions, codebase patterns, vertical slices with acceptance criteria, risks) and stops for your approval
+4. Runs `plan-tasks` on the approved spec
+5. Shows the task list and asks for run options in one message: executor (`task-execute` or `tdd`), task-review, task-verify, commit prefix. Checks the working tree is clean, and offers to commit the spec and task files if they are the only changes.
+6. Hands the range to `/execute-tasks`: a fresh subagent per task, targeted retries, one commit per task, halts on the first blocked task
+7. Reports artifacts, per-task outcomes, commits, and next steps (PR, graduate)
 
-Two gates (spec, task list) instead of a chain of documents. To plan without executing, stop at gate 2. State lives on disk, so `/orchestrate` resumes at the first step whose output is missing.
+Two gates (spec, task list; one for small changes) instead of a chain of documents. To plan without executing, stop at gate 2. State lives on disk, so `/orchestrate` resumes at the first step whose output is missing.
 
 ### The pipeline
 
 1. Write a rough idea wherever suits your project (no structure required).
 2. `/grilling` (optional, standalone) - one question at a time, each with a recommended answer, until a shared understanding is confirmed. Not a pipeline step: `/orchestrate` runs its own interview. Pass `o=` to save the summary and feed it to `/orchestrate`, which then asks only about the gaps.
 3. `/orchestrate` - interview and `<p>-spec.md`, approved by you before anything is decomposed.
-4. `/plan-tasks` - decomposes the approved spec into task files in `tasks/todo/`, by default one per slice. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value.
+4. `/plan-tasks` - decomposes the approved spec into task files in `tasks/todo/`, by default one per slice. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value. Each task carries the codebase patterns to mirror and the commands that validate it, copied from the spec, so a fresh executor does not have to search for them.
 5. Executor, one per task, pick one:
    - `/task-execute` - Claude implements a single task, verifies its acceptance criteria, and moves the file from `tasks/todo/` to `tasks/done/`.
    - `/tdd` - Claude implements one task using red-green-refactor: state the interface, write one failing test, write minimum code, refactor, repeat. Moves the task to `tasks/done/` when all criteria are covered by passing tests.

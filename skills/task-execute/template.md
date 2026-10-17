@@ -36,4 +36,4 @@ Result: [Done | Revise | Blocked]
 
 ## Notes
 
-- [anything deferred, or "none"]
+- [anything deferred, any deviation from `Patterns to mirror` and why, or "none"]

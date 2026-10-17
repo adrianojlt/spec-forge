@@ -26,6 +26,12 @@ Status: [Draft | Approved]
 
 [Brownfield only, omit otherwise: relevant files and modules, current behavior, constraints already in place.]
 
+**Patterns:** [one canonical example per convention the change touches; "none found" when the codebase has none, never invented]
+- [Convention, e.g. error handling]: `[path/File#symbol]` - [what to mirror or avoid]
+
+**Validation commands:**
+- `[command]` - [what it proves, e.g. unit tests of the affected module]
+
 ## Slices
 
 ### Slice 1: [Name]

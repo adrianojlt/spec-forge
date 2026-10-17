@@ -15,7 +15,7 @@ Independently check that a task's acceptance criteria and Done condition hold in
 
 ## Rules
 - Read-only: never edit source, never move the task file, never change its `Status:`. Fixing is the executor's job.
-- Check every Given/When/Then and the Done condition. Run tests or read-only commands where possible; every verdict cites evidence (test result, command output, observed behavior), not assertion.
+- Check every Given/When/Then and the Done condition. Run tests or read-only commands where possible, starting with the task's `Validate` commands; every verdict cites evidence (test result, command output, observed behavior), not assertion.
 
 ## Output
 Write `<feature>/tasks/feedback/<task-id>-verify-<NN>.md` (create `tasks/feedback/` if absent) following `template.md`. `<NN>` is the task's current `Attempts`, zero-padded; never overwrite an earlier report.

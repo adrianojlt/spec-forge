@@ -16,7 +16,8 @@ Implement one task file end to end: write the code in its scope, verify every ac
 ## Rules
 - Implement only `Scope notes: In`; nothing in `Not in`. If `overview/principles.md` exists, its rules are binding.
 - Every task ID in `Depends on:` must already be in `tasks/done/`. If one is not, stop and report without implementing.
-- Verify each Given/When/Then and the Done condition against the result, running tests or commands where possible. Evidence, not assertion.
+- Follow the task's `Patterns to mirror`. Deviate only with a reason, recorded under `Notes` in the attempt report.
+- Verify each Given/When/Then and the Done condition against the result, running tests or commands where possible, starting with the task's `Validate` commands. Evidence, not assertion.
 
 ## Retry or first attempt
 Look in the sibling `tasks/feedback/` for this task's `<task-id>-attempt-<NN>.md`, `-review-<NN>.md` and `-verify-<NN>.md`. The latest is the highest `<NN>`; at equal `<NN>`, a review or verify report is newer than the attempt report.
