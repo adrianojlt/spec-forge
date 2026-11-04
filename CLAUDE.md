@@ -73,8 +73,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - That folder contains internal tooling notes and is not part of the codebase
 - Only read files from `specs/` if explicitly instructed by the user
 
-- Never use em dashes in any output. Replace with commas, periods, or restructured sentences.
-- Never use em dashes (—); always use hyphens (-) for word breaks, ranges, and pauses.
+- Never use em dashes (—) in any output. Use commas, periods, hyphens (-), or restructure the sentence.
 
 ## Coding Standards
 - If it is a Java project, always load and apply the `/java-coding-standards` skill before writing or reviewing any Java code.
@@ -97,7 +96,8 @@ If uncertain, do not add it to `CLAUDE.md`.
 - During long refactors or multi-file edits, emit periodic progress notes so the session never goes silent. Verify with a compile/test run before reporting done.
 
 ## Remote Sessions
-When asked about remote tasks or to run them, check `~/src/mine/ai-mine-specs/apps/`.
+When asked about remote tasks or to run them, check `~/src/mine/ai-mine-specs/`.
 Each app subfolder may have a `remote-tasks/` directory with `.md` task files.
-To run tasks for an app: `sf-scheduler remote --root ~/src/mine/ai-mine-specs/apps --app <app-name>`
+To run tasks for an app: `sf-scheduler remote --root ~/src/mine/ai-mine-specs --app <app-name>`
+If `sf-scheduler` is not on PATH, install it first: `pip install -e ~/src/mine/spec-forge/sf-scheduler`
 
