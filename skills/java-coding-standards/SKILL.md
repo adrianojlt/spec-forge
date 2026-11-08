@@ -1,7 +1,6 @@
 ---
 name: java-coding-standards
-description: "Java coding standards for Spring Boot services: naming, immutability, Optional usage, streams, exceptions, generics, and project layout."
-origin: ECC
+description: "Java coding standards for Spring Boot services: formatting, constants and enums, types and nulls, errors and logging, Spring, and tests."
 ---
 
 # Java Coding Standards
@@ -63,4 +62,4 @@ public enum AggregateTable {
 - Constructor injection only; no field injection, no static mutable state.
 
 ## Tests
-- JUnit 5, AssertJ, Mockito. No partial mocks, no `Thread.sleep`.
+- JUnit Jupiter, AssertJ, Mockito. No partial mocks, no `Thread.sleep`.

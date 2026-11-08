@@ -9,9 +9,9 @@ Rules for writing and reviewing code in any language. Language skills (`<languag
 
 ## Simplicity
 - Write the smallest change that solves the current requirement. No "just in case" features, options, or configuration for values that never change.
-- No abstraction without a second real use: no single-implementation interfaces, no base classes for one subclass, no helper extracted for one call site.
+- No speculative abstraction: no single-implementation interfaces, no base classes for one subclass, no helper extracted for one call site.
 - Tolerate duplication until the third occurrence; then extract. A wrong abstraction costs more than two copies.
-- Optimize only with a measurement that shows the problem.
+- Optimize only with a measurement that shows the problem, or to fix an obviously wrong algorithm.
 
 ## Readability
 - Names reveal intent without reading the body. No abbreviations outside well-known domain terms. Booleans read as questions (`isReady`, `hasPermission`).

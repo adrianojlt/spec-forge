@@ -1,23 +1,20 @@
 ---
 name: react-clean-code
 disable-model-invocation: true
-description: Review and improve React code using clean code and React best practices. Use proactively before refactors, feature work, and code reviews.
+description: Review and improve React code using clean code and React best practices.
 ---
 
 ## Activation
 
-If invoked with no target file, component, or explicit request, reply that react-clean-code is loaded and ask what to review. Do NOT start analyzing the project on your own. Only run the review workflow below once the user points at code or asks for a review.
+If invoked with no target file, component, or explicit request, reply that react-clean-code is loaded and ask what to review. Do not start analyzing the project on your own. Only review once the user points at code or asks for a review.
 
 ---
 
-You are reviewing or editing a React codebase.
+You are reviewing or editing a React codebase. Builds on `coding-principles` and `typescript-coding-standards`; where they conflict, this skill wins.
 
-Your goals:
-- Keep components and hooks pure.
-- Improve readability, maintainability, and testability.
-- Reduce hidden side effects, duplication, and unclear state.
-- Prefer small safe refactors over rewrites.
-- Explain decisions clearly.
+## Detect the setup first
+
+Check `package.json` for the React version and whether React Compiler is enabled, and match the codebase's existing idiom. With the compiler on, do not add manual `useMemo`, `useCallback`, or `memo`.
 
 ## Core rules
 
@@ -48,7 +45,6 @@ Your goals:
 - Avoid deeply nested JSX and nested ternaries.
 - Prefer clear names over generic names like `data`, `item`, `value`, or `handleStuff`.
 - Extract repeated UI patterns into components only after repetition is clear.
-- Do not over-abstract too early.
 - Keep props minimal and meaningful.
 - Reduce prop drilling when it creates friction, but do not introduce global state casually.
 
@@ -69,65 +65,24 @@ Your goals:
 - Normalize backend errors before they reach UI components.
 - Keep network concerns out of small presentational components.
 
-## Clean code rules
+## Reviewing
 
-- Flag dead code.
-- Flag duplicated logic.
-- Flag mixed responsibilities.
-- Flag misleading names.
-- Flag large files and large functions.
-- Flag hidden coupling between unrelated parts.
-- Flag fragile patterns that make tests difficult.
-- Distinguish style issues from real engineering risks.
-
-## Review workflow
-
-When asked to review code, do this in order:
-
-1. Identify the component or feature boundary.
-2. Explain the current responsibility of the code.
-3. Find purity violations, side effects in render, and state structure problems.
-4. Find duplication, naming issues, and mixed concerns.
-5. Identify testability problems.
-6. Suggest the smallest safe refactor.
-7. If editing code, make incremental changes and preserve behavior.
+Look for purity violations and side effects in render, state structure problems, effect misuse, hidden coupling between unrelated parts, and patterns that make tests difficult. Distinguish style issues from real engineering risks, and suggest the smallest safe refactor.
 
 ## Output format for reviews
 
-For each issue, include:
+For a messy area, lead with the top structural problems, the top quick wins, and the safest cleanup order. Then, for each issue, include:
 - severity: high / medium / low
 - file path
 - what is wrong
 - why it is a problem
 - smallest safe fix
-- whether it is about purity, state, hooks, component design, async flow, naming, or testability
+- category: purity, state, hooks, component design, async flow, naming, or testability
 
 ## Editing rules
 
 - Do not rewrite large areas unless explicitly asked.
-- Prefer behavior-preserving refactors first.
+- Prefer incremental, behavior-preserving refactors.
 - Keep public component APIs stable unless there is a strong reason to change them.
 - When changing state structure, explain the old problem and the new ownership model.
 - When removing an effect, explain why derived state or event handling is better.
-
-## What good React code looks like
-
-Good React code usually has:
-- pure rendering logic
-- clear ownership of state
-- minimal effects
-- small focused components
-- reusable custom hooks where they genuinely help
-- predictable async handling
-- consistent loading/error/empty states
-- easy-to-find feature boundaries
-- tests around important behavior
-
-## Special instruction
-
-If the code is messy, do not judge it vaguely.
-Produce:
-1. the top structural problems
-2. the top quick wins
-3. the safest cleanup order
-4. the code changes with the best readability payoff

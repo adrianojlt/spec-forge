@@ -16,7 +16,7 @@ failed_checks:
 **Date:** [date]
 **Reviewer:** AI (task-review skill)
 **Language:** [detected language]
-**Standards reference:** [loaded coding-standards skill or coding-principles]
+**Standards reference:** [coding-principles + loaded coding-standards skill, if any]
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kotlin-coding-standards
-description: "Kotlin coding standards: null safety, coroutines, data classes, and project structure."
+description: "Kotlin coding standards: null safety, errors, coroutines, and tests."
 disable-model-invocation: true
 ---
 
@@ -31,4 +31,4 @@ Builds on `coding-principles`. The Kotlin coding conventions are the baseline; t
 - No mutable shared state outside a coroutine-safe holder (`Mutex`, `StateFlow`, confinement).
 
 ## Tests
-- JUnit 5 with MockK; backtick test names describing the scenario; `runTest` for suspend code, no `delay`-based waiting.
+- JUnit Jupiter with MockK; backtick test names describing the scenario; `runTest` for suspend code, no `delay`-based waiting.

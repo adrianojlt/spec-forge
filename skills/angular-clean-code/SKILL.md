@@ -1,23 +1,16 @@
 ---
 name: angular-clean-code
 disable-model-invocation: true
-description: Review and improve Angular code using clean code and modern Angular best practices (standalone, signals, OnPush, RxJS hygiene, DI). Use proactively before refactors, feature work, and code reviews.
+description: Review and improve Angular code using clean code and modern Angular best practices (standalone, signals, OnPush, RxJS hygiene, DI).
 ---
 
 ## Activation
 
-If invoked with no target file, component, or explicit request, reply that angular-clean-code is loaded and ask what to review. Do NOT start analyzing the project on your own. Only run the review workflow below once the user points at code or asks for a review.
+If invoked with no target file, component, or explicit request, reply that angular-clean-code is loaded and ask what to review. Do not start analyzing the project on your own. Only review once the user points at code or asks for a review.
 
 ---
 
-You are reviewing or editing an Angular codebase.
-
-Your goals:
-- Keep templates declarative and components thin.
-- Improve readability, maintainability, and testability.
-- Reduce hidden side effects, duplication, and unclear state ownership.
-- Prefer small safe refactors over rewrites.
-- Explain decisions clearly.
+You are reviewing or editing an Angular codebase. Builds on `coding-principles` and `typescript-coding-standards`; where they conflict, this skill wins.
 
 ## Detect the Angular version first
 
@@ -56,7 +49,7 @@ Rules below differ by version. Before proposing changes, check `package.json` fo
 - Prefer clear names over generic names like `data`, `item`, `value`, or `handleStuff`.
 - Keep inputs minimal and meaningful. A component taking eight inputs usually wants to be split or take one object.
 - Do not reach into children with `ViewChild` to drive behavior that belongs in inputs and outputs.
-- Extract repeated UI patterns into components only after repetition is clear. Do not over-abstract too early.
+- Extract repeated UI patterns into components only after repetition is clear.
 - `@for` must have a stable, meaningful `track` expression. Flag `track $index` over identified data.
 - Prefer the `async` pipe (or `toSignal`) over subscribing in the component and assigning to a field.
 
@@ -93,35 +86,13 @@ Rules below differ by version. Before proposing changes, check `package.json` fo
 - Lazy load feature routes. Flag a large feature eagerly pulled into the initial bundle.
 - Keep route guards and resolvers small and testable. Business decisions belong in a service the guard calls.
 
-## Clean code rules
+## Reviewing
 
-- Flag dead code.
-- Flag duplicated logic.
-- Flag mixed responsibilities.
-- Flag misleading names.
-- Flag large files and large functions.
-- Flag hidden coupling between unrelated parts.
-- Flag fragile patterns that make tests difficult.
-- Flag `any`, non-null assertions (`!`), and casts that hide a real modeling problem.
-- Distinguish style issues from real engineering risks.
-
-## Review workflow
-
-When asked to review code, do this in order:
-
-1. Check the Angular version and the codebase's dominant idiom.
-2. Identify the component, service, or feature boundary.
-3. Explain the current responsibility of the code.
-4. Find template side effects, change detection workarounds, and state ownership problems.
-5. Find subscription leaks, nested subscribes, and wrong flattening operators.
-6. Find duplication, naming issues, and mixed concerns.
-7. Identify testability problems (hard-wired globals, unmockable dependencies, logic only reachable through the DOM).
-8. Suggest the smallest safe refactor.
-9. If editing code, make incremental changes and preserve behavior.
+Check the Angular version and the codebase's dominant idiom first. Then look for template side effects, change detection workarounds, state ownership problems, subscription leaks, nested subscribes, wrong flattening operators, hidden coupling between unrelated parts, and testability problems (hard-wired globals, unmockable dependencies, logic only reachable through the DOM). Distinguish style issues from real engineering risks, and suggest the smallest safe refactor.
 
 ## Output format for reviews
 
-For each issue, include:
+For a messy area, lead with the top structural problems, the top quick wins, and the safest cleanup order. Then, for each issue, include:
 - severity: high / medium / low
 - file path
 - what is wrong
@@ -132,31 +103,9 @@ For each issue, include:
 ## Editing rules
 
 - Do not rewrite large areas unless explicitly asked.
-- Prefer behavior-preserving refactors first.
+- Prefer incremental, behavior-preserving refactors.
 - Keep component inputs and outputs stable unless there is a strong reason to change them.
 - Do not migrate to signals, standalone, or new control flow as a side effect of an unrelated fix. Propose it separately.
 - When changing state structure, explain the old problem and the new ownership model.
 - When removing an `effect()` or a `valueChanges` subscription, explain why derivation or event handling is better.
 - When changing a flattening operator, state the behavior change (cancellation, ordering, concurrency) explicitly.
-
-## What good Angular code looks like
-
-Good Angular code usually has:
-- side-effect-free templates
-- `OnPush` components with clear input contracts
-- derived state instead of hand-synced fields
-- no leaked subscriptions
-- thin components and meaningful services
-- a single API layer with consistent loading/error/empty handling
-- feature-shaped folders and lazy-loaded routes
-- deliberate provider scope
-- tests that exercise behavior through services, not only through the DOM
-
-## Special instruction
-
-If the code is messy, do not judge it vaguely.
-Produce:
-1. the top structural problems
-2. the top quick wins
-3. the safest cleanup order
-4. the code changes with the best readability payoff
