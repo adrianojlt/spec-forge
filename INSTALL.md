@@ -30,7 +30,7 @@ See the Windows section in `README.md` if you use WSL - the WSL home is not the 
 
 ## Global rules install
 
-Copies this repo's `CLAUDE.md` into `~/.claude/CLAUDE.md` (Claude Code) and
+Copies this repo's `rules/global.md` into `~/.claude/CLAUDE.md` (Claude Code) and
 `~/.config/opencode/AGENTS.md` (OpenCode), so the behavioral guidelines apply
 to all sessions.
 

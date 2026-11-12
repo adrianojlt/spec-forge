@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ClaudeSrc = Join-Path $ScriptDir 'CLAUDE.md'
+$ClaudeSrc = Join-Path $ScriptDir 'rules\global.md'
 
 $BeginTag  = '<!-- BEGIN spec-forge (managed by install-rules) -->'
 $EndTag    = '<!-- END spec-forge -->'
@@ -39,7 +39,7 @@ function Install-ManagedSection {
 }
 
 Install-ManagedSection -Target (Join-Path $env:USERPROFILE '.claude\CLAUDE.md')
-Write-Host "  [ok] CLAUDE.md -> $env:USERPROFILE\.claude\CLAUDE.md"
+Write-Host "  [ok] rules/global.md -> $env:USERPROFILE\.claude\CLAUDE.md"
 
 Install-ManagedSection -Target (Join-Path $env:USERPROFILE '.config\opencode\AGENTS.md')
-Write-Host "  [ok] CLAUDE.md -> $env:USERPROFILE\.config\opencode\AGENTS.md"
+Write-Host "  [ok] rules/global.md -> $env:USERPROFILE\.config\opencode\AGENTS.md"

@@ -175,7 +175,7 @@ Brownfield (ground the spec in an existing repo other than the current directory
 
 **Project** (`<project>/.claude/skills/`): skills available only within that project directory.
 
-**Global rules** (`~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md`): the repo's `CLAUDE.md` copied as a managed block, via `install-rules.sh` / `install-rules.ps1`.
+**Global rules** (`~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md`): the repo's `rules/global.md` copied as a managed block, via `install-rules.sh` / `install-rules.ps1`.
 
 **Status line** (`~/.claude/settings.json`): a custom Claude Code status line showing model, context usage, cwd and session name, via `install-statusline.sh` / `install-statusline.ps1`.
 
