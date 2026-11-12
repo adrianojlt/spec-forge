@@ -15,6 +15,8 @@ idea, draft, or grilling summary
             gates:         /task-review, /task-verify (optional, separate checker subagent)
 ```
 
+Before the pipeline, from the backlog: `/refine i=<backlog.md> [id=<ID,ID|all>]` -> unattended exploration of backlog items; findings, verdict and open questions (options + one recommended) go to `backlog/items/<ID>-<slug>.md`, you answer there, the next run folds the answers in until the item is 🟢 ready for `/orchestrate`. `m=normalize` first converts a backlog to the canonical format (IDs, sections, detail moved to item files)
+
 Optional, before the pipeline: `/project-principles` -> overview/principles.md (project-wide rules `orchestrate` and `task-execute` read)
 
 At session end: `/handoff` -> sessions/<name>.md
@@ -67,6 +69,7 @@ Framework review (standalone): `/angular-clean-code` -> reviews Angular code for
 | `execute-tasks` | first task file + last task number | a range of tasks executed and committed, one commit per task | Execution (unattended range) |
 | `pr` | branch commits (+ tasks/feedback/) | PR body: Summary, Evidence, Merge Danger | Delivery (model-invoked) |
 | `grilling` | plan, decision, or idea | shared understanding (interactive, file on request) | Interview (standalone) |
+| `refine` | backlog file (+ item IDs) | backlog/items/<ID>-<slug>.md with findings, verdict, questions; backlog statuses | Refinement (unattended) |
 | `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
 | `detail-level` | detail level `01`-`05` | shorter chat answers (no files written) | Output control (standalone) |
 | `handoff` | session state | sessions/*.md | Continuity |
@@ -93,9 +96,9 @@ All skills use short argument names:
 
 | Arg | Stands for | Used by |
 |-----|-----------|---------|
-| `i` | input / source file | grilling (optional), orchestrate (optional), plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks (first task file of the range), conversation (existing conversation to continue) |
+| `i` | input / source file | refine (backlog file), grilling (optional), orchestrate (optional), plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks (first task file of the range), conversation (existing conversation to continue) |
 | `o` | output file or directory | all writing skills (file; `orchestrate` takes the feature directory; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
-| `c` | codebase root (optional, brownfield) | orchestrate, tdd, task-review, execute-tasks (forwarded to task-review) |
+| `c` | codebase root (optional, brownfield) | refine, orchestrate, tdd, task-review, execute-tasks (forwarded to task-review) |
 | `e` | executor (`e=tdd`, default `task-execute`) | execute-tasks |
 | `p` | prefix (artifact filenames + task IDs) / commit prefix | plan-tasks (prefix), orchestrate (prefix), graduate (prefix), execute-tasks (commit message prefix, optional) |
 | `to` | last task number of a range (inclusive) | execute-tasks |
@@ -103,8 +106,16 @@ All skills use short argument names:
 | `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
 | `d` | answer detail level (`d=01`-`d=05`, default `05 normal`) | conversation, detail-level (defaults to `01` when given no argument) |
 | `n` | next-session purpose | handoff |
+| `id` | backlog item IDs (`MODB-3,MODB-5` or `all`, default `all`) | refine |
+| `m` | mode (`m=normalize`) | refine |
 
 ## Example invocations
+
+Backlog refinement:
+```
+/refine i=MoDb/backlog/modb-backlog.md m=normalize
+/refine i=MoDb/backlog/modb-backlog.md id=MODB-3 c=~/src/mine/modb
+```
 
 Pipeline:
 ```
