@@ -69,10 +69,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Rules
 
-- Never proactively read or reference files inside `specs/`
-- That folder contains internal tooling notes and is not part of the codebase
-- Only read files from `specs/` if explicitly instructed by the user
-
 - Never use em dashes (—) in any output. Use commas, periods, hyphens (-), or restructure the sentence.
 
 ## Coding Standards
