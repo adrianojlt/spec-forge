@@ -64,7 +64,7 @@ Read `$i`. If it does not follow the canonical format (no `Prefix:`, items witho
 Eligible items: 📋, and ❓ whose item file has at least one `Answer:` filled since the last round. With `$id`, process only the named items; a named item in another state is reported and skipped.
 
 ### 2. Refine each item
-More than one item: process each in a fresh subagent when the host supports it, passing the item line, the item file path, `$c` and this skill's path. The subagent writes the item file and returns the new status; only the main run edits `$i`.
+More than one item: process each in a fresh subagent when the host supports it, passing the item line, the item file path, `$c` and this skill's path. Run them in parallel, at most 3 at a time; items are independent and each subagent writes only its own item file. The subagent returns the new status; only the main run edits `$i`, after all subagents finish. Without subagent support, process the items one at a time in this context.
 
 For each item:
 1. **Read** the line and `items/<ID>-<slug>.md` if it exists. Create the file from `template.md` if missing, with the line's title as `## Idea`.
