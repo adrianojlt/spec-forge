@@ -7,7 +7,7 @@ argument-hint: "task=<path> out=<results-dir>"
 # sf-scheduler-run
 
 ## Purpose
-Do one sf-scheduler task while the user is away and leave the result in the run's output directory. The launcher has already enforced eligibility, run count, and the token/time cap, and it owns run state and the `STOPPED` / `FAILED` markers. This skill only does the work. Task-file contract: `sf-scheduler/docs/task-file-schema.md`.
+Do one sf-scheduler task while the user is away and leave the result in the run's output directory. The launcher has already enforced eligibility and run count, it enforces the time cap (and the spend cap, when the task sets one), and it owns run state and the `STOPPED` / `FAILED` markers. This skill only does the work. Task-file contract: `sf-scheduler/docs/task-file-schema.md`.
 
 ## Inputs
 From the launcher prompt: the task file (YAML frontmatter + instructions body), its `task-type` (`analysis`, `review`, `implementation`), the target `path`, and the output directory `<out>` (`results/<run>/`).

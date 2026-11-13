@@ -11,8 +11,8 @@ sf-scheduler is a **thin launcher plus a skill**, not a standalone app.
 
 - The **launcher** (`src/sf_scheduler/`, Python) does only the parts that must be
   deterministic: decide which task files are due (`active` / `hours` /
-  `max-runs`), keep an atomic per-task run-count state, and enforce a hard
-  token/time cap that kills a runaway run.
+  `max-runs`), keep an atomic per-task run-count state, never run a task twice
+  at once, and enforce a hard time cap that kills a runaway run.
 - The **`sf-scheduler-run` skill** (`skills/sf-scheduler-run/` in this repo) tells
   the headless agent what to actually do per task type.
 - **cron / launchd** fires the launcher on a schedule. **Claude Code remote
@@ -22,7 +22,7 @@ sf-scheduler is a **thin launcher plus a skill**, not a standalone app.
 cron/launchd ─┐
 remote control ┼─> launcher ──(eligible task)──> headless agent + sf-scheduler-run skill ──> results in task folder
               ─┘   (guards: hours, max-runs,
-                    atomic state, hard token cap)
+                    atomic state, run lock, hard time cap)
 ```
 
 ## Folders
@@ -64,7 +64,14 @@ runs the command. No manual typing of the full path required.
 
 ## Safety
 
-- Per-task `max-tokens` is a hard cap; the launcher kills a run that exceeds it.
+- A hard time cap (`--timeout`, default 30 minutes) kills a runaway run and
+  every process it started.
+- `max-budget-usd` is a hard spend cap for `claude` tasks, enforced by the
+  `claude` CLI. `max-tokens` is only a budget the agent is told about: nothing
+  measures it.
+- A task never runs twice at once. Each run holds a lock, so overlapping
+  launcher fires are safe, and a run whose launcher died is closed as `FAILED`
+  on the next scan.
 - `implementation` tasks never touch `main`; work lands on a dedicated branch.
 - Every run leaves a result, a `STOPPED` marker, or a `FAILED` marker on disk
   (there are no notifications in v1).

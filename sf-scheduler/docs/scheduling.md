@@ -71,4 +71,5 @@ Use a short window and a small `max-runs` to test:
 
 - The Mac must be awake for launchd/cron to fire. A sleeping machine will not run jobs.
 - The launcher only runs eligible tasks; an empty or all-ineligible scan is a no-op.
+- Fires may overlap: a fire that starts while an earlier one is still working skips the task that is running and never repeats one the earlier fire already ran.
 - Each run records its outcome on disk (`report.md`/`summary.md`, or a `STOPPED`/`FAILED` marker). There are no notifications in v1.

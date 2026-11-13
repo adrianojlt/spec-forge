@@ -5,6 +5,8 @@ from datetime import datetime
 from pathlib import Path
 
 from sf_scheduler.dispatch import remote_run, run_folder, scheduled_run
+from sf_scheduler.lock import task_lock
+from sf_scheduler.runner import run_dir_for
 from sf_scheduler.state import TaskState, load_state, save_state
 
 NOW = datetime(2026, 6, 8, 3, 0)
@@ -69,3 +71,47 @@ def test_max_runs_respected_across_calls(tmp_path):
     outcomes = run_folder(tmp_path, now=NOW, command_builder=OK_BUILDER)
     assert outcomes == []
     assert load_state(task).run_count == 1
+
+
+def test_task_locked_by_another_launcher_is_skipped(tmp_path):
+    task = write_task(tmp_path, "busy")
+    with task_lock(task) as held:
+        assert held
+        outcomes = run_folder(tmp_path, now=NOW, command_builder=OK_BUILDER)
+    assert outcomes == []
+    assert load_state(task).run_count == 0
+
+
+def test_eligibility_is_rechecked_before_each_run(tmp_path):
+    write_task(tmp_path, "a")
+    b = write_task(tmp_path, "b")
+
+    def builder(spec, task_file, run_dir):
+        if task_file.stem == "a":
+            # Another launcher runs b to completion while this one is still on a.
+            save_state(b, TaskState(1, NOW.isoformat(), "done"))
+        return OK_BUILDER(spec, task_file, run_dir)
+
+    outcomes = run_folder(tmp_path, now=NOW, command_builder=builder)
+    assert [o.run_dir.parent.name for o in outcomes] == ["a.results"]
+    assert load_state(b).run_count == 1
+
+
+def test_run_left_running_by_dead_launcher_is_closed_then_rerun(tmp_path):
+    task = write_task(tmp_path, "crashed", max_runs=2)
+    save_state(task, TaskState(1, NOW.isoformat(), "running"))
+
+    outcomes = run_folder(tmp_path, now=NOW, command_builder=OK_BUILDER)
+
+    assert (run_dir_for(task, 1) / "FAILED").exists()
+    assert [o.run_dir for o in outcomes] == [run_dir_for(task, 2)]
+    assert load_state(task) == TaskState(2, NOW.isoformat(), "done")
+
+
+def test_dead_run_that_used_the_last_run_is_closed_not_rerun(tmp_path):
+    task = write_task(tmp_path, "crashed", max_runs=1)
+    save_state(task, TaskState(1, NOW.isoformat(), "running"))
+
+    assert run_folder(tmp_path, now=NOW, command_builder=OK_BUILDER) == []
+    assert (run_dir_for(task, 1) / "FAILED").exists()
+    assert load_state(task).status == "error"

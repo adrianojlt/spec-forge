@@ -11,11 +11,11 @@ disable-model-invocation: true
 An executor alternative to `task-execute` for test-first work. Same inputs, same feedback files, same task state transitions; the difference is that every acceptance criterion must end up covered by a test written before the code that makes it pass.
 
 ## Inputs
-- `$i` - task file from `tasks/todo/`, or from `tasks/done/` when a review or verify failed on it
-- `$c` - codebase root (optional; inferred from `$i` location if not given)
+- `$i` - task file from `tasks/todo/`, or from `tasks/done/` when a validate, review or verify report failed on it
+- `$c` - codebase root, where the code is written and commands are run (optional; defaults to the current working directory)
 
 ## Rules
-- Follow `task-execute/SKILL.md` for scope, dependencies, retry detection, and recording the outcome. On a retry, write a failing test for each failed check, then make it pass.
+- Follow `task-execute/SKILL.md` for scope, dependencies, manual checks, retry detection, and recording the outcome. On a retry, write a failing test for each failed check, then make it pass.
 - Before coding, state the interface: new functions, endpoints or types, and changes to existing signatures or side effects. When invoked directly by a user, wait for them to confirm or adjust it. When driven non-interactively (`execute-tasks`, `orchestrate`, `sf-scheduler`), proceed and record the assumed interface in the attempt report.
 - Use the project's existing test framework, locations and naming. Follow the task's `Patterns to mirror` and `Validate` as `task-execute` does.
 - Red-green-refactor per behavior: see the new test fail for the expected reason, write the minimum code to pass, then refactor with the suite green. Do not batch several failing tests.

@@ -20,8 +20,10 @@ Turn an approved spec (`<p>-spec.md` from `orchestrate`, or any plan with `Statu
 - Default to one task per slice of the plan. Split a slice only when it is too big for one executor run, or when it holds parts that ship independently.
 - Never split by layer. "Set up the database schema" is not a task; "User can log in with email and password" is. Every task delivers something a user or stakeholder can observe working.
 - Acceptance criteria are Given/When/Then, checkable without judgment, and cover at least one failure path besides the happy path. Carry over the slice's criteria from the plan when it has them, and add what is missing.
+- Every criterion and the Done condition must be checkable by the executor, in the environment it runs in. What only a human can confirm (another OS, a real device, a visual judgement) is not a criterion: it goes under `Manual checks`, carried over from the slice when the plan lists it. Never write a task that holds only manual checks; attach them to the last task that touches that behavior.
 - Order and number tasks by dependency, matching the plan's sequence. `Depends on:` names only earlier task IDs.
 - When the spec's `Codebase Findings` lists `Patterns` or `Validation commands`, copy into each task only the entries it touches, as `Patterns to mirror` and `Validate`, so the executor never has to search for them. Reference code as `file#symbol`, never by line number: earlier tasks move lines. If the spec has none, omit both sections; never invent a pattern.
+- `execute-tasks` runs each `Validate` command itself, from the codebase root, and goes by the exit code alone. So each one must run from there, end by itself, and exit 0 only on success. Leave out a command that does not (a dev server, a watcher, one that needs a human).
 - No `TBD` in scope, criteria, or Done.
 - Write each task file's `Source:` header as a path relative to the task file's own folder (e.g. `../../auth-spec.md` from `tasks/todo/`), never absolute.
 

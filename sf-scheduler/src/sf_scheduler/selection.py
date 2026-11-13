@@ -14,6 +14,9 @@ from .state import TaskState, load_state
 from .taskfile import TaskFileError, TaskSpec, parse_task_file
 
 
+REASON_RUNNING = "running"
+
+
 @dataclass
 class Decision:
     """Outcome of evaluating one task: eligible to run, or skipped with reason."""
@@ -43,7 +46,9 @@ def evaluate(spec: TaskSpec, state: TaskState, now: datetime) -> Decision:
     if not spec.active:
         return Decision(spec.source, spec, False, "inactive")
     if state.status == "running":
-        return Decision(spec.source, spec, False, "running")
+        # Running, or left that way by a launcher that died: the task's lock
+        # tells the two apart (see dispatch.run_folder).
+        return Decision(spec.source, spec, False, REASON_RUNNING)
     if state.run_count >= spec.max_runs:
         return Decision(spec.source, spec, False, "max-runs reached")
     if not in_window(spec.hours, now):
@@ -51,27 +56,25 @@ def evaluate(spec: TaskSpec, state: TaskState, now: datetime) -> Decision:
     return Decision(spec.source, spec, True, "eligible")
 
 
+def decide(task_file: Path, now: datetime) -> Decision:
+    """Parse one task file and evaluate it against its state as it is now.
+
+    A malformed task file becomes a non-eligible Decision with the parse error
+    as the reason.
+    """
+    try:
+        spec = parse_task_file(task_file)
+    except TaskFileError as exc:
+        return Decision(task_file, None, False, f"invalid: {exc}")
+    return evaluate(spec, load_state(task_file), now)
+
+
 def select(folder: Path, now: datetime) -> list[Decision]:
     """Evaluate every task file in `folder`, returning a Decision per file.
 
-    Malformed task files become a non-eligible Decision with the parse error as
-    the reason; they never abort the scan.
+    Malformed task files never abort the scan (see `decide`).
     """
-    decisions: list[Decision] = []
-    for task_file in sorted(folder.glob("*.md")):
-        try:
-            spec = parse_task_file(task_file)
-        except TaskFileError as exc:
-            decisions.append(Decision(task_file, None, False, f"invalid: {exc}"))
-            continue
-        state = load_state(task_file)
-        decisions.append(evaluate(spec, state, now))
-    return decisions
-
-
-def eligible(folder: Path, now: datetime) -> list[Decision]:
-    """Just the eligible decisions from `select`."""
-    return [d for d in select(folder, now) if d.eligible]
+    return [decide(task_file, now) for task_file in sorted(folder.glob("*.md"))]
 
 
 def _parse_hhmm(value: str) -> time:

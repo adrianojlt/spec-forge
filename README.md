@@ -100,16 +100,17 @@ Nothing is written unless you pass `o=`. A saved summary is a valid `/orchestrat
 - **Size first.** Trivial changes are sent back to be made directly. Small ones skip the interview and get one gate. Changes touching security or a public API are always standard. You can override the tier.
 - **Spec** (`<p>-spec.md`): problem, goals, non-goals, decisions, codebase patterns and test commands, vertical slices with Given/When/Then.
 - **Tasks** (`/plan-tasks`): one file per slice in `tasks/todo/`, each carrying the patterns to mirror and commands to validate, so a fresh executor does not search for them.
-- **Gate 2** asks for executor (`task-execute` or `tdd`), review, verify and commit prefix; `go` takes the defaults. It also checks the working tree is clean and offers to commit the spec and tasks.
+- **Manual checks:** what only you can confirm (another OS, a real device, a visual judgement) is kept out of the acceptance criteria and listed under `Manual checks` in the spec and the task. Agents skip them, they never block a task, and the final report lists them for you.
+- **Gate 2** asks for executor (`task-execute` or `tdd`), review, verify and commit prefix; `go` takes the defaults. It also checks the working tree of the code repo is clean and, when the spec lives in that repo, offers to commit the spec and tasks.
 - **Plan only:** stop at gate 2. Run `/execute-tasks` later.
 - **Resume:** state is on disk, so a new run picks up at the first step whose output is missing.
-- **Brownfield:** `c=` points at a repo other than the current directory.
+- **Code repo:** `c=` is the repository where the code is written and committed; it defaults to the current directory. The spec and task files may live there or in a separate specs repo. The run never commits in the specs repo: that stays yours.
 
 `overview/principles.md`, when present, is binding for `orchestrate` and the executors.
 
 ### Execution: /execute-tasks
 
-Runs a contiguous range of task files unattended. It writes no code itself: each task goes to a fresh executor subagent, optional gates run in a separate checker subagent (no agent grades its own work), and each passing task gets one local commit.
+Runs a contiguous range of task files unattended. It writes no code itself: each task goes to a fresh executor subagent. It then runs the task's `Validate` commands itself and goes by their exit codes, so a task with such commands is never committed on the executor's word alone. Optional gates run in a separate checker subagent, and each passing task gets one local commit.
 
 ![execute-tasks loop](docs/diagrams/execute-tasks.svg)
 
@@ -124,14 +125,14 @@ Runs a contiguous range of task files unattended. It writes no code itself: each
 | `to` | last task number, inclusive (a number, not a count) |
 | `e` | `e=tdd` uses `tdd` as executor (default `task-execute`) |
 | `r` / `v` | `yes` runs `task-review` / `task-verify` after each task (default off) |
-| `c` | codebase root, forwarded to `task-review` |
+| `c` | codebase root: where code is written, commands run and commits are made (default: current directory) |
 | `p` | commit prefix, prepended verbatim plus one space |
 
 - **Commits:** message is the task title (`# [auth-task-03] Add token expiry check` gives `[auth] Add token expiry check` with `p=[auth]`). No push, no branch, no PR.
 - **Preflight** refuses a dirty tree (each commit runs `git add -A`), unset git identity, or an inverted range.
 - **Halt** on the first blocked task, leaving the working tree as is. Rerunning the same range skips done tasks.
 
-**Task state lives in files.** Each task has `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:` and `Max attempts:`; the folder (`todo/` or `done/`) also signals state. The executor, `task-review` and `task-verify` each write a report per attempt to `tasks/feedback/` (`<task-id>-attempt-NN.md`, `-review-NN.md`, `-verify-NN.md`) with a `verdict` and `failed_checks`. A retry fixes only the `failed_checks` of the latest failing report.
+**Task state lives in files.** Each task has `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:` and `Max attempts:`; the folder (`todo/` or `done/`) also signals state. The executor, the `Validate` run, `task-review` and `task-verify` each write a report per attempt to `tasks/feedback/` (`<task-id>-attempt-NN.md`, `-validate-NN.md`, `-review-NN.md`, `-verify-NN.md`) with a `verdict` and `failed_checks`. A retry fixes only the `failed_checks` of the latest failing report.
 
 ### Running steps by hand
 
@@ -199,7 +200,7 @@ Every stage of `/orchestrate` is its own skill:
 |-----|-----------|---------|
 | `i` | input file | refine, grilling, orchestrate, plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks, conversation |
 | `o` | output file or directory | all writing skills |
-| `c` | codebase root (brownfield) | refine, orchestrate, tdd, task-review, execute-tasks |
+| `c` | codebase root: the repo with the code (default: current directory) | refine, orchestrate, execute-tasks, task-execute, tdd, task-review, task-verify |
 | `p` | prefix (filenames, task IDs) or commit prefix | orchestrate, plan-tasks, graduate, execute-tasks |
 | `e` | executor (`e=tdd`) | execute-tasks |
 | `to` | last task number, inclusive | execute-tasks |

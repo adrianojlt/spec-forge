@@ -46,5 +46,8 @@ Status: [Done | Revise | Blocked]
 |-------------|-----------|--------|
 | Given... When... Then... | `[test name]` | PASS |
 
+## Manual Checks
+[Each of the task's `Manual checks`, as pending and left for the user. "None" if the task has none.]
+
 ## Notes
 [Any non-obvious decisions, workarounds, or deferred follow-ups.]

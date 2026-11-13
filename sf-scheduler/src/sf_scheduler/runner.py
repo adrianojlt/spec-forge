@@ -2,6 +2,7 @@
 
 The launcher owns the deterministic guards here:
 - a hard wall-clock timeout that kills a runaway run,
+- an optional spend cap (`max-budget-usd`), handed to the agent CLI to enforce,
 - branch isolation for `implementation` tasks (the agent runs in a dedicated git
   worktree on its own branch, so the repo's default branch is physically
   untouched, enforced by code rather than trusted to the agent), and
@@ -59,7 +60,10 @@ def default_command(spec: TaskSpec, task_file: Path, run_dir: Path) -> list[str]
         f"Write all outputs into: {run_dir}\n"
     )
     if spec.provider == "claude":
-        return ["claude", "-p", prompt]
+        cmd = ["claude", "-p", prompt]
+        if spec.max_budget_usd is not None:
+            cmd += ["--max-budget-usd", str(spec.max_budget_usd)]
+        return cmd
     return ["opencode", "run", prompt]
 
 
@@ -72,18 +76,19 @@ def run_task(
 ) -> RunOutcome:
     """Execute one task, enforce the guards, and record the outcome.
 
-    run_count is incremented on every terminal attempt (success, stopped, or
-    error) so a repeatedly failing task cannot retry forever and burn tokens.
+    run_count is incremented when the run starts, before anything can fail, so
+    a run that errors, is stopped, or dies with its launcher still counts: a
+    repeatedly failing task cannot retry forever and burn tokens.
     """
     task_file = spec.source
-    state = load_state(task_file)
-    run_number = state.run_count + 1
+    run_number = load_state(task_file).run_count + 1
     run_dir = run_dir_for(task_file, run_number)
     run_dir.mkdir(parents=True, exist_ok=True)
+    save_state(task_file, TaskState(run_number, now.isoformat(), "running"))
 
     target = Path(os.path.expanduser(spec.path))
     if not target.exists():
-        return _finish(task_file, state, run_dir, now, "error", marker="FAILED",
+        return _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
                        message=f"target path does not exist: {spec.path}\n")
 
     # Set up the working directory. Implementation tasks run in an isolated git
@@ -93,21 +98,18 @@ def run_task(
     if spec.task_type == "implementation":
         repo = _repo_root(target)
         if repo is None:
-            return _finish(task_file, state, run_dir, now, "error", marker="FAILED",
+            return _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
                            message=f"target path is not a git repository: {spec.path}\n")
         default_head = _git(repo, "rev-parse", "HEAD").stdout.strip()
         branch = f"sf-sched/{task_file.stem}-{run_dir.name}"
         try:
             cwd = _add_worktree(repo, run_dir, branch)
         except subprocess.CalledProcessError as exc:
-            return _finish(task_file, state, run_dir, now, "error", marker="FAILED",
+            return _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
                            message=f"could not create isolated worktree: {exc.stderr or exc}\n")
         (run_dir / "branch.txt").write_text(branch + "\n", encoding="utf-8")
     else:
         cwd = target if target.is_dir() else target.parent
-
-    # Mark running before launching so the double-run guard sees it.
-    save_state(task_file, TaskState(state.run_count, now.isoformat(), "running"))
 
     cmd = command_builder(spec, task_file, run_dir)
     log_path = run_dir / "agent.log"
@@ -117,19 +119,27 @@ def run_task(
                 cmd, stdout=log, stderr=subprocess.STDOUT,
                 cwd=str(cwd), start_new_session=True,
             )
-            try:
-                returncode = proc.wait(timeout=timeout_seconds)
-            except subprocess.TimeoutExpired:
-                _kill_group(proc)
-                return _finish(task_file, state, run_dir, now, "stopped", marker="STOPPED",
-                               message=f"killed after {timeout_seconds}s (token/time cap)\n",
-                               branch=branch)
-    except (FileNotFoundError, OSError) as exc:
-        return _finish(task_file, state, run_dir, now, "error", marker="FAILED",
+    except OSError as exc:
+        return _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
                        message=f"could not launch agent: {exc}\n", branch=branch)
 
+    try:
+        returncode = proc.wait(timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        _kill_tree(proc)
+        return _finish(task_file, run_number, run_dir, now, "stopped", marker="STOPPED",
+                       message=f"killed after {timeout_seconds}s (time cap)\n",
+                       branch=branch)
+    except BaseException:
+        # The launcher itself is going down (Ctrl+C, shutdown). Never leave the
+        # agent running unsupervised, and record what happened to this run.
+        _kill_tree(proc)
+        _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
+                message="launcher interrupted; agent killed\n", branch=branch)
+        raise
+
     if returncode != 0:
-        return _finish(task_file, state, run_dir, now, "error", marker="FAILED",
+        return _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
                        message=f"agent exited with code {returncode}\n",
                        returncode=returncode, branch=branch)
 
@@ -138,29 +148,56 @@ def run_task(
         repo = _repo_root(target)
         moved = repo is not None and _git(repo, "rev-parse", "HEAD").stdout.strip() != default_head
         if moved:
-            return _finish(task_file, state, run_dir, now, "error", marker="FAILED",
+            return _finish(task_file, run_number, run_dir, now, "error", marker="FAILED",
                            message="default branch HEAD moved during the run; aborting\n",
                            branch=branch)
 
-    return _finish(task_file, state, run_dir, now, "done", returncode=returncode, branch=branch)
+    return _finish(task_file, run_number, run_dir, now, "done",
+                   returncode=returncode, branch=branch)
+
+
+def recover_interrupted(task_file: Path) -> bool:
+    """Close out a run whose launcher died before recording an outcome.
+
+    Call only while holding the task's lock: the lock proves no launcher is
+    running the task, so a state still saying `running` is a dead run. It was
+    already counted when it started. Returns True if such a run was closed.
+    """
+    state = load_state(task_file)
+    if state.status != "running":
+        return False
+    run_dir = run_dir_for(task_file, state.run_count)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "FAILED").write_text("launcher died during this run\n", encoding="utf-8")
+    save_state(task_file, TaskState(state.run_count, state.last_run, "error"))
+    return True
 
 
 def _finish(
-    task_file: Path, prior: TaskState, run_dir: Path, now: datetime, status: str,
+    task_file: Path, run_number: int, run_dir: Path, now: datetime, status: str,
     *, marker: str | None = None, message: str = "",
     returncode: int | None = None, branch: str | None = None,
 ) -> RunOutcome:
     if marker is not None:
         (run_dir / marker).write_text(message, encoding="utf-8")
-    save_state(task_file, TaskState(prior.run_count + 1, now.isoformat(), status))
+    save_state(task_file, TaskState(run_number, now.isoformat(), status))
     return RunOutcome(status, run_dir, returncode, branch)
 
 
-def _kill_group(proc: subprocess.Popen) -> None:
-    try:
-        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-    except ProcessLookupError:
-        pass
+def _kill_tree(proc: subprocess.Popen) -> None:
+    """Kill the agent and every process it started, then reap it."""
+    if os.name == "nt":
+        # Windows has no process group to signal: taskkill /T walks the tree.
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+            capture_output=True, check=False,
+        )
+        proc.kill()  # in case taskkill could not reach the agent itself
+    else:
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        except ProcessLookupError:
+            pass
     proc.wait()
 
 

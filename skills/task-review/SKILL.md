@@ -12,7 +12,7 @@ Review the code an executor (`task-execute` or `tdd`) produced for one task, and
 
 ## Inputs
 - `$i` - path to a task file (in `tasks/todo/` or `tasks/done/`)
-- `$c` - codebase root (optional; inferred from `$i` location if not given)
+- `$c` - codebase root, the repo whose changes are reviewed (optional; defaults to the current working directory)
 
 ## Rules
 - Read-only: never edit source, never move the task file, never change its `Status:`.

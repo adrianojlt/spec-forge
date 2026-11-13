@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import dataclasses
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
+
+import pytest
 
 from sf_scheduler.runner import (
     default_command,
@@ -63,6 +67,29 @@ def test_timeout_kills_and_writes_stopped(tmp_path):
     assert load_state(spec.source).status == "stopped"
 
 
+def test_interrupted_launcher_kills_agent_and_records_error(tmp_path, monkeypatch):
+    spec = make_spec(tmp_path)
+    agents = []
+
+    class InterruptedWhileWaiting(subprocess.Popen):
+        def wait(self, timeout=None):
+            if timeout is not None:  # the launcher's wait on the agent, not a reap
+                agents.append(self)
+                raise KeyboardInterrupt
+            return super().wait()
+
+    monkeypatch.setattr(subprocess, "Popen", InterruptedWhileWaiting)
+    with pytest.raises(KeyboardInterrupt):
+        run_task(spec, now=NOW, timeout_seconds=30,
+                 command_builder=_py("import time; time.sleep(30)"))
+
+    assert agents[0].poll() is not None  # the agent did not outlive the launcher
+    assert (run_dir_for(spec.source, 1) / "FAILED").read_text().startswith("launcher interrupted")
+    state = load_state(spec.source)
+    assert state.status == "error"
+    assert state.run_count == 1
+
+
 def test_error_exit_writes_failed(tmp_path):
     spec = make_spec(tmp_path)
     builder = _py("import sys; sys.exit(2)")
@@ -102,3 +129,11 @@ def test_default_command_provider_mapping(tmp_path):
     opencode = make_spec(tmp_path, provider="opencode")
     assert default_command(claude, claude.source, rdir)[0] == "claude"
     assert default_command(opencode, opencode.source, rdir)[:2] == ["opencode", "run"]
+
+
+def test_default_command_passes_spend_cap_to_claude(tmp_path):
+    rdir = results_dir(tmp_path / "task.md") / "run-001"
+    uncapped = make_spec(tmp_path)
+    capped = dataclasses.replace(uncapped, max_budget_usd=1.5)
+    assert "--max-budget-usd" not in default_command(uncapped, uncapped.source, rdir)
+    assert default_command(capped, capped.source, rdir)[-2:] == ["--max-budget-usd", "1.5"]

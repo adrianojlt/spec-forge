@@ -11,9 +11,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from .lock import task_lock
 from .runner import DEFAULT_TIMEOUT_SECONDS, CommandBuilder, RunOutcome, default_command
-from .runner import run_task
-from .selection import eligible
+from .runner import recover_interrupted, run_task
+from .selection import REASON_RUNNING, decide, select
 
 SCHEDULED_DIR = "scheduled-tasks"
 REMOTE_DIR = "remote-tasks"
@@ -32,18 +33,32 @@ def run_folder(
     timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
     command_builder: CommandBuilder = default_command,
 ) -> list[RunOutcome]:
-    """Run every eligible task in a single intake folder."""
+    """Run every eligible task in a single intake folder.
+
+    Each task runs under its lock, and whether it runs is decided again once
+    the lock is held: the folder scan can be many minutes old by then, and
+    another launcher may have run the task since.
+    """
     outcomes: list[RunOutcome] = []
-    for decision in eligible(folder, now):
-        assert decision.spec is not None  # eligible decisions always carry a spec
-        outcomes.append(
-            run_task(
-                decision.spec,
-                now=now,
-                timeout_seconds=timeout_seconds,
-                command_builder=command_builder,
+    for scanned in select(folder, now):
+        if not (scanned.eligible or scanned.reason == REASON_RUNNING):
+            continue
+        with task_lock(scanned.source) as held:
+            if not held:
+                continue  # another launcher is running this task right now
+            recover_interrupted(scanned.source)
+            decision = decide(scanned.source, now)
+            if not decision.eligible:
+                continue
+            assert decision.spec is not None  # eligible decisions always carry a spec
+            outcomes.append(
+                run_task(
+                    decision.spec,
+                    now=now,
+                    timeout_seconds=timeout_seconds,
+                    command_builder=command_builder,
+                )
             )
-        )
     return outcomes
 
 

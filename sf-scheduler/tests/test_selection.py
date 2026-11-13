@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sf_scheduler.selection import eligible, in_window, select
+from sf_scheduler.selection import in_window, select
 from sf_scheduler.state import TaskState, save_state
 
 # A fixed "now": Monday 2026-06-08, 03:00 local.
@@ -54,7 +54,7 @@ def test_select_mixed_returns_only_eligible(tmp_path, make_task):
     assert decisions["exhausted"].reason == "max-runs reached"
     assert decisions["good"].eligible is True
 
-    elig = [d.source.stem for d in eligible(tmp_path, NOW)]
+    elig = [stem for stem, d in decisions.items() if d.eligible]
     assert elig == ["good"]
 
 

@@ -45,6 +45,12 @@ def test_defaults_applied(make_task):
     assert spec.hours is None
     assert spec.max_runs == 1
     assert spec.provider == "claude"
+    assert spec.max_budget_usd is None
+
+
+def test_budget_parsed(make_task):
+    spec = parse_task_file(make_task("t", VALID + "max-budget-usd: 1.5\n"))
+    assert spec.max_budget_usd == 1.5
 
 
 def test_no_frontmatter(tmp_path):
@@ -66,6 +72,12 @@ def test_no_frontmatter(tmp_path):
         ("title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nactive: maybe", "active must be a boolean"),
         ('title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nhours: "9-5"', "hours must be"),
         ("title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nprovider: gpt", "provider must be one of"),
+        ("title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nmax-budget-usd: 0", "positive number"),
+        ("title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nmax-budget-usd: true", "positive number"),
+        (
+            "title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nprovider: opencode\nmax-budget-usd: 2",
+            "only enforced by provider 'claude'",
+        ),
     ],
 )
 def test_invalid_rejected(tmp_path, frontmatter, match):

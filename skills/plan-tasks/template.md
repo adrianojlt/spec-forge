@@ -29,7 +29,10 @@ Given [another context]
 When [action]
 Then [outcome]
 
-**Validate:** [omit if the spec lists none]
+**Validate:** [omit if the spec lists none; run from the codebase root, judged by exit code]
 - `[command]` - [what it proves]
+
+**Manual checks:** [omit if none; for the user, never run by an agent and never blocking Done]
+- [What only a human can confirm: another OS, a real device, a visual judgement]
 
 **Done:** [Specific completion condition the executor can check in the repo. Not "it works" but e.g. "login tests pass and an expired token gets a 401."]

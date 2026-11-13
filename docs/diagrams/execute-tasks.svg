@@ -43,9 +43,9 @@ text{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1f232
 <path d="M730,147 L730,218" class="e" marker-end="url(#a)"/>
 <text x="740" y="186" text-anchor="start" class="l">Done</text>
 <rect x="630" y="220" width="200" height="74" rx="8" class="skill" stroke-width="1.5"/>
-<text x="730.0" y="246.0" text-anchor="middle" class="t">Optional checker</text>
-<text x="730.0" y="264.0" text-anchor="middle" class="s">fresh: task-review (r=yes)</text>
-<text x="730.0" y="280.0" text-anchor="middle" class="s">task-verify (v=yes)</text>
+<text x="730.0" y="246.0" text-anchor="middle" class="t">Validate + checker</text>
+<text x="730.0" y="264.0" text-anchor="middle" class="s">Validate commands: exit 0</text>
+<text x="730.0" y="280.0" text-anchor="middle" class="s">optional: review, verify</text>
 <path d="M630,257 L562,257" class="e" marker-end="url(#a)"/>
 <polygon points="440,257 500,217 560,257 500,297" class="step" stroke-width="1.5"/>
 <text x="500" y="262" text-anchor="middle" class="t">verdict?</text>

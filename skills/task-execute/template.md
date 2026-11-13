@@ -30,6 +30,10 @@ Result: [Done | Revise | Blocked]
 
 - [met | not met]: [the task's Done definition] - [evidence]
 
+## Manual checks
+
+- [pending: each of the task's `Manual checks`, left for the user | none]
+
 ## File move
 
 - [moved tasks/todo/<file> -> tasks/done/<file>, Status: Done | left in tasks/todo/ because <reason>]

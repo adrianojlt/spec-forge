@@ -29,7 +29,7 @@ Status: [Draft | Approved]
 **Patterns:** [one canonical example per convention the change touches; "none found" when the codebase has none, never invented]
 - [Convention, e.g. error handling]: `[path/File#symbol]` - [what to mirror or avoid]
 
-**Validation commands:**
+**Validation commands:** [run from the codebase root; each ends by itself and exits 0 only on success]
 - `[command]` - [what it proves, e.g. unit tests of the affected module]
 
 ## Slices
@@ -40,6 +40,7 @@ Status: [Draft | Approved]
 - Acceptance:
   - Given [state] When [action] Then [outcome]
   - Given [failure state] When [action] Then [outcome]
+- Manual checks: [what only a human can confirm (another OS, a real device, a visual judgement) | none]
 
 ### Slice 2: [Name]
 [...]

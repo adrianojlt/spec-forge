@@ -36,6 +36,7 @@ class TaskSpec:
     max_tokens: int
     provider: str
     source: Path
+    max_budget_usd: float | None = None
 
 
 def parse_task_file(path: Path) -> TaskSpec:
@@ -98,6 +99,8 @@ def _validate(path: Path, data: dict, body: str) -> TaskSpec:
             f"{path}: provider must be one of {sorted(PROVIDERS)}, got {provider!r}"
         )
 
+    max_budget_usd = _opt_budget(path, data, provider)
+
     if not body:
         raise TaskFileError(f"{path}: instructions body is empty")
 
@@ -112,6 +115,7 @@ def _validate(path: Path, data: dict, body: str) -> TaskSpec:
         max_tokens=max_tokens,
         provider=provider,
         source=path,
+        max_budget_usd=max_budget_usd,
     )
 
 
@@ -132,6 +136,21 @@ def _opt_positive_int(path: Path, data: dict, key: str, *, default: int) -> int:
     if key not in data:
         return default
     return _as_positive_int(path, data[key], key)
+
+
+def _opt_budget(path: Path, data: dict, provider: str) -> float | None:
+    value = data.get("max-budget-usd")
+    if value is None:
+        return None
+    # bool is a subclass of int; reject it explicitly.
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+        raise TaskFileError(f"{path}: max-budget-usd must be a positive number, got {value!r}")
+    if provider != "claude":
+        # A cap nothing enforces is worse than no cap: refuse it instead.
+        raise TaskFileError(
+            f"{path}: max-budget-usd is only enforced by provider 'claude', got {provider!r}"
+        )
+    return float(value)
 
 
 def _as_positive_int(path: Path, value: object, key: str) -> int:
