@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="360" viewBox="0 0 980 360" role="img" aria-label="execute-tasks: unattended loop over a range of task files">
+<title>execute-tasks: unattended loop over a range of task files</title>
+<style>
+text{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1f2328}
+.t{font-size:14px;font-weight:600}
+.m{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-size:13px;font-weight:600}
+.s{font-size:12px;fill:#59636e}
+.l{font-size:12px;font-weight:600;fill:#59636e}
+.file{fill:#dafbe1;stroke:#1a7f37}
+.skill{fill:#ddf4ff;stroke:#0969da}
+.you{fill:#fff8c5;stroke:#9a6700}
+.stop{fill:#ffebe9;stroke:#cf222e}
+.step{fill:#f6f8fa;stroke:#59636e}
+.e{stroke:#59636e;stroke-width:1.5;fill:none}
+.d{stroke-dasharray:5 4}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#59636e"/></marker></defs>
+<rect x="0.5" y="0.5" width="979" height="359" rx="12" fill="#ffffff" stroke="#d0d7de"/>
+<rect x="20" y="70" width="170" height="74" rx="8" class="step" stroke-width="1.5"/>
+<text x="105.0" y="96.0" text-anchor="middle" class="t">Preflight</text>
+<text x="105.0" y="114.0" text-anchor="middle" class="s">clean tree, git identity,</text>
+<text x="105.0" y="130.0" text-anchor="middle" class="s">valid range</text>
+<path d="M190,107 L228,107" class="e" marker-end="url(#a)"/>
+<rect x="230" y="70" width="160" height="74" rx="8" class="step" stroke-width="1.5"/>
+<text x="310.0" y="96.0" text-anchor="middle" class="t">Next task NN</text>
+<text x="310.0" y="114.0" text-anchor="middle" class="s">skip missing</text>
+<text x="310.0" y="130.0" text-anchor="middle" class="s">or already done</text>
+<path d="M390,107 L428,107" class="e" marker-end="url(#a)"/>
+<rect x="430" y="70" width="200" height="74" rx="8" class="skill" stroke-width="1.5"/>
+<text x="530.0" y="96.0" text-anchor="middle" class="t">Executor subagent</text>
+<text x="530.0" y="114.0" text-anchor="middle" class="s">fresh: task-execute or tdd</text>
+<text x="530.0" y="130.0" text-anchor="middle" class="s">writes attempt-NN report</text>
+<path d="M630,107 L668,107" class="e" marker-end="url(#a)"/>
+<polygon points="670,107 730,67 790,107 730,147" class="step" stroke-width="1.5"/>
+<text x="730" y="112" text-anchor="middle" class="t">status?</text>
+<path d="M730,67 L730,40 L560,40 L560,68" class="e" marker-end="url(#a)"/>
+<text x="645" y="32" text-anchor="middle" class="l">Revise: retry with a new executor</text>
+<path d="M790,107 L828,107" class="e" marker-end="url(#a)"/>
+<rect x="830" y="70" width="130" height="74" rx="8" class="stop" stroke-width="1.5"/>
+<text x="895.0" y="96.0" text-anchor="middle" class="t">Blocked: halt</text>
+<text x="895.0" y="114.0" text-anchor="middle" class="s">working tree</text>
+<text x="895.0" y="130.0" text-anchor="middle" class="s">left as is</text>
+<path d="M730,147 L730,218" class="e" marker-end="url(#a)"/>
+<text x="740" y="186" text-anchor="start" class="l">Done</text>
+<rect x="630" y="220" width="200" height="74" rx="8" class="skill" stroke-width="1.5"/>
+<text x="730.0" y="246.0" text-anchor="middle" class="t">Optional checker</text>
+<text x="730.0" y="264.0" text-anchor="middle" class="s">fresh: task-review (r=yes)</text>
+<text x="730.0" y="280.0" text-anchor="middle" class="s">task-verify (v=yes)</text>
+<path d="M630,257 L562,257" class="e" marker-end="url(#a)"/>
+<polygon points="440,257 500,217 560,257 500,297" class="step" stroke-width="1.5"/>
+<text x="500" y="262" text-anchor="middle" class="t">verdict?</text>
+<path d="M500,217 L500,146" class="e" marker-end="url(#a)"/>
+<text x="510" y="186" text-anchor="start" class="l">FAIL: retry</text>
+<path d="M440,257 L402,257" class="e" marker-end="url(#a)"/>
+<text x="421" y="249" text-anchor="middle" class="l">PASS</text>
+<rect x="200" y="220" width="200" height="74" rx="8" class="file" stroke-width="1.5"/>
+<text x="300.0" y="246.0" text-anchor="middle" class="t">git commit</text>
+<text x="300.0" y="264.0" text-anchor="middle" class="s">message = task title</text>
+<text x="300.0" y="280.0" text-anchor="middle" class="s">(+ p= prefix)</text>
+<path d="M340,218 L340,146" class="e" marker-end="url(#a)"/>
+<text x="350" y="186" text-anchor="start" class="l">next</text>
+<path d="M250,144 L250,182 L95,182 L95,218" class="e" marker-end="url(#a)"/>
+<text x="172" y="174" text-anchor="middle" class="l">range done</text>
+<rect x="20" y="220" width="150" height="74" rx="8" class="step" stroke-width="1.5"/>
+<text x="95.0" y="246.0" text-anchor="middle" class="t">Final report</text>
+<text x="95.0" y="264.0" text-anchor="middle" class="s">one outcome</text>
+<text x="95.0" y="280.0" text-anchor="middle" class="s">per task</text>
+<rect x="20" y="325" width="14" height="14" rx="3" class="file" stroke-width="1.5"/>
+<text x="40" y="336" class="s">file on disk</text>
+<rect x="148" y="325" width="14" height="14" rx="3" class="skill" stroke-width="1.5"/>
+<text x="168" y="336" class="s">skill / agent</text>
+<rect x="283" y="325" width="14" height="14" rx="3" class="stop" stroke-width="1.5"/>
+<text x="303" y="336" class="s">stop</text>
+<rect x="355" y="325" width="14" height="14" rx="3" class="step" stroke-width="1.5"/>
+<text x="375" y="336" class="s">step</text>
+</svg>

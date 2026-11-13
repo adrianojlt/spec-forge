@@ -2,12 +2,33 @@
 
 ## Compatibility
 
-Skills installed here work in both **Claude Code** and **OpenCode**. OpenCode scans `~/.claude/skills/` and `.claude/skills/` natively. No separate OpenCode install needed.
+**Primary support: Claude Code and OpenCode**
+
+Both tools natively scan `~/.claude/skills/<name>/SKILL.md` and `.claude/skills/<name>/SKILL.md`, so installing once covers both. No separate OpenCode install needed. The skills use tool-specific features like automatic invocation (`/skill-name`) and argument parsing (`i=`, `o=`, `c=`).
+
+**Other AI agents**
+
+The skill content (procedures, rules, templates) is plain Markdown and works with other AI coding agents (Cursor, Codex, Windsurf, Aider, etc.). They have no built-in skill system, so you need to:
+
+1. Include the skill files in your repo or reference them by path
+2. Invoke them manually in prompts (e.g., "Read `skills/grilling/SKILL.md` and follow its procedure")
+3. Provide context and arguments manually instead of using the `i=`, `o=` syntax
 
 ## Requirements
 
 - Claude Code CLI installed
 - Bash (macOS/Linux) or PowerShell 5.1+ (Windows)
+
+## Install modes
+
+| Mode | Target | Script |
+|------|--------|--------|
+| Personal | `~/.claude/skills/`, all sessions | `install-skills.sh` / `install-skills.ps1` |
+| Project | `<project>/.claude/skills/`, that project only | `install-project.sh` |
+| Global rules | `~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md` | `install-rules.sh` / `install-rules.ps1` |
+| Status line | `~/.claude/settings.json` | `install-statusline.sh` / `install-statusline.ps1` |
+
+On Windows, read [Windows](#windows) first: the WSL home is not the Windows home.
 
 ## Personal install
 
@@ -26,7 +47,22 @@ Windows (PowerShell), installs into `C:\Users\<you>\.claude\skills`:
 powershell -ExecutionPolicy Bypass -File .\install-skills.ps1
 ```
 
-See the Windows section in `README.md` if you use WSL - the WSL home is not the Windows home.
+## Project install
+
+Installs skills into `<target-project>/.claude/skills/`. Available only in that project.
+
+```bash
+chmod +x install-project.sh
+./install-project.sh /path/to/your/project
+```
+
+`install-project.sh` has no PowerShell equivalent. On Windows use Git Bash or WSL, or copy manually:
+
+```powershell
+$dest = "C:\path\to\project\.claude\skills"
+New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Copy-Item -Path .\skills\* -Destination $dest -Recurse -Force
+```
 
 ## Global rules install
 
@@ -72,15 +108,6 @@ Windows (PowerShell, installs `statusline-command.ps1`, no extra dependency):
 powershell -ExecutionPolicy Bypass -File .\install-statusline.ps1
 ```
 
-## Project install
-
-Installs skills into `<target-project>/.claude/skills/`. Available only in that project.
-
-```bash
-chmod +x install-project.sh
-./install-project.sh /path/to/your/project
-```
-
 ## Manual install
 
 ```bash
@@ -92,6 +119,37 @@ cp -r skills/* ~/.claude/skills/
 mkdir -p /path/to/project/.claude/skills
 cp -r skills/* /path/to/project/.claude/skills/
 ```
+
+## Windows
+
+Skills must land in the home directory of the environment where Claude Code actually runs. Windows has two separate home directories, and mixing them is the usual failure:
+
+| Environment | Home | Skills path |
+|-------------|------|-------------|
+| Windows (PowerShell / CMD) | `C:\Users\<you>` | `C:\Users\<you>\.claude\skills` |
+| WSL | `/home/<you>` | `/home/<you>/.claude/skills` |
+
+If you run Claude Code from PowerShell but install from WSL, the skills go to the WSL home and Claude Code never sees them.
+
+Options, in order of preference:
+
+- **PowerShell** (recommended): use the `.ps1` scripts. No bash, no WSL.
+- **Git Bash**: ships with Git for Windows and its `$HOME` is `C:\Users\<you>`, so `./install-skills.sh` installs to the right place.
+- **WSL, installing into the Windows home**: if you run Claude Code on Windows but only have bash in WSL, override `HOME`:
+
+  ```bash
+  HOME=/mnt/c/Users/<YourWindowsUser> ./install-skills.sh
+  ```
+
+  Running `./install-skills.sh` plainly inside WSL is correct only when you also run Claude Code inside WSL.
+
+Verify from PowerShell:
+
+```powershell
+dir $env:USERPROFILE\.claude\skills
+```
+
+The skill files themselves (Markdown) are cross-platform and work on any OS.
 
 ## Verify installation
 

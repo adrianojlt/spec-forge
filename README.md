@@ -1,363 +1,210 @@
 # spec-forge
 
-Skill pack for **Claude Code** and **Opencode** implementing a staged, file-driven planning workflow.
+Skill pack for **Claude Code** and **OpenCode** implementing a staged, file-driven planning workflow: from a backlog item to committed code, with every step's state kept on disk.
 
-## Workflows
+Installation, compatibility and Windows notes: see [INSTALL.md](INSTALL.md).
 
-One pipeline, driven by `/orchestrate`, with every step also runnable by hand:
+## Project layout
+
+The skills work on a per-project folder, recommended structure:
+
 ```
-[optional] /grilling     -> stress-test the idea first (summary file on request)
-idea, draft, or grilling summary
-  -> /orchestrate        -> interview -> <prefix>-spec.md   (gate 1: approve spec)
-       -> /plan-tasks    -> tasks/todo/<prefix>-task-01.md ... (gate 2: confirm tasks)
-       -> /execute-tasks -> one fresh subagent per task, one commit per task
-            executor:      /task-execute (default) or /tdd
-            gates:         /task-review, /task-verify (optional, separate checker subagent)
-```
-
-Before the pipeline, from the backlog: `/refine i=<backlog.md> [id=<ID,ID|all>]` -> unattended exploration of backlog items; findings, verdict and open questions (options + one recommended) go to `backlog/items/<ID>-<slug>.md`, you answer there, the next run folds the answers in until the item is 🟢 ready for `/orchestrate`. `m=normalize` first converts a backlog to the canonical format (one `### <status> <ID> <title>` heading per item, your description under it; item files hold only refine's output)
-
-Optional, before the pipeline: `/project-principles` -> overview/principles.md (project-wide rules `orchestrate` and `task-execute` read)
-
-At session end: `/handoff` -> sessions/<name>.md
-
-After a feature ships (merged and stable): `/graduate o=<feature-dir> p=<prefix>` -> distills a durable `<p>-decision.md`, keeps your original draft, archives the process artifacts under `archive/`
-
-**Unattended range** (many tasks, one command):
-```
-/execute-tasks i=<first task.md> to=<last task number> [e=tdd] [r=yes] [v=yes] [c=<codebase>] [p=<commit prefix>]
-  -> runs a contiguous range of task files, one at a time
-  -> each task goes to a fresh subagent (no inherited context)
-  -> commits each completed task with the task title as the message
-  -> halts on the first blocked task
+<project>/
+  assets/      files the agents use: images, code, configs
+  backlog/     the backlog, input of /refine
+    <project>-backlog.md
+    items/     one file per refined item, written by /refine
+  overview/    context files for the agents, html overviews for humans
+    principles.md   written by /project-principles, read as binding rules
+  features/    output of /orchestrate, one folder per feature
+    <slug>/
+      <p>-spec.md
+      tasks/todo/  tasks/done/  tasks/feedback/
+  prompts/     generic prompts, reused more than once
+  tasks/       standalone tasks, not part of a feature
+    todo/  done/
 ```
 
-Opening a pull request (any time, e.g. after `/execute-tasks`): ask the agent to open the PR; `pr` loads automatically and shapes the body (Summary visual, before/after Evidence taken from `tasks/feedback/`, Merge Danger). It does not push or create branches itself.
+## The workflow
 
-**Full orchestration** (automated pipeline):
+![spec-forge workflow](docs/diagrams/workflow.svg)
+
+1. [`/refine`](#1-refine-the-backlog) explores backlog items while you are away and asks its questions in a file.
+2. [`/grilling`](#2-stress-test-an-idea) (optional) stress-tests an idea that is not in the backlog.
+3. [`/orchestrate`](#3-build-a-feature) turns a ready item or idea into a spec, task files and one commit per task.
+4. [`/graduate`](#4-after-the-feature) retires the feature folder once it ships.
+
+Every step is also a skill you can run by hand.
+
+## 1. Refine the backlog
+
+`/refine` does the expensive part of a backlog item, the exploration, without you watching. For each item it reads the code, sizes the change, judges if it is worth doing, and writes the decisions it cannot make as questions in the item file. You answer there when you have time; the next run folds the answers in, until the item is ready for `/orchestrate`.
+
+![refine flow](docs/diagrams/refine.svg)
+
+**Backlog format.** One file, three sections (`Bugs`, `Minor`, `Major`), one heading per item. The backlog holds only your text; refine writes to `items/<ID>-<slug>.md` and links it with the `Item:` line.
+
+```markdown
+# MoDb Backlog
+
+Prefix: MODB
+Legend: 📋 todo | ❓ waiting answers | 🟢 ready | 🚧 in progress | ✅ done | ❌ dropped
+
+## Bugs
+### 📋 MODB-6 Search crashes on empty query
+Typing a space and pressing search closes the app.
+
+## Major
+### ❓ MODB-3 Search for vidsrc alternatives
+Item: [items/MODB-3-vidsrc-alternatives.md](items/MODB-3-vidsrc-alternatives.md)
+
+Implement more than one source, so playback survives when vidsrc is down.
 ```
-/orchestrate [i=<input>] o=<output-dir> [p=<prefix>] [c=<codebase>]
-  -> interview -> <p>-spec.md     (gate 1: approve spec)
-  -> plan-tasks -> tasks/todo/    (gate 2: confirm tasks + run options)
-  -> /execute-tasks: subagent per task, targeted retries, one commit per task
-  -> final summary
+
+**Item file.** Findings (with `file:line`), tier, verdict, and up to 5 questions per round, each with options and one recommended. Answer with `Answer: rec` (take the recommendation), a letter, or free text; or write context in `## Notes`. Answered questions move to `## Decisions`. When nothing is open, refine writes `## Understanding` and marks the item 🟢.
+
 ```
-
-Codebase exploration (any time): `/conversation o=<output>` -> exploration.md + exploration-qa.md (read-only Q&A session; say "save html" to also get exploration.html)
-
-Unattended tasks (while away): see [`sf-scheduler/`](sf-scheduler/README.md) - drop a task file in a watched folder, a headless agent picks it up and leaves results on disk.
-
-Codebase health check (any time): `/improve-codebase-architecture` -> architecture-report.md
-
-Standalone (not part of a pipeline): `/grilling` -> relentless one-at-a-time interview to stress-test a plan, decision, or idea (its summary can feed `/orchestrate`); `/teach` -> stateful learning workspace (lessons, learning records, references) for a topic over multiple sessions
-
-Shorter answers (any time): `/detail-level d=<01-05>` -> caps how much the agent writes per turn in chat; ask for more detail at any point without leaving the mode; `d=5` is off
-
-Coding standards (language-specific): `/coding-principles` (generic) or `/java-coding-standards`, `/go-coding-standards`, `/rust-coding-standards`, `/swift-coding-standards`, `/typescript-coding-standards`, `/python-coding-standards`, `/kotlin-coding-standards`
-
-Framework review (standalone): `/angular-clean-code` -> reviews Angular code for template side effects, change detection workarounds, state ownership, RxJS leaks, DI scope, and testability; `/react-clean-code` -> reviews React code for purity violations, state structure, hooks, and async handling
-
-## Skills
-
-| Skill | Input | Output | Stage |
-|-------|-------|--------|-------|
-| `plan-tasks` | approved spec | tasks/todo/*.md (one per slice by default) | Decomposition |
-| `task-execute` | one task file | code + task moved to tasks/done/ | Execution |
-| `tdd` | one task file | code + tests, task moved to tasks/done/ | Execution (test-first) |
-| `task-review` | one task file | review report (read-only) | Review |
-| `task-verify` | one task file | pass/fail report (read-only) | Verification |
-| `execute-tasks` | first task file + last task number | a range of tasks executed and committed, one commit per task | Execution (unattended range) |
-| `pr` | branch commits (+ tasks/feedback/) | PR body: Summary, Evidence, Merge Danger | Delivery (model-invoked) |
-| `grilling` | plan, decision, or idea | shared understanding (interactive, file on request) | Interview (standalone) |
-| `refine` | backlog file (+ item IDs) | backlog/items/<ID>-<slug>.md with findings, verdict, questions; backlog statuses | Refinement (unattended) |
-| `teach` | topic to learn | teaching workspace (lessons, records, references) | Learning (standalone) |
-| `detail-level` | detail level `01`-`05` | shorter chat answers (no files written) | Output control (standalone) |
-| `handoff` | session state | sessions/*.md | Continuity |
-| `graduate` | shipped feature dir + prefix | decision.md + archive/ | Lifecycle (retire) |
-| `project-principles` | project rules | overview/principles.md | Governance |
-| `improve-codebase-architecture` | current directory | architecture-report.md | Architecture |
-| `orchestrate` | idea/draft + output dir + prefix | spec.md + tasks + committed code | Orchestration |
-| `conversation` | optional existing conversation file | conversation.md + conversation-qa.md (+ conversation.html on request) | Exploration |
-| `coding-principles` | any language | guidelines reference | Code Quality |
-| `java-coding-standards` | Java code | guidelines reference | Code Quality |
-| `go-coding-standards` | Go code | guidelines reference | Code Quality |
-| `rust-coding-standards` | Rust code | guidelines reference | Code Quality |
-| `swift-coding-standards` | Swift code | guidelines reference | Code Quality |
-| `typescript-coding-standards` | TypeScript code | guidelines reference | Code Quality |
-| `python-coding-standards` | Python code | guidelines reference | Code Quality |
-| `kotlin-coding-standards` | Kotlin code | guidelines reference | Code Quality |
-| `angular-clean-code` | Angular code | review findings + safe refactors | Code Quality |
-| `react-clean-code` | React code | review findings + safe refactors | Code Quality |
-| `sf-scheduler-run` | sf-scheduler task file + results dir | report.md or summary.md (+ commits on an `sf-sched/` branch) | Unattended (launcher-invoked) |
-
-## Arguments
-
-All skills use short argument names:
-
-| Arg | Stands for | Used by |
-|-----|-----------|---------|
-| `i` | input / source file | refine (backlog file), grilling (optional), orchestrate (optional), plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks (first task file of the range), conversation (existing conversation to continue) |
-| `o` | output file or directory | all writing skills (file; `orchestrate` takes the feature directory; `plan-tasks` writes to a directory; `conversation` writes `<o>.md` and `<o>-qa.md`, plus `<o>.html` if asked; `grilling` optional) |
-| `c` | codebase root (optional, brownfield) | refine, orchestrate, tdd, task-review, execute-tasks (forwarded to task-review) |
-| `e` | executor (`e=tdd`, default `task-execute`) | execute-tasks |
-| `p` | prefix (artifact filenames + task IDs) / commit prefix | plan-tasks (prefix), orchestrate (prefix), graduate (prefix), execute-tasks (commit message prefix, optional) |
-| `to` | last task number of a range (inclusive) | execute-tasks |
-| `r` | run task-review after each task (`r=yes`, default off) | execute-tasks |
-| `v` | run task-verify after each task (`v=yes`, default off) | execute-tasks |
-| `d` | answer detail level (`d=01`-`d=05`, default `05 normal`) | conversation, detail-level (defaults to `01` when given no argument) |
-| `n` | next-session purpose | handoff |
-| `id` | backlog item IDs (`MODB-3,MODB-5` or `all`, default `all`) | refine |
-| `m` | mode (`m=normalize`) | refine |
-
-## Example invocations
-
-Backlog refinement:
-```
-/refine i=MoDb/backlog/modb-backlog.md m=normalize
+/refine i=MoDb/backlog/modb-backlog.md m=normalize            # once: convert a backlog to the format above
+/refine i=MoDb/backlog/modb-backlog.md                        # all eligible items, up to 3 in parallel
 /refine i=MoDb/backlog/modb-backlog.md id=MODB-3 c=~/src/mine/modb
 ```
 
-Pipeline:
+Read-only on the codebase. It changes only item files and, in the backlog, status emojis and `Item:` lines.
+
+## 2. Stress-test an idea
+
+`/grilling` is a live interview: one question at a time, each with a recommended answer and a confidence number. Facts come from the code; decisions are yours. It stops when it can predict your next three answers, restates the understanding (outcome, user, why now, success, constraint, out of scope) and waits for an explicit yes.
+
+![grilling flow](docs/diagrams/grilling.svg)
+
+Nothing is written unless you pass `o=`. A saved summary is a valid `/orchestrate` input, which then asks only about the gaps.
+
 ```
 /grilling i=inbox/idea.md o=features/auth/auth-understanding.md
-
-/orchestrate i=features/auth/auth-understanding.md o=features/auth/ p=auth
 ```
 
-Single steps by hand:
-```
-/plan-tasks i=features/auth/auth-spec.md o=features/auth/tasks/todo/ p=auth
+`/refine` is the asynchronous version of the same interview, for backlog items.
 
-/task-execute i=features/auth/tasks/todo/auth-task-01.md
+## 3. Build a feature
 
-/task-review i=features/auth/tasks/done/auth-task-01.md
+`/orchestrate` takes an idea to committed code with two human gates: approve the spec, then confirm the task list and run options.
 
-/task-verify i=features/auth/tasks/done/auth-task-01.md
-```
-
-Unattended range (tasks 01 through 05, each committed with an `[auth]` prefix):
-```
-/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
-
-/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 r=yes v=yes c=/path/to/repo p=auth:
-```
-
-Test-first executor instead of `/task-execute`:
-```
-/tdd i=features/auth/tasks/todo/auth-task-01.md
-```
-
-Conversation (explore and save):
-```
-/conversation o=features/auth/exploration
-
-/conversation i=features/auth/exploration.md o=features/auth/exploration
-```
-
-Shorter answers (chat only, no files affected):
-```
-/detail-level d=2
-
-/detail-level          # no argument: starts at 01 minimal
-
-/detail-level d=5      # off, same as never loading it
-```
-Mid-session, in plain language: `detail level 3`, `more detail` (expands the
-previous answer only, the level stays), `back to normal`.
-
-Other:
-```
-/handoff o=sessions/2026-05-23-auth.md n="Begin auth-task-02 implementation"
-
-/project-principles o=overview/principles.md
-
-/improve-codebase-architecture
-```
-
-Brownfield (ground the spec in an existing repo other than the current directory):
+![orchestrate flow](docs/diagrams/orchestrate.svg)
 
 ```
-/orchestrate i=inbox/idea.md o=features/auth/ p=auth c=/path/to/repo
+/orchestrate i=MoDb/backlog/items/MODB-3-vidsrc-alternatives.md o=MoDb/features/vidsrc/ p=vidsrc
+/orchestrate i=features/auth/auth-understanding.md o=features/auth/ p=auth c=/path/to/repo
 ```
 
-## Install modes
+- **Input** (`i=`): a ready backlog item, a `/grilling` summary, a draft, or the idea in chat.
+- **Size first.** Trivial changes are sent back to be made directly. Small ones skip the interview and get one gate. Changes touching security or a public API are always standard. You can override the tier.
+- **Spec** (`<p>-spec.md`): problem, goals, non-goals, decisions, codebase patterns and test commands, vertical slices with Given/When/Then.
+- **Tasks** (`/plan-tasks`): one file per slice in `tasks/todo/`, each carrying the patterns to mirror and commands to validate, so a fresh executor does not search for them.
+- **Gate 2** asks for executor (`task-execute` or `tdd`), review, verify and commit prefix; `go` takes the defaults. It also checks the working tree is clean and offers to commit the spec and tasks.
+- **Plan only:** stop at gate 2. Run `/execute-tasks` later.
+- **Resume:** state is on disk, so a new run picks up at the first step whose output is missing.
+- **Brownfield:** `c=` points at a repo other than the current directory.
 
-**Personal** (`~/.claude/skills/`): skills available in all Claude Code sessions.
+`overview/principles.md`, when present, is binding for `orchestrate` and the executors.
 
-**Project** (`<project>/.claude/skills/`): skills available only within that project directory.
+### Execution: /execute-tasks
 
-**Global rules** (`~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md`): the repo's `rules/global.md` copied as a managed block, via `install-rules.sh` / `install-rules.ps1`.
+Runs a contiguous range of task files unattended. It writes no code itself: each task goes to a fresh executor subagent, optional gates run in a separate checker subagent (no agent grades its own work), and each passing task gets one local commit.
 
-**Status line** (`~/.claude/settings.json`): a custom Claude Code status line showing model, context usage, cwd and session name, via `install-statusline.sh` / `install-statusline.ps1`.
-
-See `INSTALL.md` for exact commands.
-
-## Compatibility
-
-**Primary support: Claude Code and OpenCode**
-
-These skills are designed for **Claude Code** and **OpenCode**. Both tools natively scan `~/.claude/skills/<name>/SKILL.md` and `.claude/skills/<name>/SKILL.md`, so installing once covers both. The skills use tool-specific features like automatic invocation (`/skill-name`) and argument parsing (`i=`, `o=`, `c=`).
-
-**Other AI agents**
-
-The core skill content (procedures, rules, templates) is written in standard Markdown and can be used with other AI coding agents (Cursor, Codex, Windsurf, Aider, etc.) by manually referencing the skill files. These tools don't have built-in skill systems, so you'll need to:
-
-1. Include the skill files in your repo or reference them by path
-2. Manually invoke them in prompts (e.g., "Read `skills/grilling/SKILL.md` and follow its procedure")
-3. Provide context and arguments manually instead of using the `i=`, `o=` syntax
-
-The skills will work, but without the automatic invocation and argument handling that Claude Code/OpenCode provide.
-
-## Windows
-
-Skills must land in the home directory of the environment where Claude Code actually runs. Windows has two separate home directories, and mixing them is the usual failure:
-
-| Environment | Home | Skills path |
-|-------------|------|-------------|
-| Windows (PowerShell / CMD) | `C:\Users\<you>` | `C:\Users\<you>\.claude\skills` |
-| WSL | `/home/<you>` | `/home/<you>/.claude/skills` |
-
-If you run Claude Code from PowerShell but install from WSL, the skills go to the WSL home and Claude Code never sees them.
-
-**Recommended: PowerShell install**
-
-Use the native PowerShell script. No bash, no WSL:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install-skills.ps1
-```
-
-Verify:
-
-```powershell
-dir $env:USERPROFILE\.claude\skills
-```
-
-**Alternative: Git Bash**
-
-Git Bash ships with Git for Windows and its `$HOME` is `C:\Users\<you>`, so the bash script installs to the right place:
-
-```bash
-./install-skills.sh
-```
-
-**Alternative: WSL, installing into the Windows home**
-
-If you only have the bash script and you are in WSL but run Claude Code on Windows, override `HOME` so the files land in the Windows profile:
-
-```bash
-HOME=/mnt/c/Users/<YourWindowsUser> ./install-skills.sh
-```
-
-Running `./install-skills.sh` plainly inside WSL is correct only when you also run Claude Code inside WSL.
-
-**Project install**
-
-`install-project.sh` has no PowerShell equivalent. Use Git Bash or WSL for it, or copy manually:
-
-```powershell
-$dest = "C:\path\to\project\.claude\skills"
-New-Item -ItemType Directory -Force -Path $dest | Out-Null
-Copy-Item -Path .\skills\* -Destination $dest -Recurse -Force
-```
-
-The skill files themselves (Markdown) are cross-platform and work on any OS.
-
-## Workflow guide
-
-### Full orchestration
-
-`/orchestrate` takes a feature from idea to committed code. It:
-1. Sizes the change and states the tier in one line (you can override it): trivial changes are sent back to be made directly, small ones skip the interview and get a one-slice spec with a single approval, everything else runs every step. Changes touching security or a public API are never below standard.
-2. Interviews you one question at a time (grilling style), looking facts up in the codebase instead of asking, and records the conventions and test commands the change touches. Accepts a raw idea, a draft, or a `/grilling` summary.
-3. Writes a single `<p>-spec.md` (problem, goals, non-goals, decisions, codebase patterns, vertical slices with acceptance criteria, risks) and stops for your approval
-4. Runs `plan-tasks` on the approved spec
-5. Shows the task list and asks for run options in one message: executor (`task-execute` or `tdd`), task-review, task-verify, commit prefix. Checks the working tree is clean, and offers to commit the spec and task files if they are the only changes.
-6. Hands the range to `/execute-tasks`: a fresh subagent per task, targeted retries, one commit per task, halts on the first blocked task
-7. Reports artifacts, per-task outcomes, commits, and next steps (PR, graduate)
-
-Two gates (spec, task list; one for small changes) instead of a chain of documents. To plan without executing, stop at gate 2. State lives on disk, so `/orchestrate` resumes at the first step whose output is missing.
-
-### The pipeline
-
-1. Write a rough idea wherever suits your project (no structure required).
-2. `/grilling` (optional, standalone) - one question at a time, each with a recommended answer, until a shared understanding is confirmed. Not a pipeline step: `/orchestrate` runs its own interview. Pass `o=` to save the summary and feed it to `/orchestrate`, which then asks only about the gaps.
-3. `/orchestrate` - interview and `<p>-spec.md`, approved by you before anything is decomposed.
-4. `/plan-tasks` - decomposes the approved spec into task files in `tasks/todo/`, by default one per slice. Tasks are vertical slices: no layer-only tasks, each one delivers observable user-visible value. Each task carries the codebase patterns to mirror and the commands that validate it, copied from the spec, so a fresh executor does not have to search for them.
-5. Executor, one per task, pick one:
-   - `/task-execute` - Claude implements a single task, verifies its acceptance criteria, and moves the file from `tasks/todo/` to `tasks/done/`.
-   - `/tdd` - Claude implements one task using red-green-refactor: state the interface, write one failing test, write minimum code, refactor, repeat. Moves the task to `tasks/done/` when all criteria are covered by passing tests.
-6. `/task-review` (optional) - Claude reviews the code changes for quality, security, performance, spec compliance, and test quality. Produces a report with findings by severity. Read-only.
-7. `/task-verify` (optional) - read-only re-check of a task's Given/When/Then against the repo. Useful to audit done work.
-8. `/handoff` at session end to write a resumable session document.
-
-Optionally seed `overview/principles.md` first with `/project-principles`. When present, `orchestrate` and `task-execute` read it as binding constraints.
-
-Stages before the executor produce no code: each writes a reviewable file, and `orchestrate` requires your explicit approval of the spec before it is decomposed into tasks. The executor (`task-execute` or `tdd`) is the only stage that writes code, and only for one approved task at a time.
-
-### Implementation loop
-
-Execution is a file-driven loop, not a one-shot. State lives on disk so it survives across sessions and tools:
-
-- **Task state** - each task file carries `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:`, and `Max attempts:`. The folder also signals state: `tasks/todo/` vs `tasks/done/`.
-- **Feedback artifacts** - the executor (`task-execute` or `tdd`), `task-review`, and `task-verify` each write a report into `tasks/feedback/` per attempt (`<task-id>-attempt-NN.md`, `<task-id>-review-NN.md`, `<task-id>-verify-NN.md`). Highest `NN` is the latest. The reports carry YAML frontmatter with a `verdict` and a `failed_checks` list.
-- **Targeted re-entry** - on a retry, the executor reads the latest failing report (its own attempt report, or a review/verify report) and fixes only the `failed_checks`. Retries target named failures, they do not redo the whole task. A review or verify that fails on a task already in `tasks/done/` sends it back to the executor, which moves it back to `tasks/todo/` if the fix fails.
-- **Loop exit** - the loop ends at `Status: Done` (all criteria pass) or `Status: Blocked` (`Attempts` reached `Max attempts`).
-
-One pass through the loop:
-```
-Approved -> /task-execute or /tdd    -> Attempts++, writes attempt-NN report
-   self-check FAIL -> Status: Revise, stays in todo/
-   self-check PASS -> Status: Done, todo/ -> done/
-         -> /task-review             -> writes review-NN (verdict + failed_checks)
-   PASS  -> task finished
-   FAIL  -> executor again (reads review-NN, fixes failed_checks only)
-         -> ... repeat until finished or Blocked (Attempts reached Max attempts)
-```
-
-Because every signal (status, attempts, verdicts, failed checks) is a file, a fresh session, OpenCode, or `/orchestrate` can resume the loop by reading the folder. Nothing important lives only in chat. `/execute-tasks` (and `/orchestrate`, through it) drives this loop automatically; you can also run each step by hand for full control.
-
-### Unattended task ranges
-
-`/execute-tasks` runs a contiguous range of task files end to end, with nobody watching. It orchestrates only: it writes no code and edits no task file, the executor (`task-execute`, or `tdd` with `e=tdd`) still does the implementation and still owns every status change.
+![execute-tasks loop](docs/diagrams/execute-tasks.svg)
 
 ```
 /execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
+/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 e=tdd r=yes v=yes c=/path/to/repo
 ```
-
-What it adds on top of `task-execute`:
-
-- **Range** - walks task numbers ascending, from the number parsed out of `i` through `to` inclusive. `to` is a task number, not a count. Missing numbers are skipped, and tasks already in `tasks/done/` are skipped, so re-invoking the same range after a halt resumes where it stopped.
-- **Isolation** - every task, and every retry attempt, gets a fresh executor subagent. Task five is never executed inside the accumulated context of tasks one through four. With `r=yes` or `v=yes`, review and verify run in a separate checker subagent, so no agent grades its own work. A failing gate sends the task back to a new executor.
-- **Commits** - each task that reaches `Status: Done` in `tasks/done/` and passes every enabled gate gets exactly one local commit, its message taken from the task file's H1 with the bracketed task ID stripped. Never pushes, never branches, never opens a pull request.
-- **Stopping conditions** - a blocked task, or one that exhausts `Max attempts`, halts the whole run at that task and leaves the working tree untouched so you can see what the failed attempt produced.
-
-Preflight refuses the run if the range is inverted, the layout is wrong, git identity is unset, or the working tree is dirty. The clean-tree check matters because each task commit runs `git add -A`.
-
-Arguments:
 
 | Arg | Meaning |
 |-----|---------|
 | `i` | first task file of the range, in `tasks/todo/` |
-| `to` | last task number of the range, inclusive |
-| `e` | `e=tdd` uses `tdd` as the executor (default `task-execute`) |
-| `r` | `r=yes` runs `task-review` after each task (default off) |
-| `v` | `v=yes` runs `task-verify` after each task (default off) |
+| `to` | last task number, inclusive (a number, not a count) |
+| `e` | `e=tdd` uses `tdd` as executor (default `task-execute`) |
+| `r` / `v` | `yes` runs `task-review` / `task-verify` after each task (default off) |
 | `c` | codebase root, forwarded to `task-review` |
-| `p` | commit prefix (optional) |
+| `p` | commit prefix, prepended verbatim plus one space |
 
-**The `p` commit prefix.** Without `p`, commit messages are the task title alone, and the commits of a feature are indistinguishable from anything else in the log. With `p`, the value is prepended verbatim plus a single space to every commit the run creates, so the whole feature can be spotted, filtered, or unwound as a unit:
+- **Commits:** message is the task title (`# [auth-task-03] Add token expiry check` gives `[auth] Add token expiry check` with `p=[auth]`). No push, no branch, no PR.
+- **Preflight** refuses a dirty tree (each commit runs `git add -A`), unset git identity, or an inverted range.
+- **Halt** on the first blocked task, leaving the working tree as is. Rerunning the same range skips done tasks.
+
+**Task state lives in files.** Each task has `Status:` (`Draft | Approved | Revise | Done | Blocked`), `Attempts:` and `Max attempts:`; the folder (`todo/` or `done/`) also signals state. The executor, `task-review` and `task-verify` each write a report per attempt to `tasks/feedback/` (`<task-id>-attempt-NN.md`, `-review-NN.md`, `-verify-NN.md`) with a `verdict` and `failed_checks`. A retry fixes only the `failed_checks` of the latest failing report.
+
+### Running steps by hand
+
+Every stage of `/orchestrate` is its own skill:
 
 ```
-/execute-tasks i=features/auth/tasks/todo/auth-task-01.md to=5 p=[auth]
-
-[auth] Add token expiry check
-[auth] Reject expired refresh tokens
-[auth] Add logout endpoint
+/plan-tasks  i=features/auth/auth-spec.md o=features/auth/tasks/todo/ p=auth
+/task-execute i=features/auth/tasks/todo/auth-task-01.md     # implement, verify, move to done/
+/tdd          i=features/auth/tasks/todo/auth-task-01.md     # same, test-first
+/task-review  i=features/auth/tasks/done/auth-task-01.md     # read-only review report
+/task-verify  i=features/auth/tasks/done/auth-task-01.md     # read-only Given/When/Then check
 ```
 
-The prefix format is yours: the skill adds no brackets, colon, or separator of its own, so `p=[auth]`, `p=auth:`, and `p=feat(auth):` all work as typed. The prefix touches commit messages only, never the task files or the task IDs.
+`/task-execute` and `/tdd` also work on standalone tasks in the project's `tasks/` folder.
 
-### Architecture review
+## 4. After the feature
 
-`/improve-codebase-architecture` (no arguments) - runs in the current directory. Identifies shallow modules, scattered concepts, and tight coupling. Produces `architecture-report.md` with evidence-backed candidates and specific proposals. No code changes.
+- **Pull request:** ask the agent to open it. The `pr` skill loads automatically and shapes the body (Summary visual, before/after Evidence from `tasks/feedback/`, Merge Danger). It does not push or create branches.
+- **Retire:** once merged and stable, `/graduate o=features/auth/ p=auth` writes a one-page `auth-decision.md`, keeps your original draft, and moves the rest to `archive/`.
+- **Session end:** `/handoff o=sessions/2026-05-23-auth.md n="Begin auth-task-02"` writes a resumable session document.
+
+## Other skills
+
+| Skill | What it does |
+|-------|--------------|
+| `/project-principles o=overview/principles.md` | Short, durable project rules that `orchestrate` and the executors treat as binding |
+| `/conversation o=overview/conversations/<topic>` | Read-only Q&A about the codebase; on "save" writes `<o>.md` + `<o>-qa.md`, "save html" adds `<o>.html` |
+| `/improve-codebase-architecture` | Finds shallow modules, scattered concepts and tight coupling; writes `architecture-report.md` |
+| `/detail-level d=<01-05>` | Caps how much the agent writes per chat turn; `more detail` expands one answer, `d=5` is off |
+| `/teach` | Stateful learning workspace (lessons, learning records, references) over many sessions |
+| `/coding-principles`, `/<lang>-coding-standards` | Code guidelines: generic, Java, Go, Rust, Swift, TypeScript, Python, Kotlin |
+| `sf-scheduler` | Unattended tasks while you are away: drop a task file in a watched folder. See [sf-scheduler/README.md](sf-scheduler/README.md) |
+
+## Reference
+
+### Skills
+
+| Skill | Input | Output |
+|-------|-------|--------|
+| `refine` | backlog file (+ item IDs) | `backlog/items/<ID>-<slug>.md`, backlog statuses |
+| `grilling` | idea, plan or decision | confirmed understanding (file only with `o=`) |
+| `orchestrate` | idea, draft, item or summary | spec, tasks, committed code |
+| `plan-tasks` | approved spec | `tasks/todo/<p>-task-NN.md` |
+| `execute-tasks` | first task file + last task number | executed range, one commit per task |
+| `task-execute` | one task file | code, task moved to `tasks/done/` |
+| `tdd` | one task file | code + tests, task moved to `tasks/done/` |
+| `task-review` | one task file | review report (read-only) |
+| `task-verify` | one task file | pass/fail report (read-only) |
+| `pr` | branch commits (+ `tasks/feedback/`) | PR body (model-invoked) |
+| `graduate` | shipped feature dir + prefix | `<p>-decision.md` + `archive/` |
+| `handoff` | session state | `sessions/<name>.md` |
+| `project-principles` | project rules | `overview/principles.md` |
+| `conversation` | optional existing conversation | `<o>.md` + `<o>-qa.md` (+ `<o>.html`) |
+| `improve-codebase-architecture` | current directory | `architecture-report.md` |
+| `detail-level` | level `01`-`05` | shorter chat answers, no files |
+| `teach` | topic | teaching workspace |
+| `sf-scheduler-run` | sf-scheduler task file + results dir | `report.md` or `summary.md` (launcher-invoked) |
+| `angular-clean-code` | Angular code | review findings + safe refactors |
+| `react-clean-code` | React code | review findings + safe refactors |
+| coding standards | code | guidelines |
+
+### Arguments
+
+| Arg | Stands for | Used by |
+|-----|-----------|---------|
+| `i` | input file | refine, grilling, orchestrate, plan-tasks, task-execute, tdd, task-review, task-verify, execute-tasks, conversation |
+| `o` | output file or directory | all writing skills |
+| `c` | codebase root (brownfield) | refine, orchestrate, tdd, task-review, execute-tasks |
+| `p` | prefix (filenames, task IDs) or commit prefix | orchestrate, plan-tasks, graduate, execute-tasks |
+| `e` | executor (`e=tdd`) | execute-tasks |
+| `to` | last task number, inclusive | execute-tasks |
+| `r` / `v` | run task-review / task-verify (`yes`) | execute-tasks |
+| `d` | detail level `01`-`05` | detail-level, conversation |
+| `n` | next-session purpose | handoff |
+| `id` | backlog item IDs or `all` | refine |
+| `m` | mode (`normalize`) | refine |
