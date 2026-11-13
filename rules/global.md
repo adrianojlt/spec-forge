@@ -71,6 +71,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 - Never use em dashes (—) in any output. Use commas, periods, hyphens (-), or restructure the sentence.
 
+## Git Commits
+- Commit messages are a single title line only. No body or description.
+- No references to Claude, Claude Code or Anthropic: no `Co-Authored-By` trailer, no "Generated with" line. The commit is authored by me only.
+
 ## Coding Standards
 - If it is a Java project, always load and apply the `/java-coding-standards` skill before writing or reviewing any Java code.
 
