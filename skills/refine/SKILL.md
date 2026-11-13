@@ -49,7 +49,7 @@ Implement more than one source, so playback survives when vidsrc is down.
 - Sections: `Bugs` (something wrong to fix), `Minor` (simple idea), `Major` (complex idea).
 - One heading per item: `### <status> <PREFIX>-<n> <title>`. The description below it is optional and as long as the user wants.
 - IDs are sequential per project and never reused. A new item takes the highest existing number + 1.
-- One author per file. The backlog holds only the user's text (title and description). The item file `items/<ID>-<slug>.md` holds only refine's output; its link is the `Item:` line right under the heading.
+- One author per section. The backlog holds only the user's text (title and description). The item file `items/<ID>-<slug>.md` holds refine's output, plus the user's `Answer:` lines and `## Notes`; its link is the `Item:` line right under the heading.
 - The status emoji is the only status of the item. Task files track task status; neither mirrors the other.
 
 ## Rules
@@ -65,7 +65,7 @@ Implement more than one source, so playback survives when vidsrc is down.
 ### 1. Select
 Read `$i`. If it does not follow the canonical format (no `Prefix:`, items that are not `###` headings with an ID), stop and tell the user to run `m=normalize` first.
 
-Eligible items: 📋, and ❓ whose item file has at least one `Answer:` filled since the last round. With `$id`, process only the named items; a named item in another state is reported and skipped.
+Eligible items: 📋, and ❓ whose item file has at least one `Answer:` filled or any text in `## Notes`. With `$id`, process only the named items; a named item in another state is reported and skipped.
 
 ### 2. Refine each item
 More than one item: process each in a fresh subagent when the host supports it, passing the item's heading and description, the item file path, `$c` and this skill's path. Run them in parallel, at most 3 at a time; items are independent and each subagent writes only its own item file. The subagent returns the new status; only the main run edits `$i`, after all subagents finish. Without subagent support, process the items one at a time in this context.
@@ -73,6 +73,7 @@ More than one item: process each in a fresh subagent when the host supports it, 
 For each item:
 1. **Read** the heading and description, and `items/<ID>-<slug>.md` if it exists. Create the file from `template.md` if missing; the slug is the title, lowercased, hyphenated, at most 5 words.
 2. **Fold answers.** Move every answered question, with its answer, to `## Decisions`. `Answer: rec` accepts the recommended option. An answer that delegates without choosing ("whatever", "you decide") is not an answer: re-ask it with two concrete options. Unanswered questions stay open.
+   **Fold notes.** Each entry in `## Notes` is the user's fact or decision. Check a fact against `$c` and correct `## Findings`; if the code contradicts it, keep the note and add a question showing both. Move each note to `## Decisions` as `Note (round <r>): <text>`, then leave `## Notes` empty. A note that contradicts an earlier decision is not resolved by refine: open a question with both as options.
 3. **Explore** `$c` for what the item touches. Write `## Findings` as facts with `file:line`. For a bug: the path from symptom to cause, and the root cause or ranked hypotheses with the evidence for each.
 4. **Size** with the tier table in `orchestrate/SKILL.md` step 0 (trivial, small, standard). Write it to `Tier:` with the signal that set it.
 5. **Verdict.** Worth doing, not worth it, or trivial (make the change directly, skip `orchestrate`). One paragraph, with the reason. If not worth it, add a drop question with that as the recommended answer.

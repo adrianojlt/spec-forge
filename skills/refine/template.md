@@ -29,9 +29,14 @@ Context: [why it matters, what it changes]
 
 Answer:
 
+## Notes
+
+[Write this section with no content; any text here makes the item eligible. The user's free text: context, corrections, constraints that fit no question. Folded into Decisions on the next run.]
+
 ## Decisions
 
 - Q[n] (round [r]): [question] -> [answer, and the option text if a letter or `rec` was given]
+- Note (round [r]): [the user's note]
 
 ## Understanding
 
