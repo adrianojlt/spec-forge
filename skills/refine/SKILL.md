@@ -89,6 +89,9 @@ One line per processed item: ID, new status, tier, number of open questions. The
 
 ## Normalize (`m=normalize`)
 Rewrite `$i` into the canonical format without losing text.
+
+**Empty file.** If `$i` is empty or whitespace only, write the base structure and stop: title `# <Project> Backlog` with the project folder name, `Prefix:` (step 1), `Legend:`, and the empty `## Bugs`, `## Minor`, `## Major` sections, in the order of the canonical format. No confirmation: there is no text to lose. Report the prefix used.
+
 1. **Prefix.** Use `Prefix:` if present; otherwise propose the project folder name, uppercased, letters and digits only (`MoDb` -> `MODB`).
 2. **Map.** Map headings at any level to `Bugs`, `Minor`, `Major`; a heading that fits none, or an item that sits under the wrong one, is listed for the user. Turn every item into a `###` heading with an ID, in file order, done items included; keep an existing ID. Items without a status become 📋.
 3. **Gather the user's text.** Text that belongs to an item (continuation lines, a separate `### <item>` section, anchor-link lists) goes verbatim under its heading. An item file with a `## Idea` section (older format) gives that text back to the backlog: move it under the heading, remove the section from the item file, and add the `Item:` line.
