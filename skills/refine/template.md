@@ -1,6 +1,6 @@
 # [ID] [Title]
 
-Backlog: [relative path to the backlog, e.g. ../modb-backlog.md]
+Backlog: [relative path to the backlog, e.g. ../modb-backlog.md] (title and description: `### [ID]` there)
 Kind: [Bug | Minor | Major]
 Status: [📋 Todo | ❓ Waiting answers | 🟢 Ready | ❌ Dropped]
 Round: [n]
@@ -9,10 +9,6 @@ Confidence: ~[n]% [- what is still unresolved, required below 70%]
 Updated: [date]
 
 ---
-
-## Idea
-
-[The user's text, verbatim. For a bug: the symptom as reported. Never edited by refine.]
 
 ## Findings
 

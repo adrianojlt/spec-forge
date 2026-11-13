@@ -15,7 +15,7 @@ idea, draft, or grilling summary
             gates:         /task-review, /task-verify (optional, separate checker subagent)
 ```
 
-Before the pipeline, from the backlog: `/refine i=<backlog.md> [id=<ID,ID|all>]` -> unattended exploration of backlog items; findings, verdict and open questions (options + one recommended) go to `backlog/items/<ID>-<slug>.md`, you answer there, the next run folds the answers in until the item is 🟢 ready for `/orchestrate`. `m=normalize` first converts a backlog to the canonical format (IDs, sections, detail moved to item files)
+Before the pipeline, from the backlog: `/refine i=<backlog.md> [id=<ID,ID|all>]` -> unattended exploration of backlog items; findings, verdict and open questions (options + one recommended) go to `backlog/items/<ID>-<slug>.md`, you answer there, the next run folds the answers in until the item is 🟢 ready for `/orchestrate`. `m=normalize` first converts a backlog to the canonical format (one `### <status> <ID> <title>` heading per item, your description under it; item files hold only refine's output)
 
 Optional, before the pipeline: `/project-principles` -> overview/principles.md (project-wide rules `orchestrate` and `task-execute` read)
 
