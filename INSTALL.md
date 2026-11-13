@@ -24,7 +24,7 @@ The skill content (procedures, rules, templates) is plain Markdown and works wit
 | Mode | Target | Script |
 |------|--------|--------|
 | Personal | `~/.claude/skills/`, all sessions | `install-skills.sh` / `install-skills.ps1` |
-| Project | `<project>/.claude/skills/`, that project only | `install-project.sh` |
+| Project | `<project>/.claude/skills/`, that project only | [Manual install](#manual-install) |
 | Global rules | `~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md` | `install-rules.sh` / `install-rules.ps1` |
 | Status line | `~/.claude/settings.json` | `install-statusline.sh` / `install-statusline.ps1` |
 
@@ -45,23 +45,6 @@ Windows (PowerShell), installs into `C:\Users\<you>\.claude\skills`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install-skills.ps1
-```
-
-## Project install
-
-Installs skills into `<target-project>/.claude/skills/`. Available only in that project.
-
-```bash
-chmod +x install-project.sh
-./install-project.sh /path/to/your/project
-```
-
-`install-project.sh` has no PowerShell equivalent. On Windows use Git Bash or WSL, or copy manually:
-
-```powershell
-$dest = "C:\path\to\project\.claude\skills"
-New-Item -ItemType Directory -Force -Path $dest | Out-Null
-Copy-Item -Path .\skills\* -Destination $dest -Recurse -Force
 ```
 
 ## Global rules install
@@ -115,9 +98,17 @@ powershell -ExecutionPolicy Bypass -File .\install-statusline.ps1
 mkdir -p ~/.claude/skills
 cp -r skills/* ~/.claude/skills/
 
-# Project
+# Project (available only in that project)
 mkdir -p /path/to/project/.claude/skills
 cp -r skills/* /path/to/project/.claude/skills/
+```
+
+PowerShell (project):
+
+```powershell
+$dest = "C:\path\to\project\.claude\skills"
+New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Copy-Item -Path .\skills\* -Destination $dest -Recurse -Force
 ```
 
 ## Windows
