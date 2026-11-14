@@ -41,6 +41,7 @@ class TaskSpec:
     max_budget_usd: float | None = None
     run_at: datetime | None = None
     permission_mode: str | None = None
+    auto: bool = False
 
 
 def parse_task_file(path: Path) -> TaskSpec:
@@ -111,6 +112,7 @@ def _validate(path: Path, data: dict, body: str) -> TaskSpec:
         )
 
     max_budget_usd = _opt_budget(path, data, provider)
+    auto = _opt_auto(path, data, provider)
 
     if not body:
         raise TaskFileError(f"{path}: instructions body is empty")
@@ -129,6 +131,7 @@ def _validate(path: Path, data: dict, body: str) -> TaskSpec:
         max_budget_usd=max_budget_usd,
         run_at=run_at,
         permission_mode=permission_mode,
+        auto=auto,
     )
 
 
@@ -174,6 +177,15 @@ def _opt_permission_mode(path: Path, data: dict) -> str | None:
     if data.get("provider", DEFAULT_PROVIDER) != "claude":
         raise TaskFileError(f"{path}: permission-mode is only supported by provider 'claude'")
     return value.strip()
+
+
+def _opt_auto(path: Path, data: dict, provider: str) -> bool:
+    value = data.get("auto", False)
+    if not isinstance(value, bool):
+        raise TaskFileError(f"{path}: auto must be a boolean, got {value!r}")
+    if value and provider != "opencode":
+        raise TaskFileError(f"{path}: auto is only supported by provider 'opencode'")
+    return value
 
 
 def _opt_budget(path: Path, data: dict, provider: str) -> float | None:

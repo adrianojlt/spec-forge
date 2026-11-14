@@ -54,6 +54,46 @@ def test_permission_mode_rejected_for_opencode(tmp_path):
         parse_task_file(write(tmp_path, "t", "provider: opencode\npermission-mode: acceptEdits\n"))
 
 
+def test_opencode_auto_adds_flag(tmp_path):
+    f = write(tmp_path, "t", "provider: opencode\nauto: true\n", body="/refine i=x")
+    cmd = default_command(parse_task_file(f), f, tmp_path / "run-001")
+    assert cmd == ["opencode", "run", "--auto", "/refine i=x"]
+
+
+def test_run_task_resolves_command_through_path(tmp_path, monkeypatch):
+    from sf_scheduler.runner import run_task
+
+    f = write(tmp_path, "t")
+    seen = []
+    monkeypatch.setattr("sf_scheduler.runner.shutil.which", lambda name: sys.executable)
+    monkeypatch.setattr(
+        "sf_scheduler.runner.subprocess.Popen",
+        lambda cmd, **kw: seen.append(cmd) or _FakeProc(),
+    )
+    run_task(parse_task_file(f), now=NOW, command_builder=lambda s, t, r: ["opencode", "run", "x"])
+    assert seen[0][0] == sys.executable
+
+
+class _FakeProc:
+    pid = 0
+    returncode = 0
+
+    def wait(self, timeout=None):
+        return 0
+
+
+def test_opencode_without_auto_has_no_flag(tmp_path):
+    f = write(tmp_path, "t", "provider: opencode\n", body="/refine i=x")
+    cmd = default_command(parse_task_file(f), f, tmp_path / "run-001")
+    assert cmd == ["opencode", "run", "/refine i=x"]
+
+
+@pytest.mark.parametrize("extra", ["auto: true\n", "auto: yes please\n"])
+def test_auto_rejected_for_claude_or_non_bool(tmp_path, extra):
+    with pytest.raises(TaskFileError, match="auto"):
+        parse_task_file(write(tmp_path, "t", extra))
+
+
 def test_prompt_command_sends_body_verbatim(tmp_path):
     f = write(tmp_path, "t", "permission-mode: acceptEdits\n", body="/refine i=x id=all")
     cmd = default_command(parse_task_file(f), f, tmp_path / "run-001")
@@ -129,8 +169,8 @@ def test_disarm_calls_unregister_with_task_file(tmp_path):
     assert calls == [f]
 
 
-@pytest.mark.parametrize("builder_code, disarmed", [("pass", True), ("raise SystemExit(1)", False)])
-def test_run_task_cli_disarms_only_after_success(tmp_path, monkeypatch, builder_code, disarmed):
+@pytest.mark.parametrize("builder_code", ["pass", "raise SystemExit(1)"])
+def test_run_task_cli_disarms_after_any_attempted_run(tmp_path, monkeypatch, builder_code):
     import sf_scheduler.cli as cli
     from sf_scheduler import dispatch
 
@@ -142,7 +182,7 @@ def test_run_task_cli_disarms_only_after_success(tmp_path, monkeypatch, builder_
     monkeypatch.setattr(cli, "disarm", calls.append)
 
     assert main(["run-task", str(due)]) == 0
-    assert calls == ([due] if disarmed else [])
+    assert calls == [due]
 
 
 def test_run_task_cli_not_eligible_does_not_disarm(tmp_path, monkeypatch):

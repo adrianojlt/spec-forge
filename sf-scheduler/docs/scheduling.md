@@ -104,9 +104,12 @@ A one-time OS job that runs `sf-scheduler run-task <file>` at `run-at`:
   through PowerShell, set to "run as soon as possible after a missed start".
 - **Linux and macOS:** an `at` job. On macOS `atd` is disabled by default.
 
-After a run that finishes with status `done`, `run-task` deletes the Windows task
-(`at` jobs consume themselves). A failed or stopped run keeps the task, so it stays
-visible in the list.
+After a run is attempted, whatever its outcome, `run-task` deletes the Windows task
+(`at` jobs consume themselves): the job is one-shot and never fires again. A failure
+is recorded in `<task>.results/run-NNN/` (`FAILED` or `STOPPED`) and in the task's
+state file, not by keeping the job. To retry, delete the state file and the results
+folder, then run `arm` again. A `run-task` call that finds the task not eligible
+(for example before its `run-at`) leaves the job in place.
 
 ### Checking that a task is armed
 
@@ -128,7 +131,7 @@ Scheduler UI (`taskschd.msc`), in the task library. On Linux and macOS use `atq`
 - The machine must be on and the user logged in (Windows), or `atd` running
   (Linux and macOS).
 - A `prompt` task runs headless. If it edits files, set `permission-mode`
-  (for example `acceptEdits`), and test the command once by hand first: a prompt
+  (for example `acceptEdits`) or, with `provider: opencode`, `auto: true`, and test the command once by hand first: a prompt
   that asks for interactive confirmation cannot be answered.
 - Output is `agent.log` in `<task>.results/run-NNN/`.
 

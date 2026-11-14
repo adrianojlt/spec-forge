@@ -16,6 +16,7 @@ The actual task work is delegated to the headless agent via the
 from __future__ import annotations
 
 import os
+import shutil
 import signal
 import subprocess
 from collections.abc import Callable
@@ -70,7 +71,10 @@ def default_command(spec: TaskSpec, task_file: Path, run_dir: Path) -> list[str]
         if spec.max_budget_usd is not None:
             cmd += ["--max-budget-usd", str(spec.max_budget_usd)]
         return cmd
-    return ["opencode", "run", prompt]
+    cmd = ["opencode", "run"]
+    if spec.auto:
+        cmd.append("--auto")
+    return cmd + [prompt]
 
 
 def run_task(
@@ -118,6 +122,8 @@ def run_task(
         cwd = target if target.is_dir() else target.parent
 
     cmd = command_builder(spec, task_file, run_dir)
+    # Popen does not apply PATHEXT on Windows, so npm shims (opencode.cmd) are not found by bare name.
+    cmd[0] = shutil.which(cmd[0]) or cmd[0]
     log_path = run_dir / "agent.log"
     try:
         with open(log_path, "wb") as log:

@@ -53,6 +53,31 @@ Step 2 is required: without it nothing is scheduled. Nothing else needs to be
 activated. Details, how to check the job and requirements:
 [`docs/scheduling.md`](docs/scheduling.md).
 
+On Windows, list the armed jobs. `NextRunTime` is the task's `run-at`:
+
+```powershell
+Get-ScheduledTask -TaskName 'sf-scheduler-*' | Get-ScheduledTaskInfo | Format-List TaskName,NextRunTime
+```
+
+The job is deleted after the run is attempted. To remove one by hand (for example
+a job left from before that, or a task you no longer want to run), use the
+`TaskName` from the list:
+
+```powershell
+Unregister-ScheduledTask -TaskName 'sf-scheduler-<task>-<hash>' -Confirm:$false
+```
+
+On Linux and macOS the job is an `at` job. List the pending jobs with `atq` (it
+shows the job id and the run time, not the task name) and remove one by id. A job
+that already ran is gone, so there is nothing to clean up:
+
+```sh
+atq
+atrm <job-id>
+```
+
+On macOS `atd` is disabled by default, so enable it before using `arm`.
+
 ## Where to start
 
 - Task-file format and folder/state/marker layout: [`docs/task-file-schema.md`](docs/task-file-schema.md).

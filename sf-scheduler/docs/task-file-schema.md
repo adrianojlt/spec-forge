@@ -36,10 +36,11 @@ Focus on token expiry and session handling. Produce a findings report.
 | `provider`   | enum    | no       | by task-type       | `claude` or `opencode`. Default: `claude` for all task-types in v1. |
 | `run-at`     | string  | no       | -                  | Exact start time, `"YYYY-MM-DD HH:MM"` local. The task is not eligible before it. `sf-scheduler arm` registers a one-time OS job for it. |
 | `permission-mode` | string | no   | -                  | Passed to `claude` as `--permission-mode` (e.g. `acceptEdits`, so a headless run can edit files). `provider: claude` only. |
+| `auto`       | boolean | no       | `false`            | Passes `--auto` to `opencode run`: auto-approves permission requests not explicitly denied, so a headless run can edit files. `provider: opencode` only. |
 
 ### `task-type` semantics
 
-- `prompt` - the body **is** the prompt, sent unchanged to the agent (no wrapper, no `sf-scheduler-run` skill). It can be a slash command (`/refine i=... id=all c=...`), a skill call or free text. Runs in `path` (no worktree). Output is `agent.log` in the run folder. Use `permission-mode` to let it edit files.
+- `prompt` - the body **is** the prompt, sent unchanged to the agent (no wrapper, no `sf-scheduler-run` skill). It can be a slash command (`/refine i=... id=all c=...`), a skill call or free text. Runs in `path` (no worktree). Output is `agent.log` in the run folder. Use `permission-mode` (claude) or `auto` (opencode) to let it edit files.
 - `analysis` - read-only. Produce a report describing part of the code at `path`.
 - `review` - read-only. Produce a task-review report of findings to implement later.
 - `implementation` - mutating. Carry out the instruction on a **dedicated git branch only** (never `main`). The result records the branch name and a summary.

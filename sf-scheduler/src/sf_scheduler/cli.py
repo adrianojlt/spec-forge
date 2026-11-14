@@ -49,8 +49,8 @@ def main(argv: list[str] | None = None) -> int:
         task_file = Path(os.path.expanduser(args.task_file))
         outcome = run_one(task_file, now=now, timeout_seconds=args.timeout)
         print("not eligible" if outcome is None else f"{task_file}: {outcome.run_dir.name} -> {outcome.status}")
-        if outcome is not None and outcome.status == "done":
-            disarm(task_file)  # keep the job after a failure so it stays visible
+        if outcome is not None:
+            disarm(task_file)  # the one-shot job is spent once a run was attempted, whatever the outcome
         return 0
 
     root = Path(os.path.expanduser(args.root))
