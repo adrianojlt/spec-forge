@@ -2,9 +2,12 @@
 
     sf-scheduler scheduled --root ~/ai-specs
     sf-scheduler remote    --root ~/ai-specs --app my-app
+    sf-scheduler arm       --root ~/ai-specs
+    sf-scheduler run-task  path/to/task.md
 
 cron/launchd invokes the `scheduled` subcommand; Claude Code remote control
-invokes the `remote` subcommand.
+invokes the `remote` subcommand. `arm` registers one OS job per task with a
+`run-at`, and that job calls `run-task`.
 """
 
 from __future__ import annotations
@@ -15,7 +18,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from .dispatch import DEFAULT_TIMEOUT_SECONDS, FolderResult, remote_run, scheduled_run
+from .arm import arm_tasks, disarm
+from .dispatch import DEFAULT_TIMEOUT_SECONDS, FolderResult, remote_run, run_one, scheduled_run
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -31,9 +35,29 @@ def main(argv: list[str] | None = None) -> int:
     remote.add_argument("--app", required=True, help="app folder name under the root")
     remote.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_SECONDS)
 
+    arm = sub.add_parser("arm", help="register an OS job for every task with a future run-at")
+    arm.add_argument("--root", required=True, help="apps root, e.g. ~/ai-specs")
+
+    one = sub.add_parser("run-task", help="run one task file now, if it is eligible")
+    one.add_argument("task_file", help="path to the task .md file")
+    one.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_SECONDS)
+
     args = parser.parse_args(argv)
-    root = Path(os.path.expanduser(args.root))
     now = datetime.now()
+
+    if args.mode == "run-task":
+        task_file = Path(os.path.expanduser(args.task_file))
+        outcome = run_one(task_file, now=now, timeout_seconds=args.timeout)
+        print("not eligible" if outcome is None else f"{task_file}: {outcome.run_dir.name} -> {outcome.status}")
+        if outcome is not None and outcome.status == "done":
+            disarm(task_file)  # keep the job after a failure so it stays visible
+        return 0
+
+    root = Path(os.path.expanduser(args.root))
+    if args.mode == "arm":
+        for task_file, status in arm_tasks(root, now=now):
+            print(f"{task_file}: {status}")
+        return 0
 
     if args.mode == "scheduled":
         results = scheduled_run(root, now=now, timeout_seconds=args.timeout)

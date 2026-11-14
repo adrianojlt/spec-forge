@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 import yaml
 
-TASK_TYPES = {"analysis", "review", "implementation"}
+TASK_TYPES = {"analysis", "review", "implementation", "prompt"}
+RUN_AT_FORMAT = "%Y-%m-%d %H:%M"
 PROVIDERS = {"claude", "opencode"}
 DEFAULT_PROVIDER = "claude"
 
@@ -33,10 +35,12 @@ class TaskSpec:
     active: bool
     hours: str | None
     max_runs: int
-    max_tokens: int
+    max_tokens: int | None
     provider: str
     source: Path
     max_budget_usd: float | None = None
+    run_at: datetime | None = None
+    permission_mode: str | None = None
 
 
 def parse_task_file(path: Path) -> TaskSpec:
@@ -91,7 +95,14 @@ def _validate(path: Path, data: dict, body: str) -> TaskSpec:
             )
 
     max_runs = _opt_positive_int(path, data, "max-runs", default=1)
-    max_tokens = _require_positive_int(path, data, "max-tokens")
+    # A prompt task is sent verbatim: there is no wrapper to tell a budget to.
+    if task_type == "prompt":
+        max_tokens = _opt_positive_int(path, data, "max-tokens", default=None)
+    else:
+        max_tokens = _require_positive_int(path, data, "max-tokens")
+
+    run_at = _opt_run_at(path, data)
+    permission_mode = _opt_permission_mode(path, data)
 
     provider = data.get("provider", DEFAULT_PROVIDER)
     if provider not in PROVIDERS:
@@ -116,6 +127,8 @@ def _validate(path: Path, data: dict, body: str) -> TaskSpec:
         provider=provider,
         source=path,
         max_budget_usd=max_budget_usd,
+        run_at=run_at,
+        permission_mode=permission_mode,
     )
 
 
@@ -132,10 +145,35 @@ def _require_positive_int(path: Path, data: dict, key: str) -> int:
     return _as_positive_int(path, data[key], key)
 
 
-def _opt_positive_int(path: Path, data: dict, key: str, *, default: int) -> int:
+def _opt_positive_int(path: Path, data: dict, key: str, *, default: int | None) -> int | None:
     if key not in data:
         return default
     return _as_positive_int(path, data[key], key)
+
+
+def _opt_run_at(path: Path, data: dict) -> datetime | None:
+    value = data.get("run-at")
+    if value is None:
+        return None
+    if isinstance(value, datetime):  # YAML parsed an unquoted timestamp
+        return value.replace(tzinfo=None)
+    try:
+        return datetime.strptime(str(value), RUN_AT_FORMAT)
+    except ValueError:
+        raise TaskFileError(
+            f"{path}: run-at must be 'YYYY-MM-DD HH:MM' local time, got {value!r}"
+        ) from None
+
+
+def _opt_permission_mode(path: Path, data: dict) -> str | None:
+    value = data.get("permission-mode")
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise TaskFileError(f"{path}: permission-mode must be a non-empty string")
+    if data.get("provider", DEFAULT_PROVIDER) != "claude":
+        raise TaskFileError(f"{path}: permission-mode is only supported by provider 'claude'")
+    return value.strip()
 
 
 def _opt_budget(path: Path, data: dict, provider: str) -> float | None:

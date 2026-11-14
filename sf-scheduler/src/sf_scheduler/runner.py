@@ -51,16 +51,22 @@ def run_dir_for(task_file: Path, run_number: int) -> Path:
 def default_command(spec: TaskSpec, task_file: Path, run_dir: Path) -> list[str]:
     """Build the headless agent command for a task's provider."""
     # TODO: add spec.model and pass --model <model> here when per-task model selection is implemented
-    prompt = (
-        f"Use the {SKILL_REF} skill to perform this scheduled task.\n"
-        f"Task file: {task_file}\n"
-        f"Task type: {spec.task_type}\n"
-        f"Target path: {spec.path}\n"
-        f"Token budget: {spec.max_tokens}\n"
-        f"Write all outputs into: {run_dir}\n"
-    )
+    if spec.task_type == "prompt":
+        # The body is the prompt: a slash command, a skill call or free text.
+        prompt = spec.instructions
+    else:
+        prompt = (
+            f"Use the {SKILL_REF} skill to perform this scheduled task.\n"
+            f"Task file: {task_file}\n"
+            f"Task type: {spec.task_type}\n"
+            f"Target path: {spec.path}\n"
+            f"Token budget: {spec.max_tokens}\n"
+            f"Write all outputs into: {run_dir}\n"
+        )
     if spec.provider == "claude":
         cmd = ["claude", "-p", prompt]
+        if spec.permission_mode is not None:
+            cmd += ["--permission-mode", spec.permission_mode]
         if spec.max_budget_usd is not None:
             cmd += ["--max-budget-usd", str(spec.max_budget_usd)]
         return cmd

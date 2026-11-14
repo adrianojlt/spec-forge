@@ -20,6 +20,7 @@ class TaskState:
     run_count: int = 0
     last_run: str | None = None
     status: str = "pending"
+    armed: str | None = None  # run-at value an OS job was registered for
 
 
 def state_path(task_file: Path) -> Path:
@@ -40,6 +41,7 @@ def load_state(task_file: Path) -> TaskState:
         run_count=int(data.get("run_count", 0)),
         last_run=data.get("last_run"),
         status=status,
+        armed=data.get("armed"),
     )
 
 

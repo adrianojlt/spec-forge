@@ -15,15 +15,12 @@ sf-scheduler is a **thin launcher plus a skill**, not a standalone app.
   at once, and enforce a hard time cap that kills a runaway run.
 - The **`sf-scheduler-run` skill** (`skills/sf-scheduler-run/` in this repo) tells
   the headless agent what to actually do per task type.
-- **cron / launchd** fires the launcher on a schedule. **Claude Code remote
-  control** triggers it on demand.
+  A `prompt` task skips the skill: its body is sent to the agent as is.
+- **cron / launchd / Task Scheduler** fires the launcher on a schedule, a
+  one-time job fires one task at its `run-at`, and **Claude Code remote control**
+  triggers it on demand.
 
-```
-cron/launchd ─┐
-remote control ┼─> launcher ──(eligible task)──> headless agent + sf-scheduler-run skill ──> results in task folder
-              ─┘   (guards: hours, max-runs,
-                    atomic state, run lock, hard time cap)
-```
+![sf-scheduler architecture](docs/diagrams/architecture.svg)
 
 ## Folders
 
@@ -37,6 +34,24 @@ Each app under `~/ai-specs` has two intake folders the launcher scans:
 - `analysis` - report on part of the code.
 - `review` - task-review report of findings to implement later.
 - `implementation` - carry out an instruction, on a dedicated git branch only (never `main`).
+- `prompt` - the body is sent as-is to the agent: a slash command, a skill call or free text. Pair with `run-at` to run it at an exact time (`sf-scheduler arm`, see [`docs/scheduling.md`](docs/scheduling.md)).
+
+## Run a task at an exact time
+
+![run-at flow](docs/diagrams/run-at.svg)
+
+1. Create a task file in `<root>/<app>/scheduled-tasks/` with `run-at: "YYYY-MM-DD HH:MM"`.
+2. Register it with the OS, once per task:
+
+   ```
+   sf-scheduler arm --root <root>
+   ```
+
+   (or `python -m sf_scheduler.cli arm --root <root>` if the command is not on PATH).
+
+Step 2 is required: without it nothing is scheduled. Nothing else needs to be
+activated. Details, how to check the job and requirements:
+[`docs/scheduling.md`](docs/scheduling.md).
 
 ## Where to start
 

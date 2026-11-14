@@ -56,6 +56,82 @@ Add a line to run every 15 minutes (each task's `hours` still gates it):
 */15 * * * * /Users/you/src/mine/spec-forge/sf-scheduler/.venv/bin/sf-scheduler scheduled --root /Users/you/ai-specs >> /tmp/sf-scheduler.log 2>&1
 ```
 
+## Exact time per task (`run-at`)
+
+Instead of polling, give a task a `run-at` and register a one-time OS job for it.
+No recurring trigger is needed.
+
+```markdown
+---
+title: Refine backlog B
+task-type: prompt
+path: C:\Users\you\src\mine\gymlog
+run-at: "2026-11-14 18:05"
+permission-mode: acceptEdits
+---
+/refine i=C:\...\backlog-b.md id=all c=C:\Users\you\src\mine\gymlog
+```
+
+### Workflow
+
+1. Create the task file in `<root>/<app>/scheduled-tasks/` with a `run-at`.
+2. Run `arm` once to register it with the OS:
+
+   ```
+   sf-scheduler arm --root <root>
+   ```
+
+   If `sf-scheduler` is not on PATH, run the module instead:
+
+   ```
+   python -m sf_scheduler.cli arm --root <root>
+   ```
+
+Step 2 is required. A `run-at` alone registers nothing: the task only fires
+once `arm` has created the OS job. There is nothing to enable or activate
+beyond that, and no recurring trigger to set up.
+
+`arm` prints `armed` for each task it registered. Repeat steps 1 and 2 for every
+new task. Running `arm` again is safe: a task is armed once per `run-at` value.
+To change the time, edit `run-at` and run `arm` again. A `run-at` already in the
+past is reported and not armed.
+
+### What `arm` creates
+
+A one-time OS job that runs `sf-scheduler run-task <file>` at `run-at`:
+
+- **Windows:** a Task Scheduler task named `sf-scheduler-<task>-<hash>`, created
+  through PowerShell, set to "run as soon as possible after a missed start".
+- **Linux and macOS:** an `at` job. On macOS `atd` is disabled by default.
+
+After a run that finishes with status `done`, `run-task` deletes the Windows task
+(`at` jobs consume themselves). A failed or stopped run keeps the task, so it stays
+visible in the list.
+
+### Checking that a task is armed
+
+On Windows:
+
+```powershell
+Get-ScheduledTask -TaskName 'sf-scheduler-*' | Get-ScheduledTaskInfo | Format-List TaskName,NextRunTime
+```
+
+`NextRunTime` should show the `run-at` time. The task is also visible in the Task
+Scheduler UI (`taskschd.msc`), in the task library. On Linux and macOS use `atq`.
+
+### Requirements
+
+- `sf_scheduler` must be importable by the Python that ran `arm`
+  (`pip install -e sf-scheduler`): the job calls that same Python.
+- When the job fires, the usual guards still apply (`active`, `max-runs`,
+  `hours`, lock), and the time cap kills a run that exceeds `--timeout`.
+- The machine must be on and the user logged in (Windows), or `atd` running
+  (Linux and macOS).
+- A `prompt` task runs headless. If it edits files, set `permission-mode`
+  (for example `acceptEdits`), and test the command once by hand first: a prompt
+  that asks for interactive confirmation cannot be answered.
+- Output is `agent.log` in `<task>.results/run-NNN/`.
+
 ## Verifying
 
 Use a short window and a small `max-runs` to test:

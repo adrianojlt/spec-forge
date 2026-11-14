@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="340" viewBox="0 0 1000 340" role="img" aria-label="sf-scheduler: triggers start the launcher, which runs an eligible task with a headless agent">
+<title>sf-scheduler: triggers start the launcher, which runs an eligible task with a headless agent</title>
+<style>
+text{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1f2328}
+.t{font-size:14px;font-weight:600}
+.m{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-size:13px;font-weight:600}
+.s{font-size:12px;fill:#59636e}
+.l{font-size:12px;font-weight:600;fill:#59636e}
+.file{fill:#dafbe1;stroke:#1a7f37}
+.skill{fill:#ddf4ff;stroke:#0969da}
+.you{fill:#fff8c5;stroke:#9a6700}
+.stop{fill:#ffebe9;stroke:#cf222e}
+.step{fill:#f6f8fa;stroke:#59636e}
+.e{stroke:#59636e;stroke-width:1.5;fill:none}
+.d{stroke-dasharray:5 4}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#59636e"/></marker></defs>
+<rect x="0.5" y="0.5" width="999" height="339" rx="12" fill="#ffffff" stroke="#d0d7de"/>
+
+<rect x="20" y="30" width="210" height="64" rx="8" class="step" stroke-width="1.5"/>
+<text x="125.0" y="59" text-anchor="middle" class="t">OS scheduler</text>
+<text x="125.0" y="77" text-anchor="middle" class="s">cron, launchd, Task Scheduler</text>
+<rect x="20" y="110" width="210" height="64" rx="8" class="you" stroke-width="1.5"/>
+<text x="125.0" y="139" text-anchor="middle" class="t">Remote control</text>
+<text x="125.0" y="157" text-anchor="middle" class="s">sf-scheduler remote --app</text>
+<rect x="20" y="190" width="210" height="64" rx="8" class="step" stroke-width="1.5"/>
+<text x="125.0" y="219" text-anchor="middle" class="t">One-time job at run-at</text>
+<text x="125.0" y="237" text-anchor="middle" class="s">sf-scheduler run-task</text>
+<path d="M230,62 L288,62" class="e" marker-end="url(#a)"/>
+<path d="M230,142 L288,142" class="e" marker-end="url(#a)"/>
+<path d="M230,222 L288,222" class="e" marker-end="url(#a)"/>
+<rect x="290" y="30" width="200" height="224" rx="8" class="step" stroke-width="1.5"/>
+<text x="390.0" y="62" text-anchor="middle" class="t">launcher</text>
+<text x="390.0" y="80" text-anchor="middle" class="s">active, run-at, hours</text>
+<text x="390.0" y="98" text-anchor="middle" class="s">max-runs reached?</text>
+<text x="390.0" y="116" text-anchor="middle" class="s">one run at a time (lock)</text>
+<text x="390.0" y="134" text-anchor="middle" class="s">atomic run state</text>
+<text x="390.0" y="152" text-anchor="middle" class="s">hard time cap</text>
+<path d="M490,142 L548,142" class="e" marker-end="url(#a)"/>
+<text x="519" y="134" text-anchor="middle" class="l">eligible</text>
+<rect x="550" y="30" width="220" height="224" rx="8" class="skill" stroke-width="1.5"/>
+<text x="660.0" y="62" text-anchor="middle" class="t">headless agent</text>
+<text x="660.0" y="80" text-anchor="middle" class="s">claude -p / opencode run</text>
+<text x="660.0" y="98" text-anchor="middle" class="s">analysis, review, implementation:</text>
+<text x="660.0" y="116" text-anchor="middle" class="s">via the sf-scheduler-run skill</text>
+<text x="660" y="160" text-anchor="middle" class="s">prompt: the body is sent as is</text>
+<path d="M770,142 L828,142" class="e" marker-end="url(#a)"/>
+<text x="799" y="134" text-anchor="middle" class="l">writes</text>
+<rect x="830" y="30" width="150" height="224" rx="8" class="file" stroke-width="1.5"/>
+<text x="905.0" y="62" text-anchor="middle" class="m">results/run-NNN/</text>
+<text x="905.0" y="80" text-anchor="middle" class="s">report.md</text>
+<text x="905.0" y="98" text-anchor="middle" class="s">summary.md</text>
+<text x="905.0" y="116" text-anchor="middle" class="s">agent.log</text>
+<text x="905.0" y="134" text-anchor="middle" class="s">STOPPED / FAILED</text>
+<path d="M390,254 L390,282 L905,282 L905,256" class="e d" marker-end="url(#a)"/>
+<text x="647" y="274" text-anchor="middle" class="l">the launcher records the outcome and the run state</text>
+<rect x="20" y="308" width="14" height="14" rx="3" class="file" stroke-width="1.5"/>
+<text x="40" y="319" class="s">file on disk</text>
+<rect x="148" y="308" width="14" height="14" rx="3" class="step" stroke-width="1.5"/>
+<text x="168" y="319" class="s">launcher / OS</text>
+<rect x="270" y="308" width="14" height="14" rx="3" class="skill" stroke-width="1.5"/>
+<text x="290" y="319" class="s">agent</text>
+<rect x="350" y="308" width="14" height="14" rx="3" class="you" stroke-width="1.5"/>
+<text x="370" y="319" class="s">you</text>
+</svg>

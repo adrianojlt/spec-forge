@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="330" viewBox="0 0 900 330" role="img" aria-label="sf-scheduler run-at: arm registers a one-time OS job that runs the task at the chosen time">
+<title>sf-scheduler run-at: arm registers a one-time OS job that runs the task at the chosen time</title>
+<style>
+text{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:#1f2328}
+.t{font-size:14px;font-weight:600}
+.m{font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;font-size:13px;font-weight:600}
+.s{font-size:12px;fill:#59636e}
+.l{font-size:12px;font-weight:600;fill:#59636e}
+.file{fill:#dafbe1;stroke:#1a7f37}
+.skill{fill:#ddf4ff;stroke:#0969da}
+.you{fill:#fff8c5;stroke:#9a6700}
+.stop{fill:#ffebe9;stroke:#cf222e}
+.step{fill:#f6f8fa;stroke:#59636e}
+.e{stroke:#59636e;stroke-width:1.5;fill:none}
+.d{stroke-dasharray:5 4}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#59636e"/></marker></defs>
+<rect x="0.5" y="0.5" width="899" height="329" rx="12" fill="#ffffff" stroke="#d0d7de"/>
+
+<rect x="20" y="40" width="260" height="64" rx="8" class="file" stroke-width="1.5"/>
+<text x="150.0" y="69" text-anchor="middle" class="m">scheduled-tasks/&lt;task&gt;.md</text>
+<text x="150.0" y="87" text-anchor="middle" class="s">task-type: prompt + run-at</text>
+<path d="M280,72 L348,72" class="e" marker-end="url(#a)"/>
+<text x="314" y="64" text-anchor="middle" class="l">reads</text>
+<rect x="350" y="40" width="210" height="64" rx="8" class="you" stroke-width="1.5"/>
+<text x="455.0" y="69" text-anchor="middle" class="m">sf-scheduler arm</text>
+<text x="455.0" y="87" text-anchor="middle" class="s">you run it once per task</text>
+<path d="M560,72 L628,72" class="e" marker-end="url(#a)"/>
+<text x="594" y="64" text-anchor="middle" class="l">registers</text>
+<rect x="630" y="40" width="250" height="64" rx="8" class="step" stroke-width="1.5"/>
+<text x="755.0" y="69" text-anchor="middle" class="t">one-time OS job</text>
+<text x="755.0" y="87" text-anchor="middle" class="s">Task Scheduler (Windows) / at</text>
+<path d="M755,104 L755,188" class="e" marker-end="url(#a)"/>
+<text x="765" y="150" text-anchor="start" class="l">at run-at</text>
+<rect x="630" y="190" width="250" height="64" rx="8" class="step" stroke-width="1.5"/>
+<text x="755.0" y="219" text-anchor="middle" class="m">sf-scheduler run-task</text>
+<text x="755.0" y="237" text-anchor="middle" class="s">active, max-runs, hours, lock</text>
+<path d="M628,222 L562,222" class="e" marker-end="url(#a)"/>
+<text x="595" y="214" text-anchor="middle" class="l">if eligible</text>
+<rect x="350" y="190" width="210" height="64" rx="8" class="skill" stroke-width="1.5"/>
+<text x="455.0" y="219" text-anchor="middle" class="m">claude -p</text>
+<text x="455.0" y="237" text-anchor="middle" class="s">body sent as is, time cap</text>
+<path d="M348,222 L282,222" class="e" marker-end="url(#a)"/>
+<text x="315" y="214" text-anchor="middle" class="l">writes</text>
+<rect x="20" y="190" width="260" height="64" rx="8" class="file" stroke-width="1.5"/>
+<text x="150.0" y="219" text-anchor="middle" class="m">&lt;task&gt;.results/run-NNN/</text>
+<text x="150.0" y="237" text-anchor="middle" class="s">agent.log, STOPPED or FAILED</text>
+<rect x="20" y="290" width="14" height="14" rx="3" class="file" stroke-width="1.5"/>
+<text x="40" y="301" class="s">file on disk</text>
+<rect x="148" y="290" width="14" height="14" rx="3" class="step" stroke-width="1.5"/>
+<text x="168" y="301" class="s">launcher / OS</text>
+<rect x="270" y="290" width="14" height="14" rx="3" class="skill" stroke-width="1.5"/>
+<text x="290" y="301" class="s">agent</text>
+<rect x="350" y="290" width="14" height="14" rx="3" class="you" stroke-width="1.5"/>
+<text x="370" y="301" class="s">you</text>
+</svg>

@@ -51,6 +51,8 @@ def evaluate(spec: TaskSpec, state: TaskState, now: datetime) -> Decision:
         return Decision(spec.source, spec, False, REASON_RUNNING)
     if state.run_count >= spec.max_runs:
         return Decision(spec.source, spec, False, "max-runs reached")
+    if spec.run_at is not None and now < spec.run_at:
+        return Decision(spec.source, spec, False, "before run-at")
     if not in_window(spec.hours, now):
         return Decision(spec.source, spec, False, "outside hours")
     return Decision(spec.source, spec, True, "eligible")

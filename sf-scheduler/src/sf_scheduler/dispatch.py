@@ -43,23 +43,35 @@ def run_folder(
     for scanned in select(folder, now):
         if not (scanned.eligible or scanned.reason == REASON_RUNNING):
             continue
-        with task_lock(scanned.source) as held:
-            if not held:
-                continue  # another launcher is running this task right now
-            recover_interrupted(scanned.source)
-            decision = decide(scanned.source, now)
-            if not decision.eligible:
-                continue
-            assert decision.spec is not None  # eligible decisions always carry a spec
-            outcomes.append(
-                run_task(
-                    decision.spec,
-                    now=now,
-                    timeout_seconds=timeout_seconds,
-                    command_builder=command_builder,
-                )
-            )
+        outcome = run_one(scanned.source, now=now, timeout_seconds=timeout_seconds,
+                          command_builder=command_builder)
+        if outcome is not None:
+            outcomes.append(outcome)
     return outcomes
+
+
+def run_one(
+    task_file: Path,
+    *,
+    now: datetime,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+    command_builder: CommandBuilder = default_command,
+) -> RunOutcome | None:
+    """Run one task file if it is eligible once its lock is held, else None."""
+    with task_lock(task_file) as held:
+        if not held:
+            return None  # another launcher is running this task right now
+        recover_interrupted(task_file)
+        decision = decide(task_file, now)
+        if not decision.eligible:
+            return None
+        assert decision.spec is not None  # eligible decisions always carry a spec
+        return run_task(
+            decision.spec,
+            now=now,
+            timeout_seconds=timeout_seconds,
+            command_builder=command_builder,
+        )
 
 
 def scheduled_run(
