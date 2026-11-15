@@ -38,7 +38,7 @@ Every step is also a skill you can run by hand.
 
 ## 1. Refine the backlog
 
-`/refine` does the expensive part of a backlog item, the exploration, without you watching. For each item it reads the code, sizes the change, judges if it is worth doing, and writes the decisions it cannot make as questions in the item file. You answer there when you have time; the next run folds the answers in, until the item is ready for `/orchestrate`.
+`/refine` does the expensive part of a backlog item, the exploration, without you watching. For each item it reads the code, sizes the change, judges if it is worth doing, and writes the decisions it cannot make as questions in the item file. You answer there when you have time; the next run folds the answers in, until the item is ready to implement: in one go from the item file, or with `/orchestrate`.
 
 ![refine flow](docs/diagrams/refine.svg)
 
@@ -61,7 +61,9 @@ Item: [items/MODB-3-vidsrc-alternatives.md](items/MODB-3-vidsrc-alternatives.md)
 Implement more than one source, so playback survives when vidsrc is down.
 ```
 
-**Item file.** Findings (with `file:line`), tier, verdict, and up to 5 questions per round, each with options and one recommended. Answer with `Answer: rec` (take the recommendation), a letter, or free text; or write context in `## Notes`. Answered questions move to `## Decisions`. When nothing is open, refine writes `## Understanding` and marks the item 🟢.
+**Item file.** Findings (with `file:line`), tier, route, verdict, and up to 5 questions per round, each with options and one recommended. Answer with `Answer: rec` (take the recommendation), a letter, or free text; or write context in `## Notes`. Answered questions move to `## Decisions`. When nothing is open, refine writes `## Understanding` and marks the item 🟢.
+
+**Route.** `/orchestrate` when the change adds a module, a dependency, contract or schema, touches security or a public API, or spans more than ~5 files. Otherwise `one go`: one session implements it straight from the item file, no spec or task files. The route is provisional while questions are open; for a 🟢 item the report gives a paste-ready `implement <item file>` prompt or the `/orchestrate` command.
 
 ```
 /refine i=MoDb/backlog/modb-backlog.md m=normalize            # once: convert a backlog to the format above

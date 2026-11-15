@@ -1,6 +1,6 @@
 ---
 name: refine
-description: "Unattended backlog refinement. Explore the codebase for each backlog item, write findings, a verdict and open questions (each with options and one recommended) to an item file the user answers later. Also normalizes a backlog into the canonical format."
+description: "Unattended backlog refinement. Explore the codebase for each backlog item, write findings, a verdict, a route (one go or orchestrate) and open questions (each with options and one recommended) to an item file the user answers later. Also normalizes a backlog into the canonical format."
 argument-hint: "i=<backlog.md> [id=<ID,ID|all>] [c=<codebase>] [m=normalize]"
 disable-model-invocation: true
 ---
@@ -8,14 +8,15 @@ disable-model-invocation: true
 # refine
 
 ## Purpose
-Capturing an idea is cheap; exploring it is the expensive part. `refine` does the exploration while the user is away: for each backlog item it reads the code, sizes the change, judges whether it is worth doing, and writes the decisions it cannot make as questions in the item's file. The user answers in the file when they have time; the next run folds the answers in and asks the follow-ups, until the item is ready for `/orchestrate`.
+Capturing an idea is cheap; exploring it is the expensive part. `refine` does the exploration while the user is away: for each backlog item it reads the code, sizes the change, judges whether it is worth doing, and writes the decisions it cannot make as questions in the item's file. The user answers in the file when they have time; the next run folds the answers in and asks the follow-ups, until the item is ready to implement: in one go from the item file, or with `/orchestrate`.
 
 ```
 backlog item (📋)
-  -> refine: findings, verdict, questions          -> ❓ (waiting answers)
+  -> refine: findings, verdict, route, questions   -> ❓ (waiting answers)
   -> user writes Answer: lines in the item file
   -> refine: answers -> Decisions, follow-ups      -> ❓ again, or 🟢 (ready)
-  -> /orchestrate i=backlog/items/<ID>-<slug>.md
+  -> Route: one go        one session implements straight from the item file
+  -> Route: /orchestrate  /orchestrate i=backlog/items/<ID>-<slug>.md
 ```
 
 It is `grilling` made asynchronous: same recommended answers, confidence and stop test, but questions are batched because nobody is there to answer one at a time.
@@ -76,16 +77,19 @@ For each item:
    **Fold notes.** Each entry in `## Notes` is the user's fact or decision. Check a fact against `$c` and correct `## Findings`; if the code contradicts it, keep the note and add a question showing both. Move each note to `## Decisions` as `Note (round <r>): <text>`, then leave `## Notes` empty. A note that contradicts an earlier decision is not resolved by refine: open a question with both as options.
 3. **Explore** `$c` for what the item touches. Write `## Findings` as facts with `file:line`. For a bug: the path from symptom to cause, and the root cause or ranked hypotheses with the evidence for each.
 4. **Size** with the tier table in `orchestrate/SKILL.md` step 0 (trivial, small, standard). Write it to `Tier:` with the signal that set it.
+   **Route.** `/orchestrate` when the change adds a module or package, adds a dependency, contract or schema, touches security or a public API (as listed in `orchestrate/SKILL.md` step 0), or spans more than ~5 files. Otherwise `one go`: one session implements it straight from the item file, without spec or task files. Write it to `Route:` with the signal that set it, and append `(provisional)` while the item has open questions.
 5. **Verdict.** Worth doing, not worth it, or trivial (make the change directly, skip `orchestrate`). One paragraph, with the reason. If not worth it, add a drop question with that as the recommended answer.
 6. **Questions.** Write the decisions the item still needs, most decisive first, at most 5 per round. Only questions that are independent of every open question; one whose answer depends on another waits for the next round. Each question has context (why it matters), 2-4 options with exactly one marked `(Recommended: <reason>)`, and an empty `Answer:` line. When options do not fit, ask open and still give a recommended answer.
 7. **Stop test.** Ready when there are no open questions and you can predict the user's reaction to the next three questions you would ask. Then write `## Understanding` (Outcome, User, Why now, Success, Constraint, Out of scope; Out of scope is mandatory) from the backlog description and Decisions only. It must stand alone: `orchestrate` reads the item file, not the backlog.
-8. **Header.** Update `Status:`, `Round:` (+1), `Confidence:` (0-100%; below 70% add one line naming what is unresolved), `Updated:` (today).
+8. **Header.** Update `Status:`, `Round:` (+1), `Tier:`, `Route:`, `Confidence:` (0-100%; below 70% add one line naming what is unresolved), `Updated:` (today).
 
 ### 3. Update the backlog
 For each processed item set the status emoji in its heading (🟢 ready, ❓ open questions, ❌ drop confirmed) and add the `Item:` line right under the heading if missing.
 
 ### 4. Report
-One line per processed item: ID, new status, tier, number of open questions. Then the skipped items and why (waiting answers, not eligible, not found). Next step for 🟢 items: `/orchestrate i=<item file> o=features/<slug>/ p=<prefix>`.
+One line per processed item: ID, new status, tier, route, number of open questions. Then the skipped items and why (waiting answers, not eligible, not found). Next step for 🟢 items, by route:
+- one go: a prompt ready to paste in a session at `$c`: `implement <item file> (Findings, Decisions, Understanding)`.
+- /orchestrate: `/orchestrate i=<item file> o=features/<slug>/ p=<prefix>`.
 
 ## Normalize (`m=normalize`)
 Rewrite `$i` into the canonical format without losing text.

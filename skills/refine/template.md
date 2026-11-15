@@ -5,6 +5,7 @@ Kind: [Bug | Minor | Major]
 Status: [📋 Todo | ❓ Waiting answers | 🟢 Ready | ❌ Dropped]
 Round: [n]
 Tier: [trivial | small | standard] - [signal that set it]
+Route: [one go | /orchestrate] - [signal that set it] [(provisional) while questions are open]
 Confidence: ~[n]% [- what is still unresolved, required below 70%]
 Updated: [date]
 
