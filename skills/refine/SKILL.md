@@ -14,12 +14,14 @@ Capturing an idea is cheap; exploring it is the expensive part. `refine` does th
 backlog item (📋)
   -> refine: findings, verdict, route, questions   -> ❓ (waiting answers)
   -> user writes Answer: lines in the item file
-  -> refine: answers -> Decisions, follow-ups      -> ❓ again, or 🟢 (ready)
+  -> refine: answers -> Decisions, follow-ups      -> ❓ again
+  -> refine: nothing open -> Understanding + confirm question  -> ❓
+  -> user answers yes                              -> 🟢 (ready)
   -> Route: one go        one session implements straight from the item file
   -> Route: /orchestrate  /orchestrate i=backlog/items/<ID>-<slug>.md
 ```
 
-It is `grilling` made asynchronous: same recommended answers, confidence and stop test, but questions are batched because nobody is there to answer one at a time.
+It is `grilling` made asynchronous: same recommended answers, confidence, stop test, should-want check, floor and explicit confirmation, but questions are batched because nobody is there to answer one at a time.
 
 ## Inputs
 - `$i` - the backlog file (e.g. `MoDb/backlog/modb-backlog.md`). Required.
@@ -58,7 +60,7 @@ Implement more than one source, so playback survives when vidsrc is down.
 - Writes only: item files in `items/`, and in `$i` the status emoji and `Item:` line of the processed items. Never change an item's title or description.
 - The run is unattended. Never stop to ask in chat; every question goes to the item file. The only exception is normalize, which needs one confirmation.
 - Facts come from the codebase; decisions are the user's. Never ask what `$c` can answer, never answer your own question.
-- Status transitions owned by refine: 📋 -> ❓ or 🟢, ❓ -> ❓ or 🟢, and ❓ -> ❌ only when the user answered yes to a drop question. 🚧 and ✅ belong to the user (or to `orchestrate` / `graduate`).
+- Status transitions owned by refine: 📋 -> ❓, ❓ -> ❓, ❓ -> 🟢 only when the user answered yes to the confirm question, and ❓ -> ❌ only when the user answered yes to a drop question. 🚧 and ✅ belong to the user (or to `orchestrate` / `graduate`).
 - Paths in item file headers are relative to the item file's own folder, never absolute.
 
 ## Procedure (refine)
@@ -73,21 +75,23 @@ More than one item: process each in a fresh subagent when the host supports it, 
 
 For each item:
 1. **Read** the heading and description, and `items/<ID>-<slug>.md` if it exists. Create the file from `template.md` if missing; the slug is the title, lowercased, hyphenated, at most 5 words.
-2. **Fold answers.** Move every answered question, with its answer, to `## Decisions`. `Answer: rec` accepts the recommended option. An answer that delegates without choosing ("whatever", "you decide") is not an answer: re-ask it with two concrete options. Unanswered questions stay open.
+2. **Fold answers.** Move every answered question, with its answer, to `## Decisions`. `Answer: rec` accepts the recommended option. An answer that delegates without choosing ("whatever", "you decide") is not an answer: re-ask it with two concrete options. A *should-want* answer is not folded either: best-practice talk ("scalable", "clean architecture", "modern"), deference to convention ("the standard approach"), or "I should probably...". Re-ask it with the user's answer quoted and the line "If you didn't have to justify this to anyone, what would you actually want?". Unanswered questions stay open.
+   **Confirm question.** `yes` confirms the Understanding: record it in `## Decisions` and the item is ready. A vague approval ("sounds good", "looks fine") is not a yes: re-ask it, adding "Anything you'd refine?". Any other answer is a correction: fold it like a note and redo step 7.
    **Fold notes.** Each entry in `## Notes` is the user's fact or decision. Check a fact against `$c` and correct `## Findings`; if the code contradicts it, keep the note and add a question showing both. Move each note to `## Decisions` as `Note (round <r>): <text>`, then leave `## Notes` empty. A note that contradicts an earlier decision is not resolved by refine: open a question with both as options.
 3. **Explore** `$c` for what the item touches. Write `## Findings` as facts with `file:line`. For a bug: the path from symptom to cause, and the root cause or ranked hypotheses with the evidence for each.
 4. **Size** with the tier table in `orchestrate/SKILL.md` step 0 (trivial, small, standard). Write it to `Tier:` with the signal that set it.
    **Route.** `/orchestrate` when the change adds a module or package, adds a dependency, contract or schema, touches security or a public API (as listed in `orchestrate/SKILL.md` step 0), or spans more than ~5 files. Otherwise `one go`: one session implements it straight from the item file, without spec or task files. Write it to `Route:` with the signal that set it, and append `(provisional)` while the item has open questions.
 5. **Verdict.** Worth doing, not worth it, or trivial (make the change directly, skip `orchestrate`). One paragraph, with the reason. If not worth it, add a drop question with that as the recommended answer.
 6. **Questions.** Write the decisions the item still needs, most decisive first, at most 5 per round. Only questions that are independent of every open question; one whose answer depends on another waits for the next round. Each question has context (why it matters), 2-4 options with exactly one marked `(Recommended: <reason>)`, and an empty `Answer:` line. When options do not fit, ask open and still give a recommended answer.
-7. **Stop test.** Ready when there are no open questions and you can predict the user's reaction to the next three questions you would ask. Then write `## Understanding` (Outcome, User, Why now, Success, Constraint, Out of scope; Out of scope is mandatory) from the backlog description and Decisions only. It must stand alone: `orchestrate` reads the item file, not the backlog.
+7. **Stop test.** Passes when there are no open questions and you can predict the user's reaction to the next three questions you would ask. Then write `## Understanding` (Outcome, User, Why now, Success, Constraint, Out of scope; Out of scope is mandatory) from the backlog description and Decisions only. It must stand alone: `orchestrate` reads the item file, not the backlog. Then add the confirm question as the only open question: `Is the Understanding right?`, context `yes marks the item ready; anything else is a correction`, no options and no recommended answer (`rec` does not apply). The item is ready only after a `yes` (step 2).
+   **Floor.** From round 3, if `Confidence` did not rise over the header's previous value, the questions are not converging. Put a step-back question first: "<n> rounds and I still can't predict your answers; something foundational is missing", with options A) answer live with `/grilling i=<item file>` and write the result in `## Notes` (Recommended: one question at a time converges faster than batched rounds), B) rewrite the item's description in the backlog, C) drop the item.
 8. **Header.** Update `Status:`, `Round:` (+1), `Tier:`, `Route:`, `Confidence:` (0-100%; below 70% add one line naming what is unresolved), `Updated:` (today).
 
 ### 3. Update the backlog
-For each processed item set the status emoji in its heading (🟢 ready, ❓ open questions, ❌ drop confirmed) and add the `Item:` line right under the heading if missing.
+For each processed item set the status emoji in its heading (🟢 Understanding confirmed, ❓ open questions or waiting confirmation, ❌ drop confirmed) and add the `Item:` line right under the heading if missing.
 
 ### 4. Report
-One line per processed item: ID, new status, tier, route, number of open questions. Then the skipped items and why (waiting answers, not eligible, not found). Next step for 🟢 items, by route:
+One line per processed item: ID, new status, tier, route, number of open questions (`confirm` when the only one is the confirm question, `floor` when a step-back question was added). Then the skipped items and why (waiting answers, not eligible, not found). Next step for 🟢 items, by route:
 - one go: a prompt ready to paste in a session at `$c`: `implement <item file> (Findings, Decisions, Understanding)`.
 - /orchestrate: `/orchestrate i=<item file> o=features/<slug>/ p=<prefix>`.
 

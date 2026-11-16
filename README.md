@@ -61,7 +61,7 @@ Item: [items/MODB-3-vidsrc-alternatives.md](items/MODB-3-vidsrc-alternatives.md)
 Implement more than one source, so playback survives when vidsrc is down.
 ```
 
-**Item file.** Findings (with `file:line`), tier, route, verdict, and up to 5 questions per round, each with options and one recommended. Answer with `Answer: rec` (take the recommendation), a letter, or free text; or write context in `## Notes`. Answered questions move to `## Decisions`. When nothing is open, refine writes `## Understanding` and marks the item 🟢.
+**Item file.** Findings (with `file:line`), tier, route, verdict, and up to 5 questions per round, each with options and one recommended. Answer with `Answer: rec` (take the recommendation), a letter, or free text; or write context in `## Notes`. Answered questions move to `## Decisions`. When nothing is open, refine writes `## Understanding` and asks you to confirm it; the item turns 🟢 only after `Answer: yes`. Answers that sound like best practice rather than what you want are re-asked, and after 3 rounds without rising confidence refine asks you to step back.
 
 **Route.** `/orchestrate` when the change adds a module, a dependency, contract or schema, touches security or a public API, or spans more than ~5 files. Otherwise `one go`: one session implements it straight from the item file, no spec or task files. The route is provisional while questions are open; for a 🟢 item the report gives a paste-ready `implement <item file>` prompt or the `/orchestrate` command.
 

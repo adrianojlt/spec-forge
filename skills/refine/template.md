@@ -41,7 +41,7 @@ Answer:
 
 ## Understanding
 
-[Only when ready.]
+[Only when the stop test passes. Draft until the user answers `yes` to the confirm question.]
 - Outcome:      [one line]
 - User:         [one line - who benefits]
 - Why now:      [one line - what changed]
