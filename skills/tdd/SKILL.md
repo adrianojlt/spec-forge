@@ -19,6 +19,8 @@ An executor alternative to `task-execute` for test-first work. Same inputs, same
 - Before coding, state the interface: new functions, endpoints or types, and changes to existing signatures or side effects. When invoked directly by a user, wait for them to confirm or adjust it. When driven non-interactively (`execute-tasks`, `orchestrate`, `sf-scheduler`), proceed and record the assumed interface in the attempt report.
 - Use the project's existing test framework, locations and naming. Follow the task's `Patterns to mirror` and `Validate` as `task-execute` does.
 - Red-green-refactor per behavior: see the new test fail for the expected reason, write the minimum code to pass, then refactor with the suite green. Do not batch several failing tests.
+- Test behavior through public interfaces. No implementation-coupled tests: do not mock internal collaborators, test private methods, or verify through a side channel (e.g. querying the database instead of using the interface). The tell: the test breaks on a refactor that keeps behavior.
+- No tautological tests: the expected value never recomputes what the code does (`expect(add(a, b)).toBe(a + b)`, a constant asserted equal to itself). Take it from an independent source: a known literal, a worked example, the task's Given/When/Then.
 - Success means every Given/When/Then maps to a named, passing test, listed in the report. An unmapped criterion is a failure and goes in `failed_checks`.
 - Write the report's `Source:` as a path relative to the report's folder (e.g. `../todo/auth-task-01.md`), never absolute.
 

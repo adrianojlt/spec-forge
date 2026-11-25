@@ -16,10 +16,10 @@ Interview the user relentlessly about a plan, decision, or idea, walking down ea
 
 ## Hard rules
 - Ask one question at a time. Wait for the answer before the next. Asking multiple questions at once is bewildering.
-- For each question, provide your recommended answer.
+- For each question, provide your recommended answer. Word the question so "yes" accepts the recommendation.
 - State a confidence number (0-100%) each turn. Below 70%, append a one-line reason naming what is still unresolved.
 - Resolve dependencies between decisions one by one, walking each branch of the decision tree.
-- If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up instead of asking. The *decisions* are the user's - put each one to them and wait.
+- If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up instead of asking, in a fresh subagent when the host supports it. Don't block on the lookup: while it runs, keep asking questions that do not depend on that fact. The *decisions* are the user's - put each one to them and wait.
 - Do not act on the plan until the user confirms a shared understanding has been reached.
 - "Sounds good", "whatever you think", and silence are not confirmation. See Step 4.
 - If `$o` is set, write the `Source:` header as a path relative to the output file's own folder (e.g. `./auth-idea.md`), never absolute.
