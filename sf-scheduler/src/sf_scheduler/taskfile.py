@@ -15,7 +15,7 @@ import yaml
 
 TASK_TYPES = {"analysis", "review", "implementation", "prompt"}
 RUN_AT_FORMAT = "%Y-%m-%d %H:%M"
-PROVIDERS = {"claude", "opencode"}
+PROVIDERS = {"claude", "opencode", "agy"}
 DEFAULT_PROVIDER = "claude"
 
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n?(.*)$", re.DOTALL)
@@ -174,8 +174,9 @@ def _opt_permission_mode(path: Path, data: dict) -> str | None:
         return None
     if not isinstance(value, str) or not value.strip():
         raise TaskFileError(f"{path}: permission-mode must be a non-empty string")
-    if data.get("provider", DEFAULT_PROVIDER) != "claude":
-        raise TaskFileError(f"{path}: permission-mode is only supported by provider 'claude'")
+    provider = data.get("provider", DEFAULT_PROVIDER)
+    if provider not in {"claude", "agy"}:
+        raise TaskFileError(f"{path}: permission-mode is only supported by providers 'claude' and 'agy'")
     return value.strip()
 
 
@@ -183,8 +184,8 @@ def _opt_auto(path: Path, data: dict, provider: str) -> bool:
     value = data.get("auto", False)
     if not isinstance(value, bool):
         raise TaskFileError(f"{path}: auto must be a boolean, got {value!r}")
-    if value and provider != "opencode":
-        raise TaskFileError(f"{path}: auto is only supported by provider 'opencode'")
+    if value and provider not in {"opencode", "agy"}:
+        raise TaskFileError(f"{path}: auto is only supported by providers 'opencode' and 'agy'")
     return value
 
 

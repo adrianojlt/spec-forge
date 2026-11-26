@@ -78,6 +78,10 @@ def test_no_frontmatter(tmp_path):
             "title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nprovider: opencode\nmax-budget-usd: 2",
             "only enforced by provider 'claude'",
         ),
+        (
+            "title: x\ntask-type: analysis\npath: ~/c\nmax-tokens: 10\nprovider: agy\nmax-budget-usd: 2",
+            "only enforced by provider 'claude'",
+        ),
     ],
 )
 def test_invalid_rejected(tmp_path, frontmatter, match):

@@ -131,7 +131,7 @@ Scheduler UI (`taskschd.msc`), in the task library. On Linux and macOS use `atq`
 - The machine must be on and the user logged in (Windows), or `atd` running
   (Linux and macOS).
 - A `prompt` task runs headless. If it edits files, set `permission-mode`
-  (for example `acceptEdits`) or, with `provider: opencode`, `auto: true`, and test the command once by hand first: a prompt
+  (for example `acceptEdits` on `claude`, or `accept-edits` / `auto` on `agy`) or, with `provider: opencode` / `provider: agy`, `auto: true`, and test the command once by hand first: a prompt
   that asks for interactive confirmation cannot be answered.
 - Output is `agent.log` in `<task>.results/run-NNN/`.
 

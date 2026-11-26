@@ -32,15 +32,15 @@ Focus on token expiry and session handling. Produce a findings report.
 | `hours`      | string  | no       | any time           | Allowed execution window, `"HH:MM-HH:MM"` 24h local time. Wraps midnight if start > end (e.g. `"22:00-06:00"`). Omit for no window. |
 | `max-runs`   | int     | no       | `1`                | Total times the task may be started. A run that fails, is stopped or crashes counts. |
 | `max-tokens` | int     | yes (not for `prompt`) | -    | Per-run token budget, passed to the agent in its prompt. Advisory: nothing measures or enforces it. |
-| `max-budget-usd` | number | no    | no cap             | Hard per-run spend cap in US dollars, enforced by the `claude` CLI (`--max-budget-usd`). Rejected with `provider: opencode`, which has no such cap. |
-| `provider`   | enum    | no       | by task-type       | `claude` or `opencode`. Default: `claude` for all task-types in v1. |
+| `max-budget-usd` | number | no    | no cap             | Hard per-run spend cap in US dollars, enforced by the `claude` CLI (`--max-budget-usd`). Rejected with `provider: opencode` or `provider: agy`, which have no such cap. |
+| `provider`   | enum    | no       | `claude`           | `claude`, `opencode`, or `agy` (Google Antigravity CLI). Default: `claude` for all task-types in v1. |
 | `run-at`     | string  | no       | -                  | Exact start time, `"YYYY-MM-DD HH:MM"` local. The task is not eligible before it. `sf-scheduler arm` registers a one-time OS job for it. |
-| `permission-mode` | string | no   | -                  | Passed to `claude` as `--permission-mode` (e.g. `acceptEdits`, so a headless run can edit files). `provider: claude` only. |
-| `auto`       | boolean | no       | `false`            | Passes `--auto` to `opencode run`: auto-approves permission requests not explicitly denied, so a headless run can edit files. `provider: opencode` only. |
+| `permission-mode` | string | no   | -                  | Passed to `claude` as `--permission-mode` (e.g. `acceptEdits`) or to `agy` as `--mode` (e.g. `accept-edits`, `auto`, `plan`). Supported by `claude` and `agy`. |
+| `auto`       | boolean | no       | `false`            | Passes `--auto` to `opencode run` or `--dangerously-skip-permissions` to `agy -p`: auto-approves permission requests not explicitly denied, so a headless run can edit files and run commands. Supported by `opencode` and `agy`. |
 
 ### `task-type` semantics
 
-- `prompt` - the body **is** the prompt, sent unchanged to the agent (no wrapper, no `sf-scheduler-run` skill). It can be a slash command (`/refine i=... id=all c=...`), a skill call or free text. Runs in `path` (no worktree). Output is `agent.log` in the run folder. Use `permission-mode` (claude) or `auto` (opencode) to let it edit files.
+- `prompt` - the body **is** the prompt, sent unchanged to the agent (no wrapper, no `sf-scheduler-run` skill). It can be a slash command (`/refine i=... id=all c=...`), a skill call or free text. Runs in `path` (no worktree). Output is `agent.log` in the run folder. Use `permission-mode` (`claude` / `agy`) or `auto` (`opencode` / `agy`) to let it edit files.
 - `analysis` - read-only. Produce a report describing part of the code at `path`.
 - `review` - read-only. Produce a task-review report of findings to implement later.
 - `implementation` - mutating. Carry out the instruction on a **dedicated git branch only** (never `main`). The result records the branch name and a summary.

@@ -71,6 +71,15 @@ def default_command(spec: TaskSpec, task_file: Path, run_dir: Path) -> list[str]
         if spec.max_budget_usd is not None:
             cmd += ["--max-budget-usd", str(spec.max_budget_usd)]
         return cmd
+    if spec.provider == "agy":
+        cmd = ["agy", "-p", prompt]
+        if spec.permission_mode is not None:
+            cmd += ["--mode", spec.permission_mode]
+        if spec.auto:
+            cmd.append("--dangerously-skip-permissions")
+        if spec.task_type != "prompt":
+            cmd += ["--add-dir", str(task_file.parent)]
+        return cmd
     cmd = ["opencode", "run"]
     if spec.auto:
         cmd.append("--auto")

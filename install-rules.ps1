@@ -43,3 +43,6 @@ Write-Host "  [ok] rules/global.md -> $env:USERPROFILE\.claude\CLAUDE.md"
 
 Install-ManagedSection -Target (Join-Path $env:USERPROFILE '.config\opencode\AGENTS.md')
 Write-Host "  [ok] rules/global.md -> $env:USERPROFILE\.config\opencode\AGENTS.md"
+
+Install-ManagedSection -Target (Join-Path $env:USERPROFILE '.gemini\config\AGENTS.md')
+Write-Host "  [ok] rules/global.md -> $env:USERPROFILE\.gemini\config\AGENTS.md"

@@ -1,6 +1,6 @@
 # spec-forge
 
-Skill pack for **Claude Code** and **OpenCode** implementing a staged, file-driven planning workflow: from a backlog item to committed code, with every step's state kept on disk.
+Skill pack for **Claude Code**, **OpenCode**, and **Google Antigravity** implementing a staged, file-driven planning workflow: from a backlog item to committed code, with every step's state kept on disk.
 
 Installation, compatibility and Windows notes: see [INSTALL.md](INSTALL.md).
 

@@ -2,6 +2,7 @@
 name: sf-scheduler-run
 description: Perform one sf-scheduler task (analysis, review, or implementation) headlessly and write its output into the run's results directory. Invoked unattended by the sf-scheduler launcher.
 argument-hint: "task=<path> out=<results-dir>"
+disable-model-invocation: true
 ---
 
 # sf-scheduler-run

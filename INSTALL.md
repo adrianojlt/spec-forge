@@ -2,13 +2,16 @@
 
 ## Compatibility
 
-**Primary support: Claude Code and OpenCode**
+**Primary support: Claude Code, OpenCode, and Google Antigravity**
 
-Both tools natively scan `~/.claude/skills/<name>/SKILL.md` and `.claude/skills/<name>/SKILL.md`, so installing once covers both. No separate OpenCode install needed. The skills use tool-specific features like automatic invocation (`/skill-name`) and argument parsing (`i=`, `o=`, `c=`).
+- **Claude Code and OpenCode** both natively scan `~/.claude/skills/<name>/SKILL.md` and `<project>/.claude/skills/<name>/SKILL.md`.
+- **Google Antigravity** (App, IDE, and `agy` CLI) scans `~/.gemini/config/skills/` globally and `<project>/.agents/skills/` per project, plus `skills.json` manifests. `install-skills` registers `~/.claude/skills` in `~/.gemini/config/skills.json`, so all three tools share a single copy of the skills without file duplication.
+
+The skills use slash invocation (`/skill-name`), subagents, and prompt argument conventions (`i=`, `o=`, `c=`), all supported across Claude Code, OpenCode, and Antigravity.
 
 **Other AI agents**
 
-The skill content (procedures, rules, templates) is plain Markdown and works with other AI coding agents (Cursor, Codex, Windsurf, Aider, etc.). They have no built-in skill system, so you need to:
+The skill content (procedures, rules, templates) is plain Markdown and works with other AI coding agents (Cursor, Codex, Windsurf, Aider, etc.). Where a tool has no Agent Skills discovery, you can:
 
 1. Include the skill files in your repo or reference them by path
 2. Invoke them manually in prompts (e.g., "Read `skills/grilling/SKILL.md` and follow its procedure")
@@ -16,23 +19,23 @@ The skill content (procedures, rules, templates) is plain Markdown and works wit
 
 ## Requirements
 
-- Claude Code CLI installed
+- At least one supported CLI/agent installed: Claude Code (`claude`), OpenCode (`opencode`), or Google Antigravity (`agy` / Antigravity IDE / Antigravity 2.0)
 - Bash (macOS/Linux) or PowerShell 5.1+ (Windows)
 
 ## Install modes
 
 | Mode | Target | Script |
 |------|--------|--------|
-| Personal | `~/.claude/skills/`, all sessions | `install-skills.sh` / `install-skills.ps1` |
-| Project | `<project>/.claude/skills/`, that project only | [Manual install](#manual-install) |
-| Global rules | `~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md` | `install-rules.sh` / `install-rules.ps1` |
-| Status line | `~/.claude/settings.json` | `install-statusline.sh` / `install-statusline.ps1` |
+| Personal | `~/.claude/skills/` + pointer in `~/.gemini/config/skills.json` | `install-skills.sh` / `install-skills.ps1` |
+| Project | `<project>/.claude/skills/` (+ `<project>/.agents/skills.json` for Antigravity) | [Manual install](#manual-install) |
+| Global rules | `~/.claude/CLAUDE.md` + `~/.config/opencode/AGENTS.md` + `~/.gemini/config/AGENTS.md` | `install-rules.sh` / `install-rules.ps1` |
+| Status line | `~/.claude/settings.json` (Claude Code only) | `install-statusline.sh` / `install-statusline.ps1` |
 
 On Windows, read [Windows](#windows) first: the WSL home is not the Windows home.
 
 ## Personal install
 
-Installs skills into `~/.claude/skills/`. Available in all Claude Code sessions.
+Installs skills into `~/.claude/skills/` and registers that folder in `~/.gemini/config/skills.json`, making them available across all Claude Code, OpenCode, and Antigravity sessions.
 
 macOS/Linux:
 
@@ -49,9 +52,9 @@ powershell -ExecutionPolicy Bypass -File .\install-skills.ps1
 
 ## Global rules install
 
-Copies this repo's `rules/global.md` into `~/.claude/CLAUDE.md` (Claude Code) and
-`~/.config/opencode/AGENTS.md` (OpenCode), so the behavioral guidelines apply
-to all sessions.
+Copies this repo's `rules/global.md` into `~/.claude/CLAUDE.md` (Claude Code),
+`~/.config/opencode/AGENTS.md` (OpenCode), and `~/.gemini/config/AGENTS.md`
+(Antigravity), so the behavioral guidelines apply to all sessions.
 
 The content is written as a managed block between
 `<!-- BEGIN spec-forge -->` and `<!-- END spec-forge -->` markers. Only that
@@ -94,13 +97,18 @@ powershell -ExecutionPolicy Bypass -File .\install-statusline.ps1
 ## Manual install
 
 ```bash
-# Personal
+# Personal (Claude Code + OpenCode)
 mkdir -p ~/.claude/skills
 cp -r skills/* ~/.claude/skills/
 
+# Personal pointer for Antigravity (avoids duplicating files)
+mkdir -p ~/.gemini/config
+printf '{\n  "entries": [\n    { "path": "~/.claude/skills" }\n  ]\n}\n' > ~/.gemini/config/skills.json
+
 # Project (available only in that project)
-mkdir -p /path/to/project/.claude/skills
+mkdir -p /path/to/project/.claude/skills /path/to/project/.agents
 cp -r skills/* /path/to/project/.claude/skills/
+printf '{\n  "entries": [\n    { "path": ".claude/skills" }\n  ]\n}\n' > /path/to/project/.agents/skills.json
 ```
 
 PowerShell (project):
@@ -109,7 +117,18 @@ PowerShell (project):
 $dest = "C:\path\to\project\.claude\skills"
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 Copy-Item -Path .\skills\* -Destination $dest -Recurse -Force
+
+$agyDir = "C:\path\to\project\.agents"
+New-Item -ItemType Directory -Force -Path $agyDir | Out-Null
+Set-Content -Path "$agyDir\skills.json" -Value '{"entries":[{"path":".claude/skills"}]}' -Encoding UTF8
 ```
+
+### Antigravity sandbox note (separate specs repo)
+
+Antigravity runs terminal commands inside a workspace sandbox by default. When a skill operates across two repositories (for example running in a specs repo while passing `c=/path/to/code-repo`, or passing `i=`/`o=` outside the open workspace), either:
+
+- Add the second directory to the session (`agy --add-dir /path/to/other-repo`), or
+- Set **Non-Workspace File Access** to `allow` in Antigravity Settings and approve out-of-sandbox execution when `git` or `Validate` commands run in `c=`.
 
 ## Windows
 
@@ -144,16 +163,18 @@ The skill files themselves (Markdown) are cross-platform and work on any OS.
 
 ## Verify installation
 
-Open Claude Code in any directory (or the project directory for project installs) and run:
+Open Claude Code or Antigravity (`agy`) in any directory (or the project directory for project installs) and run:
 
 ```
 /help
 ```
 
-Skills appear in the command list. If they do not appear:
+(In `agy`, you can also run `/skills` to list all discovered skills.)
 
-1. Check that `.claude/skills/<skill-name>/SKILL.md` exists.
-2. Restart Claude Code.
+Skills appear in the command/skills list. If they do not appear:
+
+1. Check that `~/.claude/skills/<skill-name>/SKILL.md` exists (and for Antigravity, that `~/.gemini/config/skills.json` has `{"path": "~/.claude/skills"}`).
+2. Restart the agent session.
 3. Verify you are in the correct directory for project-scoped skills.
 
 ## Update

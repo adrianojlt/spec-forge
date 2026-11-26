@@ -73,24 +73,24 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Git Commits
 - Commit messages are a single title line only. No body or description.
-- No references to Claude, Claude Code or Anthropic: no `Co-Authored-By` trailer, no "Generated with" line. The commit is authored by me only.
+- No references to Claude, Claude Code, Anthropic, Gemini, Antigravity, OpenCode, or any AI tool: no `Co-Authored-By` trailer, no "Generated with" line. The commit is authored by me only.
 
 ## Coding Standards
 - If it is a Java project, always load and apply the `/java-coding-standards` skill before writing or reviewing any Java code.
 
-## CLAUDE.md guardrail
+## Global / project rules guardrail
 
-`CLAUDE.md` is for stable guidance only.
+`CLAUDE.md`, `AGENTS.md`, and `GEMINI.md` are for stable guidance only.
 
-Never write volatile implementation details into `CLAUDE.md`.
+Never write volatile implementation details into `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`.
 Never store file paths, current code structure, task progress, temporary notes, or refactor-sensitive details there.
 Only store durable rules, conventions, and long-lived project facts.
 
-If asked to update `CLAUDE.md`, first filter the information:
-- Stable and reusable -> may go into `CLAUDE.md`
+If asked to update `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`, first filter the information:
+- Stable and reusable -> may go into that rules file
 - Temporary, specific, or likely to change -> must go somewhere else
 
-If uncertain, do not add it to `CLAUDE.md`.
+If uncertain, do not add it to `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`.
 
 ## Long-Running Tasks
 - During long refactors or multi-file edits, emit periodic progress notes so the session never goes silent. Verify with a compile/test run before reporting done.

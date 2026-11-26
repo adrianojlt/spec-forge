@@ -17,7 +17,7 @@ sf-scheduler is a **thin launcher plus a skill**, not a standalone app.
   the headless agent what to actually do per task type.
   A `prompt` task skips the skill: its body is sent to the agent as is.
 - **cron / launchd / Task Scheduler** fires the launcher on a schedule, a
-  one-time job fires one task at its `run-at`, and **Claude Code remote control**
+  one-time job fires one task at its `run-at`, and **Claude Code / Antigravity remote control**
   triggers it on demand.
 
 ![sf-scheduler architecture](docs/diagrams/architecture.svg)
@@ -85,8 +85,8 @@ On macOS `atd` is disabled by default, so enable it before using `arm`.
 
 ## Remote session setup
 
-To trigger tasks from a phone via Claude Code remote control without typing long
-commands, add this to `~/.claude/CLAUDE.md`:
+To trigger tasks from a phone via Claude Code or Antigravity remote control without typing long
+commands, add this to `~/.claude/CLAUDE.md` / `~/.gemini/config/AGENTS.md` (already included by `install-rules`):
 
 ```markdown
 ## Remote Sessions

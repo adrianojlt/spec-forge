@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Produce a resumable session handoff document for a future Claude Code session. References existing artifacts by path, does not duplicate content.
+description: Produce a resumable session handoff document for a future agent session. References existing artifacts by path, does not duplicate content.
 argument-hint: "o=<path> n=<description>"
 disable-model-invocation: true
 ---

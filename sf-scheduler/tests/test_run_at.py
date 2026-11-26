@@ -88,6 +88,32 @@ def test_opencode_without_auto_has_no_flag(tmp_path):
     assert cmd == ["opencode", "run", "/refine i=x"]
 
 
+def test_agy_prompt_flags(tmp_path):
+    plain = write(tmp_path, "p1", "provider: agy\n", body="/refine i=x")
+    assert default_command(parse_task_file(plain), plain, tmp_path / "run-001") == [
+        "agy",
+        "-p",
+        "/refine i=x",
+    ]
+
+    mode = write(tmp_path, "p2", "provider: agy\npermission-mode: accept-edits\n", body="/refine i=x")
+    assert default_command(parse_task_file(mode), mode, tmp_path / "run-001") == [
+        "agy",
+        "-p",
+        "/refine i=x",
+        "--mode",
+        "accept-edits",
+    ]
+
+    auto = write(tmp_path, "p3", "provider: agy\nauto: true\n", body="/refine i=x")
+    assert default_command(parse_task_file(auto), auto, tmp_path / "run-001") == [
+        "agy",
+        "-p",
+        "/refine i=x",
+        "--dangerously-skip-permissions",
+    ]
+
+
 @pytest.mark.parametrize("extra", ["auto: true\n", "auto: yes please\n"])
 def test_auto_rejected_for_claude_or_non_bool(tmp_path, extra):
     with pytest.raises(TaskFileError, match="auto"):

@@ -127,8 +127,12 @@ def test_default_command_provider_mapping(tmp_path):
     rdir = results_dir(tmp_path / "task.md") / "run-001"
     claude = make_spec(tmp_path, provider="claude")
     opencode = make_spec(tmp_path, provider="opencode")
+    agy = make_spec(tmp_path, provider="agy")
     assert default_command(claude, claude.source, rdir)[0] == "claude"
     assert default_command(opencode, opencode.source, rdir)[:2] == ["opencode", "run"]
+    agy_cmd = default_command(agy, agy.source, rdir)
+    assert agy_cmd[:2] == ["agy", "-p"]
+    assert agy_cmd[-2:] == ["--add-dir", str(agy.source.parent)]
 
 
 def test_default_command_passes_spend_cap_to_claude(tmp_path):

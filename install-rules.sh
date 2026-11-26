@@ -61,3 +61,6 @@ echo "  [ok] rules/global.md -> $HOME/.claude/CLAUDE.md"
 
 install_managed_section "$HOME/.config/opencode/AGENTS.md"
 echo "  [ok] rules/global.md -> $HOME/.config/opencode/AGENTS.md"
+
+install_managed_section "$HOME/.gemini/config/AGENTS.md"
+echo "  [ok] rules/global.md -> $HOME/.gemini/config/AGENTS.md"
