@@ -13,6 +13,8 @@ Directory: [current directory path]
 ### Candidate 1: [Short name for the problem]
 
 **Pattern:** [scattered concepts | testability extraction | tight coupling | shallow module]
+**Strength:** [Strong | Worth exploring | Speculative]
+**ADR conflict:** [none, or ADR-XXXX and why friction justifies reopening]
 
 **Current state:**
 - Files involved: [file paths]
