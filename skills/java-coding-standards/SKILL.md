@@ -10,8 +10,31 @@ Java 17+ in Spring Boot services. Builds on `coding-principles`; only what is sp
 ## Layout for human readers
 - Always use braces, even for one-line `if` bodies.
 - Inside a method, separate logical steps (guard, branch, transform, persist) with a blank line.
-- Order injected `private final` fields by line length, shortest first.
-- A constructor or method call with more than three arguments, or one that would not fit on a line, puts one argument per line.
+- Order a block of consecutive declarations by line length, shortest first, whenever the order does not change behavior. This applies to injected `private final` fields, the `this.x = x;` assignments in a constructor, and runs of independent local variables. Keep a dependent line after the line it depends on.
+- A constructor or method call with more than three arguments, or one that would not fit on a line, breaks after the opening `(` and puts every argument on its own line, indented 8 spaces from the statement. The closing `)` stays on the last argument's line.
+
+```java
+summary = naturalLanguageService.summarizeResults(
+        generatedSql,
+        request.query(),
+        sqlResult.columns(),
+        sqlResult.rows(),
+        sqlResult.rowCount(),
+        llmConfig,
+        sessionId);
+```
+
+```java
+private final int maxQuestions;
+private final UserService userService;
+private final SchemaProfileService schemaProfileService;
+private final LLMProviderConfigService llmProviderConfigService;
+
+this.userService = userService;
+this.maxQuestions = maxQuestions;
+this.schemaProfileService = schemaProfileService;
+this.llmProviderConfigService = llmProviderConfigService;
+```
 
 ```java
 @Override
