@@ -17,7 +17,8 @@ Turn an approved spec (`<p>-spec.md` from `orchestrate`, or any plan with `Statu
 
 ## Rules
 - The plan must be approved (`Status: Approved`). If it is not, or it has unresolved open questions, confirm with the user before decomposing.
-- Default to one task per slice of the plan. Split a slice only when it is too big for one executor run, or when it holds parts that ship independently.
+- If `$o`, or the sibling `tasks/done/`, already holds `$p-task-*.md` files, stop and ask whether to replace them, number the new tasks after the highest existing one, or write elsewhere. Never overwrite or renumber a task file without that answer: it may be mid-run.
+- Default to one task per slice of the plan. Split a slice when it is too big for one executor run: it touches more than ~5 files, needs more than ~5 Given/When/Then, spans two independent subsystems, or its title needs an "and". Also split a slice that holds parts that ship independently.
 - Never split by layer. "Set up the database schema" is not a task; "User can log in with email and password" is. Every task delivers something a user or stakeholder can observe working.
 - Acceptance criteria are Given/When/Then, checkable without judgment, and cover at least one failure path besides the happy path. Carry over the slice's criteria from the plan when it has them, and add what is missing.
 - Every criterion and the Done condition must be checkable by the executor, in the environment it runs in. What only a human can confirm (another OS, a real device, a visual judgement) is not a criterion: it goes under `Manual checks`, carried over from the slice when the plan lists it. Never write a task that holds only manual checks; attach them to the last task that touches that behavior.

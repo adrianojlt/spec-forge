@@ -75,7 +75,7 @@ Read-only on the codebase. It changes only item files and, in the backlog, statu
 
 ## 2. Stress-test an idea
 
-`/grilling` is a live interview: one question at a time, each with a recommended answer and a confidence number. Facts come from the code; decisions are yours. It stops when it can predict your next three answers, restates the understanding (outcome, user, why now, success, constraint, out of scope) and waits for an explicit yes.
+`/grilling` is a live interview. It opens with a one-line hypothesis of what you want, then asks one question at a time, each with a recommended answer and a confidence number. Facts come from the code; decisions are yours. It stops when it can predict your next three answers, restates the understanding (outcome, user, why now, success, constraint, out of scope) and waits for an explicit yes ("sounds good" or "sure, let's go" is not one). After the yes it ends the turn and offers the next step; it starts nothing itself.
 
 ![grilling flow](docs/diagrams/grilling.svg)
 
@@ -100,19 +100,19 @@ Nothing is written unless you pass `o=`. A saved summary is a valid `/orchestrat
 
 - **Input** (`i=`): a ready backlog item, a `/grilling` summary, a draft, or the idea in chat.
 - **Size first.** Trivial changes are sent back to be made directly. Small ones skip the interview and get one gate. Changes touching security or a public API are always standard. You can override the tier.
-- **Spec** (`<p>-spec.md`): problem, goals, non-goals, decisions, codebase patterns and test commands, vertical slices with Given/When/Then.
-- **Tasks** (`/plan-tasks`): one file per slice in `tasks/todo/`, each carrying the patterns to mirror and commands to validate, so a fresh executor does not search for them.
+- **Spec** (`<p>-spec.md`): problem, goals, non-goals, decisions, codebase patterns and test commands, vertical slices with Given/When/Then, ordered by dependency with the riskiest first.
+- **Tasks** (`/plan-tasks`): one file per slice in `tasks/todo/`, each carrying the patterns to mirror and commands to validate, so a fresh executor does not search for them. A slice is split when it touches more than ~5 files, needs more than ~5 Given/When/Then, spans two subsystems, or its title needs an "and". Existing task files are never overwritten without asking.
 - **Manual checks:** what only you can confirm (another OS, a real device, a visual judgement) is kept out of the acceptance criteria and listed under `Manual checks` in the spec and the task. Agents skip them, they never block a task, and the final report lists them for you.
 - **Gate 2** asks for executor (`task-execute` or `tdd`), review, verify and commit prefix; `go` takes the defaults. It also checks the working tree of the code repo is clean and, when the spec lives in that repo, offers to commit the spec and tasks.
 - **Plan only:** stop at gate 2. Run `/execute-tasks` later.
 - **Resume:** state is on disk, so a new run picks up at the first step whose output is missing.
 - **Code repo:** `c=` is the repository where the code is written and committed; it defaults to the current directory. The spec and task files may live there or in a separate specs repo. The run never commits in the specs repo: that stays yours.
 
-`overview/principles.md`, when present, is binding for `orchestrate` and the executors.
+`overview/principles.md`, when present, is binding for `orchestrate` and the executors. Its `Definition of Done` (DoD) commands (full test suite, build, lint) run after every task, on top of the task's own `Validate`. Keep them fast: they run once per task.
 
 ### Execution: /execute-tasks
 
-Runs a contiguous range of task files unattended. It writes no code itself: each task goes to a fresh executor subagent. It then runs the task's `Validate` commands itself and goes by their exit codes, so a task with such commands is never committed on the executor's word alone. Optional gates run in a separate checker subagent, and each passing task gets one local commit.
+Runs a contiguous range of task files unattended. It writes no code itself: each task goes to a fresh executor subagent. It then validates the task itself: a floor check of the diff (tests skipped, deleted or emptied, new suppression comments, stubs, loosened config all fail the task), then the task's `Validate` commands and the Definition of Done commands of `overview/principles.md`, judged by exit code alone. So a task is never committed on the executor's word alone. Optional gates run in a separate checker subagent, and each passing task gets one local commit.
 
 ![execute-tasks loop](docs/diagrams/execute-tasks.svg)
 
@@ -160,7 +160,7 @@ Every stage of `/orchestrate` is its own skill:
 
 | Skill | What it does |
 |-------|--------------|
-| `/project-principles o=overview/principles.md` | Short, durable project rules that `orchestrate` and the executors treat as binding |
+| `/project-principles o=overview/principles.md` | Short, durable project rules that `orchestrate` and the executors treat as binding, plus the Definition of Done commands every task must pass |
 | `/conversation o=overview/conversations/<topic>` | Read-only Q&A about the codebase; on "save" writes `<o>.md` + `<o>-qa.md`, "save html" adds `<o>.html` |
 | `/improve-codebase-architecture` | Finds shallow modules, scattered concepts and tight coupling; writes `architecture-report.md` |
 | `/detail-level d=<01-05>` | Caps how much the agent writes per chat turn; `more detail` expands one answer, `d=5` is off |

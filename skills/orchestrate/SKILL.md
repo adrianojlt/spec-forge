@@ -65,7 +65,7 @@ Stop when you can write the spec without inventing anything. Skip questions whos
 Tier small: ask no questions, but still collect the findings. A decision the spec needs and `$c` cannot settle makes the tier standard.
 
 ### 2. Spec (gate 1)
-Write `<o>/<p>-spec.md` from `template.md` with `Status: Draft`. Slices are vertical (each delivers something a user can observe), ordered by dependency, and carry Given/When/Then acceptance criteria. A check the executor cannot make in its own environment (another OS, a real device, a visual judgement) is not an acceptance criterion: list it under the slice's `Manual checks`, for the user.
+Write `<o>/<p>-spec.md` from `template.md` with `Status: Draft`. Slices are vertical (each delivers something a user can observe), ordered by dependency with the riskiest first where dependencies leave a choice (a new integration, an unproven approach), so a dead end shows before later slices build on it, and carry Given/When/Then acceptance criteria. A check the executor cannot make in its own environment (another OS, a real device, a visual judgement) is not an acceptance criterion: list it under the slice's `Manual checks`, for the user.
 
 Present in chat: the slice sequence, key decisions and their tradeoffs, top risks, open questions. Ask the user to approve, request edits (apply them and re-present), or edit the file themselves.
 

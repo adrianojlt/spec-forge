@@ -20,7 +20,7 @@ Interview the user relentlessly about a plan, decision, or idea, walking down ea
 - State a confidence number (0-100%) each turn. Below 70%, append a one-line reason naming what is still unresolved.
 - Resolve dependencies between decisions one by one, walking each branch of the decision tree.
 - If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up instead of asking, in a fresh subagent when the host supports it. Don't block on the lookup: while it runs, keep asking questions that do not depend on that fact. The *decisions* are the user's - put each one to them and wait.
-- Do not act on the plan until the user confirms a shared understanding has been reached.
+- Do not act on the plan until the user confirms a shared understanding has been reached, and not in the turn they confirm it (Step 6).
 - "Sounds good", "whatever you think", and silence are not confirmation. See Step 4.
 - If `$o` is set, write the `Source:` header as a path relative to the output file's own folder (e.g. `./auth-idea.md`), never absolute.
 
@@ -28,6 +28,13 @@ Interview the user relentlessly about a plan, decision, or idea, walking down ea
 
 **Step 1 - Read**
 Read `$i` in full (or capture the inline idea/plan/decision). Explore any referenced code or files before questioning.
+
+Before the first question, state your current read in one sentence, with a confidence you can defend:
+
+```
+HYPOTHESIS: <what you think the user actually wants>
+CONFIDENCE: ~<n>% [- <what is still missing, required below 70%>]
+```
 
 **Step 2 - Interview**
 Walk the decision tree one question at a time. Format each turn:
@@ -39,6 +46,8 @@ RECOMMEND:  <your recommended answer, with the reasoning that produced it>
 ```
 
 Wait for the user. Follow dependencies as answers surface them. Look up facts; never ask what the environment can tell you.
+
+A polite user may accept a recommendation to be agreeable. Be visibly willing to be wrong: when two options are close, say so and name what would make the other one right.
 
 Watch for *should-want* answers: best-practice talk ("scalable", "clean architecture", "modern"), deference to convention ("the standard approach"), or "I should probably...". These are what a thoughtful answer sounds like, not what the user wants. When you hear one, ask:
 
@@ -65,10 +74,13 @@ Yes / no / refine?
 
 `Out of scope` is mandatory. Silent disagreement about non-goals is half of all misalignment.
 
-Not a yes: "whatever you think is best" (delegation - re-ask with two concrete options), "sounds good" (ask "anything you'd refine?"), silence. Fold every correction in and restate. Loop until an explicit yes. Do not proceed or act until then.
+Not a yes: "whatever you think is best" (delegation - re-ask with two concrete options), "sounds good" or "sure, let's go" (often a polite exit - ask "anything you'd refine?"), silence, or silence followed by "ok, let's start" (the user gave up on the interview - ask what you missed). Fold every correction in and restate. Loop until an explicit yes. Do not proceed or act until then.
 
 **Step 5 - Write output (only if `$o` set)**
 If `$o` was provided, write the confirmed shared understanding to it. Never write before the explicit yes; the file itself implies a confirmation the user did not give.
+
+**Step 6 - Stop**
+After the yes (and the file, when `$o` is set), state the confirmed understanding, offer the next step (`/orchestrate i=<o>` when `$o` is set, otherwise offer to save it to a path the user names), and end the turn. Start no downstream work in the same turn; the user picks what comes next.
 
 ## Output contract
 - No file by default - the shared understanding lives in the conversation.

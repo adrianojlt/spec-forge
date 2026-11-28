@@ -125,7 +125,7 @@ Set-Content -Path "$agyDir\skills.json" -Value '{"entries":[{"path":".claude/ski
 Antigravity runs terminal commands inside a workspace sandbox by default. When a skill operates across two repositories (for example running in a specs repo while passing `c=/path/to/code-repo`, or passing `i=`/`o=` outside the open workspace), either:
 
 - Add the second directory to the session (`agy --add-dir /path/to/other-repo`), or
-- Set **Non-Workspace File Access** to `allow` in Antigravity Settings and approve out-of-sandbox execution when `git` or `Validate` commands run in `c=`.
+- Set **Non-Workspace File Access** to `allow` in Antigravity Settings and approve out-of-sandbox execution when `git`, `Validate` or Definition of Done commands run in `c=`.
 
 ## Windows
 

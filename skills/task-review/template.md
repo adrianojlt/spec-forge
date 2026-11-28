@@ -79,6 +79,14 @@ failed_checks:
 
 ---
 
+## Pre-existing
+
+[Defects already in the code before this task, outside its fix scope. Never blockers, never in failed_checks. "none" if none.]
+
+- `path/to/file.ext:line` - [issue]
+
+---
+
 ## Verdict Detail
 
 [One paragraph: overall assessment, what must be fixed before proceeding, what can be deferred.]

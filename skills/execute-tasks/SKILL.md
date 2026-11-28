@@ -8,7 +8,7 @@ disable-model-invocation: true
 # execute-tasks
 
 ## Purpose
-Drive a range of task files from `tasks/todo/` to `tasks/done/` with nobody watching. This skill writes no code and edits no task file: the executor (`task-execute`, or `tdd` with `e=tdd`) implements and owns every task state transition, and `task-review` / `task-verify` are optional gates. What this skill adds is the range, subagent isolation, its own run of each task's `Validate` commands, one commit per task, and stopping conditions.
+Drive a range of task files from `tasks/todo/` to `tasks/done/` with nobody watching. This skill writes no code and edits no task file: the executor (`task-execute`, or `tdd` with `e=tdd`) implements and owns every task state transition, and `task-review` / `task-verify` are optional gates. What this skill adds is the range, subagent isolation, its own validate step (a floor check of the diff, then each task's `Validate` and the project's Definition of Done commands), one commit per task, and stopping conditions.
 
 ## Inputs
 - `$i` - first task file of the range, in `tasks/todo/` (e.g. `features/auth/tasks/todo/auth-task-01.md`). The start number comes from its `-task-NN` suffix.
@@ -38,21 +38,32 @@ Check once, before the first task. On any failure, refuse the run, say which che
 ## Running one task
 Each attempt uses up to two **fresh subagents**, never reused and never sharing context:
 - **Executor**: read and follow `task-execute/SKILL.md` (or `tdd/SKILL.md` with `e=tdd`) with `i=<task file>`, and `c=` when supplied.
-- **Checker**: only when the executor left the task `Done` in `tasks/done/`, Validate (below) did not fail, and a gate is enabled. Runs `task-review/SKILL.md` (if `$r`) then `task-verify/SKILL.md` (if `$v`), each with `c=` when supplied. Read-only; it writes its reports and nothing else.
+- **Checker**: only when the executor left the task `Done` in `tasks/done/`, Validate (below) passed, and a gate is enabled. Runs `task-review/SKILL.md` (if `$r`) then `task-verify/SKILL.md` (if `$v`), each with `c=` when supplied. Read-only; it writes its reports and nothing else.
 
 This keeps task five out of the context of tasks one to four, and keeps any agent from grading its own work. Tell every subagent explicitly: no git writes of any kind (commit, add, push, stash, branch, tag); no work outside the task's `Scope notes: In`; no touching other tasks' files.
 
 ## Validate
-When the executor left the task `Done` in `tasks/done/` and the task file has a `Validate` section, run its commands yourself, not in a subagent: each one exactly as written, from `$c`, in the order listed. This is the one check of the run that no agent's judgement decides. Only the exit codes count: 0 passes, anything else fails. A command that does not end by itself (a dev server, a watcher) is stopped and counts as failed.
+When the executor left the task `Done` in `tasks/done/`, validate it yourself, not in a subagent, from `$c`. This is the one check of the run that no executor's word decides.
+1. **Floor**: scan the task's diff for moves that lower the bar (see Floor).
+2. **Commands**: the task's `Validate` commands, then the `Definition of Done` commands of `overview/principles.md` when it has them. Run each exactly as written, in the order listed. Only the exit codes count: 0 passes, anything else fails. A command that does not end by itself (a dev server, a watcher) is stopped and counts as failed.
 
-Write `tasks/feedback/<task-id>-validate-<NN>.md` following `template.md` (`<NN>` = the task's current `Attempts`, zero-padded; never overwrite an earlier report): `verdict: PASS` when every command exits 0, else `FAIL` with one `failed_checks` line per failing command. This report is the only file this skill writes.
+Write `tasks/feedback/<task-id>-validate-<NN>.md` following `template.md` (`<NN>` = the task's current `Attempts`, zero-padded; never overwrite an earlier report): `verdict: PASS` when the floor is clean and every command exits 0, else `FAIL` with one `failed_checks` line per floor hit and per failing command. This report is the only file this skill writes.
 
-A task without a `Validate` section gets no validate report; it is committed on the executor's word, and the final report says so.
+Every `Done` task gets a validate report, since the floor always runs. A task with no commands to run (no `Validate` section and no Definition of Done) is committed on the floor check and the executor's word, and the final report says so.
+
+## Floor
+The diff is everything uncommitted in `$c`: `git diff HEAD` plus untracked files (`git ls-files --others --exclude-standard`). Preflight required a clean tree and every passing task is committed, so it holds only this task's work. Look for these moves, matching by what the line does in its language:
+- **Test made easier**: a skip or focus marker added (`.skip`, `.only`, `xit`, `xdescribe`, `@Disabled`, `@Ignore`, `@pytest.mark.skip`, `t.Skip`, `#[ignore]`), a test file deleted, or assertions removed from a test that stays.
+- **Checker silenced**: a new suppression comment (`@ts-ignore`, `@ts-expect-error`, `eslint-disable`, `# noqa`, `# type: ignore`, `@SuppressWarnings`, `//nolint`, `#[allow(`, `istanbul ignore`, `NOSONAR`, `nosemgrep`).
+- **Unfinished work**: a stub that throws instead of doing the work (`NotImplementedError`, `UnsupportedOperationException`, `todo!()`, `unimplemented!()`, "not implemented"), an empty `catch` or `except` block, or a `TODO` or `FIXME` standing in for what the task asks for.
+- **Bar moved**: test, lint, type-check, coverage, build or CI config, or `overview/principles.md`, edited to lower a threshold, exclude a path, or remove a check.
+
+A line moved unchanged is not a hit. A move is allowed only when the task's `Scope notes: In` names that exact change (e.g. "remove the legacy export and its tests"). Every other hit is a `failed_checks` line `floor: <move> at <file:line>`.
 
 ## Outcome and commit
 Judge from disk, never from a subagent's narrative. Success is all of:
 - task `Status: Done` and the file in `tasks/done/`;
-- when the task has a `Validate` section, the validate report for this attempt has `verdict: PASS`;
+- the validate report for this attempt has `verdict: PASS`;
 - for each enabled gate, its report for this attempt (`tasks/feedback/<task-id>-review-<NN>.md` / `-verify-<NN>.md`, `<NN>` = current `Attempts`) has `verdict: PASS` or `PASS_WITH_WARNINGS`.
 
 An enabled gate with no report for this attempt means the checker failed: halt.
@@ -76,7 +87,7 @@ For each number from start to `$to`:
 Between tasks, one line each: `task-03 done, committed "[auth] Add token expiry check" (3 of 7)`.
 
 At the end or at a halt:
-1. Every number in the range with exactly one outcome: `executed-and-committed` (or "no changes to commit"), `skipped-missing`, `skipped-already-done`, `blocked`. For each executed task, whether its `Validate` commands passed or it had none.
+1. Every number in the range with exactly one outcome: `executed-and-committed` (or "no changes to commit"), `skipped-missing`, `skipped-already-done`, `blocked`. For each executed task, its validate result: floor clean or the hits, commands passed, or no commands to run.
 2. Every commit subject created, in order.
 3. Where the run stopped and why.
 4. Whether uncommitted work remains in `$c`, and that a rerun is refused until it is handled. When task and feedback files live outside `$c`, that this run did not commit them.

@@ -20,6 +20,9 @@ Review the code an executor (`task-execute` or `tdd`) produced for one task, and
 - Cover five dimensions: code quality, security, performance, spec compliance (against `Scope notes` and every Given/When/Then), and test quality. Mark a dimension N/A with a reason rather than skipping it.
 - For code quality, use `coding-principles/SKILL.md` plus the matching `<language>-coding-standards/SKILL.md` when one exists; where they conflict, the language skill wins. Also check the change follows the task's `Patterns to mirror`; a deviation without a reason in the attempt report is at least a warning.
 - Every finding has a severity, `file:line`, the issue, and a concrete fix. Skip what the project's formatter or linter already handles. Do not invent requirements beyond the task file.
+- Before reporting a finding, check it against the callers, guards and tests that reach the changed code, and drop it if they rule it out. Zero findings is a valid result; never pad the report.
+- A defect that was already in the code before this task is pre-existing: list it under `Pre-existing`, never as a blocker and never in `failed_checks`. The retry fixes only this task's work.
+- A move that lowers the bar instead of meeting it (see `execute-tasks/SKILL.md` Floor: a test skipped, deleted or emptied of assertions, a new suppression comment, a stub, a loosened config) is a blocker, unless `Scope notes: In` names that exact change.
 - Severity: **blocker** = must fix (bugs, security holes, spec violations, data loss risk); **warning** = should fix; **nit** = optional.
 
 ## Output
